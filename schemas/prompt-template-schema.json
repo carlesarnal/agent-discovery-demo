@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai:prompt-template",
+  "title": "PromptTemplate",
+  "description": "Schema for version-controlled prompt templates",
+  "type": "object",
+  "required": ["template", "variables"],
+  "properties": {
+    "template": {
+      "type": "string",
+      "description": "The prompt template with {{variable}} placeholders"
+    },
+    "variables": {
+      "type": "object",
+      "description": "Variable definitions with type, required, and default",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string" },
+          "required": { "type": "boolean" },
+          "default": {}
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "model": { "type": "string" },
+        "temperature": { "type": "number" },
+        "version": { "type": "string" }
+      }
+    }
+  },
+  "additionalProperties": false
+}

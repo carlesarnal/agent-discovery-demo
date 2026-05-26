@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:a2a:agent-card",
+  "title": "A2A Agent Card",
+  "description": "Agent-to-Agent Protocol Agent Card for registry-based discovery",
+  "type": "object",
+  "required": ["name", "description", "url", "version", "skills", "defaultInputModes", "defaultOutputModes"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable agent name"
+    },
+    "description": {
+      "type": "string",
+      "description": "What this agent does"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Agent endpoint URL"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version"
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "streaming": { "type": "boolean" },
+        "pushNotifications": { "type": "boolean" },
+        "batchProcessing": { "type": "boolean" }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "description", "inputModes", "outputModes"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "inputModes": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "outputModes": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "defaultInputModes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "defaultOutputModes": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

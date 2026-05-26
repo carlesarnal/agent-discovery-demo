@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>From Schema Registry to Agent Registry — API Days Amsterdam 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #eee; }
+  .slide { display: none; width: 100vw; height: 100vh; padding: 60px 80px; flex-direction: column; justify-content: center; }
+  .slide.active { display: flex; }
+  h1 { font-size: 2.8em; margin-bottom: 30px; color: #00d4ff; line-height: 1.2; }
+  h2 { font-size: 2.2em; margin-bottom: 25px; color: #00d4ff; }
+  h3 { font-size: 1.6em; margin-bottom: 15px; color: #7dd3fc; }
+  p, li { font-size: 1.4em; line-height: 1.6; margin-bottom: 12px; }
+  ul { padding-left: 40px; }
+  li { margin-bottom: 10px; }
+  .subtitle { font-size: 1.3em; color: #aaa; margin-top: 10px; }
+  .highlight { color: #fbbf24; font-weight: bold; }
+  .code-block { background: #0d1117; border-radius: 8px; padding: 20px 25px; margin: 15px 0; font-family: 'Fira Code', monospace; font-size: 1.1em; line-height: 1.5; overflow-x: auto; border-left: 4px solid #00d4ff; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px; }
+  .card { background: #16213e; border-radius: 12px; padding: 25px; border: 1px solid #334155; }
+  .card h3 { margin-bottom: 10px; }
+  .diagram { text-align: center; margin: 20px 0; font-size: 1.2em; }
+  .diagram-box { display: inline-block; background: #16213e; border: 2px solid #00d4ff; border-radius: 8px; padding: 12px 20px; margin: 5px 10px; }
+  .diagram-arrow { display: inline-block; color: #00d4ff; font-size: 1.5em; margin: 0 5px; vertical-align: middle; }
+  .badge { display: inline-block; background: #00d4ff; color: #1a1a2e; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; margin-left: 8px; }
+  .controls { position: fixed; bottom: 20px; right: 30px; color: #555; font-size: 0.9em; }
+  .slide-num { position: fixed; bottom: 20px; left: 30px; color: #555; font-size: 0.9em; }
+  .red { color: #f87171; }
+  .green { color: #4ade80; }
+  table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 1.2em; }
+  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #334155; }
+  th { color: #00d4ff; }
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide active" id="slide-1">
+  <h1>From Schema Registry to Agent Registry</h1>
+  <p class="subtitle">Governing AI Discovery with the A2A Protocol</p>
+  <br>
+  <p>Carles Arnal</p>
+  <p class="subtitle">Principal Software Engineer — Apicurio</p>
+  <p class="subtitle">API Days Amsterdam 2026</p>
+</div>
+
+<!-- Slide 2: The Problem -->
+<div class="slide" id="slide-2">
+  <h2>The Problem</h2>
+  <br>
+  <p>Team A updates a prompt template.</p>
+  <p>Team B's agent <span class="red">silently breaks</span>.</p>
+  <br>
+  <p>Sound familiar?</p>
+  <br>
+  <p class="subtitle">APIs went through this. Kafka schemas went through this.<br>Now AI agents are hitting the same wall.</p>
+</div>
+
+<!-- Slide 3: What Breaks -->
+<div class="slide" id="slide-3">
+  <h2>What Breaks Without Governance</h2>
+  <br>
+  <ul>
+    <li><span class="highlight">Discovery</span> — How does Agent B find Agent A?</li>
+    <li><span class="highlight">Versioning</span> — Which version of the prompt is Agent C using?</li>
+    <li><span class="highlight">Compatibility</span> — Will Agent D break if we add a field?</li>
+    <li><span class="highlight">Lifecycle</span> — When can we retire an old agent?</li>
+  </ul>
+  <br>
+  <p class="subtitle">The tooling for APIs exists. For AI agents, it hasn't caught up. Until now.</p>
+</div>
+
+<!-- Slide 4: The Solution -->
+<div class="slide" id="slide-4">
+  <h2>The Solution: Registry-Backed Agent Governance</h2>
+  <br>
+  <div class="diagram">
+    <div class="diagram-box">Agent A</div>
+    <span class="diagram-arrow">→ register →</span>
+    <div class="diagram-box" style="border-color: #fbbf24;">Apicurio Registry<br><small>CNCF Sandbox</small></div>
+    <span class="diagram-arrow">← discover ←</span>
+    <div class="diagram-box">Agent B</div>
+  </div>
+  <br>
+  <div class="two-col">
+    <div class="card">
+      <h3>What's in the Registry</h3>
+      <ul>
+        <li>A2A Agent Cards</li>
+        <li>Prompt Templates</li>
+        <li>Model Schemas</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>What the Registry Enforces</h3>
+      <ul>
+        <li>Versioning</li>
+        <li>Compatibility rules</li>
+        <li>Schema validation</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: A2A Protocol -->
+<div class="slide" id="slide-5">
+  <h2>The A2A Protocol</h2>
+  <p class="subtitle">Agent-to-Agent Protocol by Google</p>
+  <br>
+  <ul>
+    <li>Standardized <span class="highlight">Agent Cards</span> — structured capability declarations</li>
+    <li>Skills with typed input/output modes</li>
+    <li>Capability flags (streaming, batch, push notifications)</li>
+    <li>Designed for discovery via <code>/.well-known/agent.json</code></li>
+  </ul>
+  <br>
+  <p>But <code>well-known</code> requires knowing the host first.</p>
+  <p><span class="highlight">Registry-backed discovery</span> lets you query by capability.</p>
+</div>
+
+<!-- Slide 6: Agent Card -->
+<div class="slide" id="slide-6">
+  <h2>A2A Agent Card</h2>
+  <div class="code-block">
+{
+  "name": "Summarizer Agent",
+  "url": "https://agents.internal/summarizer",
+  "version": "1.0.0",
+  "capabilities": { "streaming": true },
+  "skills": [{
+    "id": "summarize-text",
+    "name": "Text Summarization",
+    "inputModes": ["text"],
+    "outputModes": ["text"]
+  }]
+}
+  </div>
+  <p class="subtitle">Registered in Apicurio Registry under the <code>ai-agents</code> group</p>
+</div>
+
+<!-- Slide 7: Demo - Register -->
+<div class="slide" id="slide-7">
+  <h2>Demo: Register Agents</h2>
+  <div class="code-block">
+./scripts/01-register-agents.sh
+  </div>
+  <br>
+  <ul>
+    <li>3 agents: Summarizer, Translator, Data Enrichment</li>
+    <li>Each with A2A Agent Card format</li>
+    <li>Stored in Registry under <code>ai-agents</code> group</li>
+  </ul>
+  <br>
+  <p class="subtitle">Open Registry UI → ai-agents group</p>
+</div>
+
+<!-- Slide 8: Prompt Governance -->
+<div class="slide" id="slide-8">
+  <h2>Prompt Template Governance</h2>
+  <br>
+  <table>
+    <tr><th>Change</th><th>Compatible?</th></tr>
+    <tr><td>Add optional variable (with default)</td><td><span class="green">Yes ✓</span></td></tr>
+    <tr><td>Remove a required variable</td><td><span class="red">No ✗ — Rejected</span></td></tr>
+    <tr><td>Rename a variable</td><td><span class="red">No ✗ — Rejected</span></td></tr>
+    <tr><td>Change model metadata</td><td><span class="green">Yes ✓</span></td></tr>
+  </table>
+  <br>
+  <p>BACKWARD compatibility rule: new versions must be consumable by agents using the previous version.</p>
+</div>
+
+<!-- Slide 9: Demo - Prompts -->
+<div class="slide" id="slide-9">
+  <h2>Demo: Prompt Versioning</h2>
+  <div class="code-block">
+./scripts/02-register-prompts.sh
+  </div>
+  <br>
+  <ul>
+    <li>v1: <code>max_sentences</code> + <code>input_text</code></li>
+    <li>v2: adds optional <code>tone</code> with default <code>"neutral"</code> → <span class="green">accepted</span></li>
+    <li>BACKWARD compatibility rule catches breaking changes</li>
+  </ul>
+</div>
+
+<!-- Slide 10: Demo - Breaking Change -->
+<div class="slide" id="slide-10">
+  <h2>Demo: Breaking Change Rejected</h2>
+  <div class="code-block">
+./scripts/05-breaking-change.sh
+  </div>
+  <br>
+  <p>Attempt: rename <code>input_text</code> → <code>content</code></p>
+  <p>Result: <span class="red">HTTP 409 — Rejected</span></p>
+  <br>
+  <p>The registry catches this <span class="highlight">before production</span>, not after.</p>
+  <p class="subtitle">Same pattern that saved Kafka deployments from schema drift.</p>
+</div>
+
+<!-- Slide 11: Demo - Discovery -->
+<div class="slide" id="slide-11">
+  <h2>Demo: Agent Discovery</h2>
+  <div class="code-block">
+./scripts/04-discover-agents.sh
+  </div>
+  <br>
+  <ul>
+    <li>List all agents in the registry</li>
+    <li>Search by name or capability</li>
+    <li>Compare prompt template versions</li>
+    <li>Retrieve model metadata</li>
+  </ul>
+  <br>
+  <p class="subtitle">This is what an orchestrator agent does at runtime.</p>
+</div>
+
+<!-- Slide 12: Discovery Approaches -->
+<div class="slide" id="slide-12">
+  <h2>Why Registry-Based Discovery?</h2>
+  <br>
+  <table>
+    <tr><th>Approach</th><th>Limitation</th></tr>
+    <tr><td>Hardcoded URLs</td><td>Breaks when endpoints change</td></tr>
+    <tr><td>DNS / Service mesh</td><td>Discovers services, not capabilities</td></tr>
+    <tr><td>A2A well-known endpoint</td><td>Requires knowing the host first</td></tr>
+    <tr><td><span class="highlight">Registry-backed</span></td><td>Query by capability, skills, I/O modes</td></tr>
+  </table>
+</div>
+
+<!-- Slide 13: Same Tool, New Artifacts -->
+<div class="slide" id="slide-13">
+  <h2>Same Tool, New Artifacts</h2>
+  <br>
+  <div class="two-col">
+    <div class="card">
+      <h3>Traditional Registry</h3>
+      <ul>
+        <li>Avro Schemas</li>
+        <li>Protobuf Definitions</li>
+        <li>OpenAPI Specs</li>
+        <li>AsyncAPI Specs</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>AI-Native Registry</h3>
+      <ul>
+        <li>A2A Agent Cards</li>
+        <li>Prompt Templates</li>
+        <li>Model Schemas</li>
+        <li>MCP Tool Definitions</li>
+      </ul>
+    </div>
+  </div>
+  <br>
+  <p>Same governance patterns. Same compatibility rules. New artifact types.</p>
+</div>
+
+<!-- Slide 14: Takeaways -->
+<div class="slide" id="slide-14">
+  <h2>Key Takeaways</h2>
+  <br>
+  <ul>
+    <li><span class="highlight">Schema registry principles</span> apply directly to AI agent governance</li>
+    <li><span class="highlight">A2A Agent Cards</span> enable registry-backed discovery</li>
+    <li><span class="highlight">Prompt templates</span> need version control with compatibility rules</li>
+    <li><span class="highlight">Apicurio Registry</span> — CNCF sandbox, open source, cloud-native</li>
+  </ul>
+  <br>
+  <p class="subtitle">The governance tooling for AI agents already exists. It just needed to evolve.</p>
+</div>
+
+<!-- Slide 15: Thank You -->
+<div class="slide" id="slide-15">
+  <h1>Thank You</h1>
+  <br>
+  <p>Carles Arnal</p>
+  <p class="subtitle">Principal Software Engineer — Apicurio</p>
+  <br>
+  <p>Demo repo: <span class="highlight">github.com/carlesarnal/agent-discovery-demo</span></p>
+  <p>Apicurio Registry: <span class="highlight">apicur.io/registry</span></p>
+  <p>A2A Protocol: <span class="highlight">google.github.io/A2A</span></p>
+</div>
+
+<div class="controls">← → or Space to navigate</div>
+<div class="slide-num" id="slide-counter">1 / 15</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + slides.length;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); showSlide(current + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); showSlide(current - 1); }
+    if (e.key === 'Home') showSlide(0);
+    if (e.key === 'End') showSlide(slides.length - 1);
+  });
+</script>
+</body>
+</html>

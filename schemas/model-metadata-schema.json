@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ml:model:metadata",
+  "title": "MLModelMetadata",
+  "description": "Schema for ML model metadata registered in Apicurio Registry",
+  "type": "object",
+  "required": ["name", "version", "framework", "artifactUri", "createdAt"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the model"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version"
+    },
+    "framework": {
+      "type": "string",
+      "enum": ["scikit-learn", "xgboost", "tensorflow", "pytorch"]
+    },
+    "artifactUri": {
+      "type": "string",
+      "description": "URI to model binary (S3, GCS, etc.)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdBy": {
+      "type": "string"
+    },
+    "inputSchema": {
+      "type": "string",
+      "description": "Reference to input schema"
+    },
+    "outputSchema": {
+      "type": "string",
+      "description": "Reference to output schema"
+    },
+    "hyperparameters": {
+      "type": "object"
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "accuracy": { "type": "number" },
+        "f1_score": { "type": "number" },
+        "roc_auc": { "type": "number" }
+      }
+    }
+  },
+  "additionalProperties": false
+}
