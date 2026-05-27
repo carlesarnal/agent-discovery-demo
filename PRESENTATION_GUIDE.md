@@ -1,6 +1,6 @@
 # Presentation Guide — API Days Amsterdam 2026
 
-Speaker notes and setup instructions for the **Agent Discovery with Apicurio Registry** demo.
+Speaker notes and setup instructions for the **From OpenAPI to Agent Cards** demo.
 
 ## Pre-Talk Setup (15 min before)
 
@@ -24,11 +24,11 @@ Speaker notes and setup instructions for the **Agent Discovery with Apicurio Reg
 
 ## Demo Flow
 
-### Act 1: The Problem (slides, ~5 min)
+### Act 1: The Standards Arc + The Problem (slides, ~5 min)
 
-- AI agents face the same governance crisis APIs hit years ago
+- Open with the OpenAPI → AsyncAPI → A2A evolution: each generation of distributed systems standardized interface descriptions
 - Show the "what breaks" scenario: Team A updates a prompt, Team B's agent silently degrades
-- Introduce registry-based governance as the proven solution
+- Connect to the audience: "You already govern OpenAPI specs. AI agents need the same treatment."
 
 ### Act 2: Agent Registration (live demo, ~5 min)
 
@@ -42,7 +42,7 @@ Speaker notes and setup instructions for the **Agent Discovery with Apicurio Reg
 - Click into `summarizer-agent` → show the Agent Card JSON (capabilities, skills)
 - Point out: this is the A2A Protocol Agent Card format
 
-**Talking point:** "Instead of hardcoding agent URLs, agents register their capabilities. Any agent in the system can discover others by querying the registry."
+**Talking point:** "Think of Agent Cards as OpenAPI specs for AI agents. Instead of hardcoding URLs, agents register their capabilities in the same registry that holds your OpenAPI and AsyncAPI definitions."
 
 ### Act 3: Prompt Governance (live demo, ~7 min)
 
@@ -94,14 +94,14 @@ Speaker notes and setup instructions for the **Agent Discovery with Apicurio Reg
 - Show the rejection — HTTP 409 with error details
 - Emphasize: this catches the problem before production, not after
 
-**Talking point:** "This is the same pattern that saved Kafka deployments from schema drift. Now it protects your AI pipeline."
+**Talking point:** "This is the same compatibility checking that protects your OpenAPI specs. The registry doesn't care if it's an API definition or a prompt template — the governance pattern is identical."
 
 ### Act 7: Takeaways (slides, ~2 min)
 
-1. Schema registry principles apply directly to AI governance
-2. A2A Agent Cards enable registry-backed discovery
-3. Prompt templates need version control with compatibility rules
-4. Apicurio Registry is a CNCF sandbox project — cloud-native, open source
+1. OpenAPI → AsyncAPI → A2A: the open standards arc continues into AI agents
+2. A2A Agent Cards are "OpenAPI for agents" — structured, versioned, discoverable
+3. Prompt templates need the same compatibility rules as API specs
+4. Apicurio Registry — one CNCF sandbox tool for OpenAPI, AsyncAPI, and A2A artifacts
 
 ## Troubleshooting
 
@@ -116,7 +116,7 @@ Speaker notes and setup instructions for the **Agent Discovery with Apicurio Reg
 
 | Section | Duration |
 |---------|----------|
-| The Problem (slides) | 5 min |
+| Standards Arc + Problem (slides) | 5 min |
 | Agent Registration | 5 min |
 | Prompt Governance | 7 min |
 | Model Schemas | 3 min |

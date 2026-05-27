@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>From Schema Registry to Agent Registry — API Days Amsterdam 2026</title>
+<title>From OpenAPI to Agent Cards — API Days Amsterdam 2026</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #eee; }
@@ -38,16 +38,34 @@
 
 <!-- Slide 1: Title -->
 <div class="slide active" id="slide-1">
-  <h1>From Schema Registry to Agent Registry</h1>
-  <p class="subtitle">Governing AI Discovery with the A2A Protocol</p>
+  <h1>From OpenAPI to Agent Cards</h1>
+  <p class="subtitle">Governing AI Discovery with Open Standards</p>
   <br>
   <p>Carles Arnal</p>
   <p class="subtitle">Principal Software Engineer — Apicurio</p>
   <p class="subtitle">API Days Amsterdam 2026</p>
 </div>
 
-<!-- Slide 2: The Problem -->
+<!-- Slide 2: The Standards Arc -->
 <div class="slide" id="slide-2">
+  <h2>The Open Standards Arc</h2>
+  <br>
+  <div class="diagram">
+    <div class="diagram-box">OpenAPI<br><small>REST APIs</small></div>
+    <span class="diagram-arrow">→</span>
+    <div class="diagram-box">AsyncAPI<br><small>Event-Driven</small></div>
+    <span class="diagram-arrow">→</span>
+    <div class="diagram-box" style="border-color: #fbbf24;">A2A Protocol<br><small>AI Agents</small></div>
+  </div>
+  <br>
+  <p>Every generation of distributed systems solved the same problem:</p>
+  <p><span class="highlight">Describe your interface. Register it. Version it. Discover it.</span></p>
+  <br>
+  <p class="subtitle">The pattern is proven. AI agents are the next artifact type.</p>
+</div>
+
+<!-- Slide 3: The Problem -->
+<div class="slide" id="slide-3">
   <h2>The Problem</h2>
   <br>
   <p>Team A updates a prompt template.</p>
@@ -55,11 +73,11 @@
   <br>
   <p>Sound familiar?</p>
   <br>
-  <p class="subtitle">APIs went through this. Kafka schemas went through this.<br>Now AI agents are hitting the same wall.</p>
+  <p class="subtitle">OpenAPI solved this for REST. AsyncAPI solved it for event-driven.<br>AI agents are hitting the same wall.</p>
 </div>
 
-<!-- Slide 3: What Breaks -->
-<div class="slide" id="slide-3">
+<!-- Slide 4: What Breaks -->
+<div class="slide" id="slide-4">
   <h2>What Breaks Without Governance</h2>
   <br>
   <ul>
@@ -72,8 +90,8 @@
   <p class="subtitle">The tooling for APIs exists. For AI agents, it hasn't caught up. Until now.</p>
 </div>
 
-<!-- Slide 4: The Solution -->
-<div class="slide" id="slide-4">
+<!-- Slide 5: The Solution -->
+<div class="slide" id="slide-5">
   <h2>The Solution: Registry-Backed Agent Governance</h2>
   <br>
   <div class="diagram">
@@ -104,8 +122,8 @@
   </div>
 </div>
 
-<!-- Slide 5: A2A Protocol -->
-<div class="slide" id="slide-5">
+<!-- Slide 6: A2A Protocol -->
+<div class="slide" id="slide-6">
   <h2>The A2A Protocol</h2>
   <p class="subtitle">Agent-to-Agent Protocol by Google</p>
   <br>
@@ -120,8 +138,8 @@
   <p><span class="highlight">Registry-backed discovery</span> lets you query by capability.</p>
 </div>
 
-<!-- Slide 6: Agent Card -->
-<div class="slide" id="slide-6">
+<!-- Slide 7: Agent Card -->
+<div class="slide" id="slide-7">
   <h2>A2A Agent Card</h2>
   <div class="code-block">
 {
@@ -140,8 +158,8 @@
   <p class="subtitle">Registered in Apicurio Registry under the <code>ai-agents</code> group</p>
 </div>
 
-<!-- Slide 7: Demo - Register -->
-<div class="slide" id="slide-7">
+<!-- Slide 8: Demo - Register -->
+<div class="slide" id="slide-8">
   <h2>Demo: Register Agents</h2>
   <div class="code-block">
 ./scripts/01-register-agents.sh
@@ -156,8 +174,8 @@
   <p class="subtitle">Open Registry UI → ai-agents group</p>
 </div>
 
-<!-- Slide 8: Prompt Governance -->
-<div class="slide" id="slide-8">
+<!-- Slide 9: Prompt Governance -->
+<div class="slide" id="slide-9">
   <h2>Prompt Template Governance</h2>
   <br>
   <table>
@@ -171,8 +189,8 @@
   <p>BACKWARD compatibility rule: new versions must be consumable by agents using the previous version.</p>
 </div>
 
-<!-- Slide 9: Demo - Prompts -->
-<div class="slide" id="slide-9">
+<!-- Slide 10: Demo - Prompts -->
+<div class="slide" id="slide-10">
   <h2>Demo: Prompt Versioning</h2>
   <div class="code-block">
 ./scripts/02-register-prompts.sh
@@ -185,8 +203,8 @@
   </ul>
 </div>
 
-<!-- Slide 10: Demo - Breaking Change -->
-<div class="slide" id="slide-10">
+<!-- Slide 11: Demo - Breaking Change -->
+<div class="slide" id="slide-11">
   <h2>Demo: Breaking Change Rejected</h2>
   <div class="code-block">
 ./scripts/05-breaking-change.sh
@@ -196,11 +214,11 @@
   <p>Result: <span class="red">HTTP 409 — Rejected</span></p>
   <br>
   <p>The registry catches this <span class="highlight">before production</span>, not after.</p>
-  <p class="subtitle">Same pattern that saved Kafka deployments from schema drift.</p>
+  <p class="subtitle">Same pattern that protects your OpenAPI specs from breaking changes.</p>
 </div>
 
-<!-- Slide 11: Demo - Discovery -->
-<div class="slide" id="slide-11">
+<!-- Slide 12: Demo - Discovery -->
+<div class="slide" id="slide-12">
   <h2>Demo: Agent Discovery</h2>
   <div class="code-block">
 ./scripts/04-discover-agents.sh
@@ -216,8 +234,8 @@
   <p class="subtitle">This is what an orchestrator agent does at runtime.</p>
 </div>
 
-<!-- Slide 12: Discovery Approaches -->
-<div class="slide" id="slide-12">
+<!-- Slide 13: Discovery Approaches -->
+<div class="slide" id="slide-13">
   <h2>Why Registry-Based Discovery?</h2>
   <br>
   <table>
@@ -229,8 +247,8 @@
   </table>
 </div>
 
-<!-- Slide 13: Same Tool, New Artifacts -->
-<div class="slide" id="slide-13">
+<!-- Slide 14: Same Tool, New Artifacts -->
+<div class="slide" id="slide-14">
   <h2>Same Tool, New Artifacts</h2>
   <br>
   <div class="two-col">
@@ -257,22 +275,22 @@
   <p>Same governance patterns. Same compatibility rules. New artifact types.</p>
 </div>
 
-<!-- Slide 14: Takeaways -->
-<div class="slide" id="slide-14">
+<!-- Slide 15: Takeaways -->
+<div class="slide" id="slide-15">
   <h2>Key Takeaways</h2>
   <br>
   <ul>
-    <li><span class="highlight">Schema registry principles</span> apply directly to AI agent governance</li>
-    <li><span class="highlight">A2A Agent Cards</span> enable registry-backed discovery</li>
-    <li><span class="highlight">Prompt templates</span> need version control with compatibility rules</li>
-    <li><span class="highlight">Apicurio Registry</span> — CNCF sandbox, open source, cloud-native</li>
+    <li><span class="highlight">OpenAPI → AsyncAPI → A2A</span> — the open standards arc continues into AI agents</li>
+    <li><span class="highlight">A2A Agent Cards</span> are "OpenAPI for agents" — structured, versioned, discoverable</li>
+    <li><span class="highlight">Prompt templates</span> need the same version control and compatibility rules as API specs</li>
+    <li><span class="highlight">Apicurio Registry</span> — one CNCF sandbox tool for OpenAPI, AsyncAPI, and A2A artifacts</li>
   </ul>
   <br>
-  <p class="subtitle">The governance tooling for AI agents already exists. It just needed to evolve.</p>
+  <p class="subtitle">The governance tooling for AI agents already exists. It's the same tooling — extended with new artifact types.</p>
 </div>
 
-<!-- Slide 15: Thank You -->
-<div class="slide" id="slide-15">
+<!-- Slide 16: Thank You -->
+<div class="slide" id="slide-16">
   <h1>Thank You</h1>
   <br>
   <p>Carles Arnal</p>
@@ -284,7 +302,7 @@
 </div>
 
 <div class="controls">← → or Space to navigate</div>
-<div class="slide-num" id="slide-counter">1 / 15</div>
+<div class="slide-num" id="slide-counter">1 / 16</div>
 
 <script>
   const slides = document.querySelectorAll('.slide');

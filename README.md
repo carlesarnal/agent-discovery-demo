@@ -1,12 +1,12 @@
-# Agent Discovery with Apicurio Registry — A2A Protocol Demo
+# From OpenAPI to Agent Cards — Governing AI Discovery with Open Standards
 
 A live demonstration of **AI agent discovery and governance** using [Apicurio Registry](https://www.apicur.io/registry/) (CNCF sandbox project) and the [A2A (Agent-to-Agent) Protocol](https://google.github.io/A2A/).
 
-Presented at **API Days Amsterdam 2026**.
+Presented at **API Days Amsterdam 2026** and **FOST Munich 2026**.
 
 ## Overview
 
-As organizations adopt AI agents, a familiar problem resurfaces: one team updates a prompt template or model schema, and downstream agents silently break. This project demonstrates how Apicurio Registry — originally built for schema and API governance — evolved to manage AI-native artifacts:
+OpenAPI standardized how we describe REST APIs. AsyncAPI did the same for event-driven architectures. Now the A2A Protocol brings that same open-standards approach to AI agents — structured capability declarations, typed interfaces, and machine-readable discovery. This project demonstrates how the same registry that governs your OpenAPI and AsyncAPI definitions now manages AI-native artifacts:
 
 - **A2A Agent Cards** — Structured capability declarations for agent discovery
 - **Prompt Templates** — Version-controlled prompts with compatibility rules
@@ -103,9 +103,9 @@ Apicurio Registry enforces compatibility rules on prompt template versions:
 - **Removing** a required variable → **Breaking change** ✗ (rejected by registry)
 - **Renaming** a variable → **Breaking change** ✗ (rejected by registry)
 
-### Schema Registry Principles Applied to AI
+### The Open Standards Arc: OpenAPI → AsyncAPI → A2A
 
-The same governance patterns that protect Kafka schemas and OpenAPI definitions now protect AI artifacts:
+The same governance patterns that protect OpenAPI specs, AsyncAPI definitions, and Kafka schemas now protect AI artifacts:
 
 - **Versioning** — Every change creates a new version
 - **Compatibility checking** — Breaking changes are caught before production
@@ -118,6 +118,7 @@ The same governance patterns that protect Kafka schemas and OpenAPI definitions 
 |-----------|------------|
 | Agent Registry | [Apicurio Registry 3.x](https://www.apicur.io/registry/) (CNCF sandbox) |
 | Agent Protocol | [A2A Protocol](https://google.github.io/A2A/) (Agent-to-Agent) |
+| API Standards | [OpenAPI](https://www.openapis.org/), [AsyncAPI](https://www.asyncapi.com/) (also governed by the same registry) |
 | Schema Format | JSON Schema (draft 2020-12) |
 | Container Runtime | Docker / Podman |
 
