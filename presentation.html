@@ -5,322 +5,894 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>From OpenAPI to Agent Cards — API Days Amsterdam 2026</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root, :root.dark {
+    --bg: #0f1117;
+    --bg-card: #1a1d27;
+    --bg-code: #151820;
+    --text: #e4e7ef;
+    --text-dim: #8b90a0;
+    --accent: #4f8ff7;
+    --accent2: #a78bfa;
+    --accent3: #34d399;
+    --accent4: #fb923c;
+    --accent5: #f472b6;
+    --red: #ef4444;
+    --border: #2a2e3b;
+  }
+
+  :root.light {
+    --bg: #f5f6fa;
+    --bg-card: #ffffff;
+    --bg-code: #eef0f6;
+    --text: #1a1d27;
+    --text-dim: #5a5f72;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --accent3: #059669;
+    --accent4: #d97706;
+    --accent5: #db2777;
+    --red: #dc2626;
+    --border: #d1d5e0;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #eee; }
-  .slide { display: none; width: 100vw; height: 100vh; padding: 60px 80px; flex-direction: column; justify-content: center; }
-  .slide.active { display: flex; }
-  h1 { font-size: 2.8em; margin-bottom: 30px; color: #00d4ff; line-height: 1.2; }
-  h2 { font-size: 2.2em; margin-bottom: 25px; color: #00d4ff; }
-  h3 { font-size: 1.6em; margin-bottom: 15px; color: #7dd3fc; }
-  p, li { font-size: 1.4em; line-height: 1.6; margin-bottom: 12px; }
-  ul { padding-left: 40px; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  .deck { position: relative; width: 100vw; height: 100vh; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 60px 80px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(40px);
+    transition: opacity 0.45s ease, transform 0.45s ease, visibility 0s 0.45s;
+  }
+  .slide.active {
+    opacity: 1; visibility: visible;
+    transform: translateX(0);
+    transition: opacity 0.45s ease, transform 0.45s ease, visibility 0s 0s;
+  }
+  .slide.leaving-left {
+    opacity: 0; visibility: hidden;
+    transform: translateX(-40px);
+    transition: opacity 0.45s ease, transform 0.45s ease, visibility 0s 0.45s;
+  }
+
+  h1 { font-size: 3.2rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; }
+  h2 { font-size: 2.4rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 24px; }
+  h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+  p, li { font-size: 1.25rem; line-height: 1.65; color: var(--text-dim); }
   li { margin-bottom: 10px; }
-  .subtitle { font-size: 1.3em; color: #aaa; margin-top: 10px; }
-  .highlight { color: #fbbf24; font-weight: bold; }
-  .code-block { background: #0d1117; border-radius: 8px; padding: 20px 25px; margin: 15px 0; font-family: 'Fira Code', monospace; font-size: 1.1em; line-height: 1.5; overflow-x: auto; border-left: 4px solid #00d4ff; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px; }
-  .card { background: #16213e; border-radius: 12px; padding: 25px; border: 1px solid #334155; }
-  .card h3 { margin-bottom: 10px; }
-  .diagram { text-align: center; margin: 20px 0; font-size: 1.2em; }
-  .diagram-box { display: inline-block; background: #16213e; border: 2px solid #00d4ff; border-radius: 8px; padding: 12px 20px; margin: 5px 10px; }
-  .diagram-arrow { display: inline-block; color: #00d4ff; font-size: 1.5em; margin: 0 5px; vertical-align: middle; }
-  .badge { display: inline-block; background: #00d4ff; color: #1a1a2e; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; margin-left: 8px; }
-  .controls { position: fixed; bottom: 20px; right: 30px; color: #555; font-size: 0.9em; }
-  .slide-num { position: fixed; bottom: 20px; left: 30px; color: #555; font-size: 0.9em; }
-  .red { color: #f87171; }
-  .green { color: #4ade80; }
-  table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 1.2em; }
-  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #334155; }
-  th { color: #00d4ff; }
+  ul { list-style: none; padding-left: 0; }
+  ul li::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 14px; vertical-align: middle; }
+
+  .accent { color: var(--accent); }
+  .accent2 { color: var(--accent2); }
+  .accent3 { color: var(--accent3); }
+  .accent4 { color: var(--accent4); }
+  .accent5 { color: var(--accent5); }
+  strong { color: var(--text); font-weight: 600; }
+
+  code, .code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9em;
+    background: var(--bg-code);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--accent3);
+  }
+
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 32px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    max-width: 100%;
+    color: var(--text-dim);
+    text-align: left;
+  }
+  pre .kw { color: var(--accent2); }
+  pre .fn { color: var(--accent); }
+  pre .str { color: var(--accent3); }
+  pre .cmt { color: #555b6e; font-style: italic; }
+  pre .num { color: var(--accent4); }
+
+  .content { max-width: 1200px; width: 100%; text-align: left; }
+  .content.center { text-align: center; }
+
+  .cols { display: grid; gap: 32px; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .badge-blue { background: rgba(79,143,247,0.15); color: var(--accent); }
+  .badge-green { background: rgba(52,211,153,0.15); color: var(--accent3); }
+  .badge-purple { background: rgba(167,139,250,0.15); color: var(--accent2); }
+  .badge-orange { background: rgba(251,146,60,0.15); color: var(--accent4); }
+
+  .tag-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  .arch-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: nowrap;
+    margin: 20px 0;
+  }
+  .arch-node {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px;
+    text-align: center;
+    min-width: 130px;
+  }
+  .arch-node.highlight { border-color: var(--accent); box-shadow: 0 0 20px rgba(79,143,247,0.15); }
+  .arch-node.highlight2 { border-color: var(--accent2); box-shadow: 0 0 20px rgba(167,139,250,0.15); }
+  .arch-node.highlight3 { border-color: var(--accent3); box-shadow: 0 0 20px rgba(52,211,153,0.15); }
+  .arch-node.highlight4 { border-color: var(--accent4); box-shadow: 0 0 20px rgba(251,146,60,0.15); }
+  .arch-node .node-title { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+  .arch-node .node-sub { font-size: 0.72rem; color: var(--text-dim); margin-top: 4px; }
+  .arch-arrow {
+    font-size: 1.6rem;
+    color: var(--text-dim);
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+
+  @keyframes flowPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+  .flow-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: flowPulse 1.5s ease-in-out infinite;
+  }
+  .flow-dot:nth-child(2) { animation-delay: 0.3s; }
+  .flow-dot:nth-child(3) { animation-delay: 0.6s; }
+
+  .progress {
+    position: fixed; bottom: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.4s ease;
+    z-index: 100;
+  }
+
+  .slide-counter {
+    position: fixed; bottom: 16px; right: 28px;
+    font-size: 0.8rem; color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    z-index: 100;
+  }
+
+  .title-slide h1 {
+    font-size: 3.6rem;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent5) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 24px;
+  }
+  .title-slide .subtitle {
+    font-size: 1.4rem; color: var(--text-dim);
+    font-weight: 400; margin-bottom: 40px;
+  }
+  .title-meta {
+    font-size: 1rem; color: var(--text-dim);
+    display: flex; gap: 32px; align-items: center;
+  }
+  .title-meta span { display: flex; align-items: center; gap: 8px; }
+
+  .section-slide { text-align: center; }
+  .section-slide .section-num {
+    font-size: 5rem; font-weight: 800;
+    color: var(--accent);
+    opacity: 0.15;
+    line-height: 1;
+    margin-bottom: -10px;
+  }
+  .section-slide h2 { font-size: 2.8rem; margin-bottom: 12px; }
+  .section-slide p { font-size: 1.3rem; }
+
+  .takeaway-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .takeaway-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px;
+  }
+  .takeaway-card .num {
+    font-size: 2.4rem; font-weight: 800; line-height: 1;
+    margin-bottom: 12px;
+  }
+  .takeaway-card p { font-size: 1.1rem; }
+
+  .tech-row {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    justify-content: center; align-items: center;
+    margin: 24px 0;
+  }
+  .tech-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .cmd-row {
+    display: flex; align-items: center; gap: 10px; margin-top: 8px;
+  }
+  .cmd-row code {
+    flex: 1; font-size: 0.82rem; padding: 6px 12px;
+    border-radius: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .copy-btn {
+    background: rgba(79,143,247,0.15);
+    border: 1px solid rgba(79,143,247,0.3);
+    color: var(--accent);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.72rem; font-weight: 600;
+    padding: 5px 12px; border-radius: 6px;
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .copy-btn:hover { background: rgba(79,143,247,0.3); border-color: var(--accent); }
+  .copy-btn.copied { background: rgba(52,211,153,0.2); border-color: var(--accent3); color: var(--accent3); }
+
+  .help-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: none; justify-content: center; align-items: center;
+    z-index: 500;
+  }
+  .help-overlay.visible { display: flex; }
+  .help-box {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px 48px; max-width: 480px; width: 90%;
+  }
+  .help-box h3 { margin-bottom: 20px; text-transform: none; letter-spacing: 0; font-size: 1.2rem; }
+  .help-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .help-row:last-child { border-bottom: none; }
+  .help-key { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; padding: 3px 10px; color: var(--accent); }
+  .help-desc { font-size: 0.9rem; color: var(--text-dim); }
+
+  .presenter-timer {
+    position: fixed; bottom: 16px; left: 28px;
+    font-size: 0.8rem; color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    z-index: 100; display: none;
+  }
+  .presenter-timer.visible { display: block; }
+
+  .theme-toggle {
+    position: fixed; top: 16px; right: 28px; z-index: 300;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 12px; cursor: pointer;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.75rem; font-weight: 600; color: var(--text-dim);
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+
+  .speaker-notes {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.92);
+    border-top: 1px solid var(--border);
+    padding: 20px 40px;
+    font-size: 0.9rem; color: var(--text-dim); line-height: 1.6;
+    max-height: 200px; overflow-y: auto;
+    display: none; z-index: 200;
+  }
+  .speaker-notes.visible { display: block; }
+  .speaker-notes strong { color: var(--accent); }
+
+  :root.light .title-slide h1 {
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  :root.light .progress { background: linear-gradient(90deg, #2563eb, #7c3aed); }
+  :root.light pre .cmt { color: #9ca3af; }
+  :root.light .section-slide .section-num { color: var(--accent); }
+  :root.light .speaker-notes { background: rgba(255,255,255,0.95); border-top-color: var(--border); }
+  :root.light .help-overlay { background: rgba(0,0,0,0.5); }
+
+  table.comparison { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  table.comparison th, table.comparison td { padding: 14px 20px; text-align: left; font-size: 1.05rem; border-bottom: 1px solid var(--border); }
+  table.comparison th { color: var(--accent); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  table.comparison td { color: var(--text-dim); }
+  table.comparison .yes { color: var(--accent3); font-weight: 600; }
+  table.comparison .no { color: var(--red); font-weight: 600; }
 </style>
 </head>
 <body>
 
-<!-- Slide 1: Title -->
-<div class="slide active" id="slide-1">
-  <h1>From OpenAPI to Agent Cards</h1>
-  <p class="subtitle">Governing AI Discovery with Open Standards</p>
-  <br>
-  <p>Carles Arnal</p>
-  <p class="subtitle">Principal Software Engineer — Apicurio</p>
-  <p class="subtitle">API Days Amsterdam 2026</p>
-</div>
+<button class="theme-toggle" onclick="toggleTheme()">Light / Dark</button>
 
-<!-- Slide 2: The Standards Arc -->
-<div class="slide" id="slide-2">
-  <h2>The Open Standards Arc</h2>
-  <br>
-  <div class="diagram">
-    <div class="diagram-box">OpenAPI<br><small>REST APIs</small></div>
-    <span class="diagram-arrow">→</span>
-    <div class="diagram-box">AsyncAPI<br><small>Event-Driven</small></div>
-    <span class="diagram-arrow">→</span>
-    <div class="diagram-box" style="border-color: #fbbf24;">A2A Protocol<br><small>AI Agents</small></div>
-  </div>
-  <br>
-  <p>Every generation of distributed systems solved the same problem:</p>
-  <p><span class="highlight">Describe your interface. Register it. Version it. Discover it.</span></p>
-  <br>
-  <p class="subtitle">The pattern is proven. AI agents are the next artifact type.</p>
-</div>
+<div class="deck" id="deck">
 
-<!-- Slide 3: The Problem -->
-<div class="slide" id="slide-3">
-  <h2>The Problem</h2>
-  <br>
-  <p>Team A updates a prompt template.</p>
-  <p>Team B's agent <span class="red">silently breaks</span>.</p>
-  <br>
-  <p>Sound familiar?</p>
-  <br>
-  <p class="subtitle">OpenAPI solved this for REST. AsyncAPI solved it for event-driven.<br>AI agents are hitting the same wall.</p>
-</div>
-
-<!-- Slide 4: What Breaks -->
-<div class="slide" id="slide-4">
-  <h2>What Breaks Without Governance</h2>
-  <br>
-  <ul>
-    <li><span class="highlight">Discovery</span> — How does Agent B find Agent A?</li>
-    <li><span class="highlight">Versioning</span> — Which version of the prompt is Agent C using?</li>
-    <li><span class="highlight">Compatibility</span> — Will Agent D break if we add a field?</li>
-    <li><span class="highlight">Lifecycle</span> — When can we retire an old agent?</li>
-  </ul>
-  <br>
-  <p class="subtitle">The tooling for APIs exists. For AI agents, it hasn't caught up. Until now.</p>
-</div>
-
-<!-- Slide 5: The Solution -->
-<div class="slide" id="slide-5">
-  <h2>The Solution: Registry-Backed Agent Governance</h2>
-  <br>
-  <div class="diagram">
-    <div class="diagram-box">Agent A</div>
-    <span class="diagram-arrow">→ register →</span>
-    <div class="diagram-box" style="border-color: #fbbf24;">Apicurio Registry<br><small>CNCF Sandbox</small></div>
-    <span class="diagram-arrow">← discover ←</span>
-    <div class="diagram-box">Agent B</div>
-  </div>
-  <br>
-  <div class="two-col">
-    <div class="card">
-      <h3>What's in the Registry</h3>
-      <ul>
-        <li>A2A Agent Cards</li>
-        <li>Prompt Templates</li>
-        <li>Model Schemas</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>What the Registry Enforces</h3>
-      <ul>
-        <li>Versioning</li>
-        <li>Compatibility rules</li>
-        <li>Schema validation</li>
-      </ul>
+<!-- =========== SLIDE 0: TITLE =========== -->
+<div class="slide title-slide active" data-notes="Introduce yourself. Frame the narrative: the industry has solved API governance with open standards like OpenAPI and AsyncAPI. AI agents need the same treatment. This talk shows how.">
+  <div class="content center">
+    <h1>From OpenAPI to Agent Cards</h1>
+    <p class="subtitle">Governing AI Discovery with Open Standards</p>
+    <div class="title-meta">
+      <span><strong>Carles Arnal</strong></span>
+      <span>Principal Software Engineer</span>
+      <span>API Days Amsterdam 2026</span>
     </div>
   </div>
 </div>
 
-<!-- Slide 6: A2A Protocol -->
-<div class="slide" id="slide-6">
-  <h2>The A2A Protocol</h2>
-  <p class="subtitle">Agent-to-Agent Protocol by Google</p>
-  <br>
-  <ul>
-    <li>Standardized <span class="highlight">Agent Cards</span> — structured capability declarations</li>
-    <li>Skills with typed input/output modes</li>
-    <li>Capability flags (streaming, batch, push notifications)</li>
-    <li>Designed for discovery via <code>/.well-known/agent.json</code></li>
-  </ul>
-  <br>
-  <p>But <code>well-known</code> requires knowing the host first.</p>
-  <p><span class="highlight">Registry-backed discovery</span> lets you query by capability.</p>
+<!-- =========== SLIDE 1: THE STANDARDS ARC =========== -->
+<div class="slide" data-notes="This is the central thesis of the talk. Every generation of distributed systems solved the same problem — describe your interface in a standard format, register it, version it, discover it. OpenAPI did it for REST. AsyncAPI did it for event-driven. Now A2A does it for AI agents. The pattern is proven. The tooling already exists. We just need to extend it.">
+  <div class="content center">
+    <h3>The Pattern</h3>
+    <h2>Every generation solved the same problem</h2>
+    <div class="arch-diagram" style="margin: 40px 0;">
+      <div class="arch-node highlight">
+        <div class="node-title">OpenAPI</div>
+        <div class="node-sub">REST APIs</div>
+        <div class="tag-row" style="justify-content:center;"><span class="badge badge-blue">2015</span></div>
+      </div>
+      <div class="arch-arrow"><span class="flow-dot"></span> <span class="flow-dot"></span> <span class="flow-dot"></span></div>
+      <div class="arch-node highlight2">
+        <div class="node-title">AsyncAPI</div>
+        <div class="node-sub">Event-Driven</div>
+        <div class="tag-row" style="justify-content:center;"><span class="badge badge-purple">2019</span></div>
+      </div>
+      <div class="arch-arrow"><span class="flow-dot"></span> <span class="flow-dot"></span> <span class="flow-dot"></span></div>
+      <div class="arch-node highlight4">
+        <div class="node-title">A2A Protocol</div>
+        <div class="node-sub">AI Agents</div>
+        <div class="tag-row" style="justify-content:center;"><span class="badge badge-orange">2025</span></div>
+      </div>
+    </div>
+    <p style="font-size:1.3rem; margin-top:20px;"><strong>Describe</strong> your interface. <strong>Register</strong> it. <strong>Version</strong> it. <strong>Discover</strong> it.</p>
+  </div>
 </div>
 
-<!-- Slide 7: Agent Card -->
-<div class="slide" id="slide-7">
-  <h2>A2A Agent Card</h2>
-  <div class="code-block">
+<!-- =========== SLIDE 2: THE PROBLEM =========== -->
+<div class="slide" data-notes="Frame the problem with a concrete scenario. Team A changes a prompt template — renames a variable, removes a field. Team B's agent was using that variable. It silently degrades. No error, no alert — just wrong outputs. This happened to APIs 10 years ago. OpenAPI solved it. It happened to Kafka schemas. Avro + Schema Registry solved it. Now it's happening to AI agents.">
+  <div class="content">
+    <h3>The Problem</h3>
+    <h2>AI agents face the same governance crisis<br>that APIs hit years ago</h2>
+    <div class="cols cols-3" style="margin-top: 36px;">
+      <div class="card">
+        <p style="font-size:1.8rem; margin-bottom:12px;" class="accent">?</p>
+        <p><strong>Discovery</strong></p>
+        <p style="font-size:1rem;">How does Agent B find Agent A's capabilities?</p>
+      </div>
+      <div class="card">
+        <p style="font-size:1.8rem; margin-bottom:12px;" class="accent2">v</p>
+        <p><strong>Versioning</strong></p>
+        <p style="font-size:1rem;">Which version of the prompt is Agent C using?</p>
+      </div>
+      <div class="card">
+        <p style="font-size:1.8rem; margin-bottom:12px;" class="accent4">!</p>
+        <p><strong>Compatibility</strong></p>
+        <p style="font-size:1rem;">Will Agent D break if we rename a field?</p>
+      </div>
+    </div>
+    <p style="margin-top: 28px;">OpenAPI solved this for REST. AsyncAPI solved it for event-driven.<br>AI agents are hitting the same wall.</p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 3: SECTION — THE SOLUTION =========== -->
+<div class="slide section-slide" data-notes="Transition to the solution. We don't need new tooling — we need to extend the tooling that already works.">
+  <div class="content center">
+    <div class="section-num">01</div>
+    <h2>The Solution</h2>
+    <p>Registry-backed agent governance with open standards</p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 4: APICURIO REGISTRY =========== -->
+<div class="slide" data-notes="Introduce Apicurio Registry. This is a CNCF sandbox project that already governs OpenAPI, AsyncAPI, Avro, Protobuf, JSON Schema, and GraphQL definitions. It provides versioning, compatibility checking, validation, and lifecycle management. The key insight is that A2A Agent Cards, prompt templates, and model schemas are just new artifact types — the governance framework is identical. Same tool, new artifacts. If you're already using Apicurio or Confluent Schema Registry for your Kafka schemas, you already understand the pattern.">
+  <div class="content">
+    <h3>Apicurio Registry</h3>
+    <h2>One registry for all your interface contracts</h2>
+    <div class="cols cols-2" style="margin-top: 28px;">
+      <div class="card">
+        <h3>Traditional artifacts</h3>
+        <ul>
+          <li><strong>OpenAPI</strong> — REST API definitions</li>
+          <li><strong>AsyncAPI</strong> — Event-driven interfaces</li>
+          <li><strong>Avro / Protobuf</strong> — Kafka schemas</li>
+          <li><strong>JSON Schema</strong> — Data validation</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color: var(--accent4);">
+        <h3 style="color: var(--accent4);">AI-native artifacts</h3>
+        <ul>
+          <li><strong>A2A Agent Cards</strong> — Agent capabilities</li>
+          <li><strong>Prompt Templates</strong> — Versioned prompts</li>
+          <li><strong>Model Schemas</strong> — ML metadata</li>
+          <li><strong>MCP Tool Definitions</strong> — Tool contracts</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tag-row" style="margin-top: 24px; justify-content: center;">
+      <span class="badge badge-green">CNCF Sandbox</span>
+      <span class="badge badge-blue">Versioning</span>
+      <span class="badge badge-purple">Compatibility Rules</span>
+      <span class="badge badge-orange">Schema Validation</span>
+    </div>
+  </div>
+</div>
+
+<!-- =========== SLIDE 5: ARCHITECTURE =========== -->
+<div class="slide" data-notes="Show the architecture. Agents register their A2A Agent Cards in the registry. Other agents query the registry to discover peers by capability. The registry enforces compatibility rules — if someone pushes a breaking change to a prompt template, the registry rejects it before it reaches production. This is the same pattern as registering an OpenAPI spec in the registry and letting consumers discover APIs programmatically.">
+  <div class="content center">
+    <h3>Architecture</h3>
+    <h2>Registry-backed agent discovery</h2>
+    <div class="arch-diagram" style="margin: 36px 0;">
+      <div class="arch-node highlight">
+        <div class="node-title">Agent A</div>
+        <div class="node-sub">Summarizer</div>
+      </div>
+      <div class="arch-arrow">register &rarr;</div>
+      <div class="arch-node highlight4" style="min-width: 200px;">
+        <div class="node-title">Apicurio Registry</div>
+        <div class="node-sub">CNCF Sandbox</div>
+        <div style="margin-top:8px; font-size:0.7rem; color:var(--text-dim);">Agent Cards &bull; Prompts &bull; Schemas</div>
+      </div>
+      <div class="arch-arrow">&larr; discover</div>
+      <div class="arch-node highlight2">
+        <div class="node-title">Agent B</div>
+        <div class="node-sub">Orchestrator</div>
+      </div>
+    </div>
+    <div class="arch-diagram">
+      <div class="arch-node highlight3" style="padding: 12px 18px;">
+        <div class="node-title" style="font-size:0.78rem;">Compatibility Rules</div>
+        <div class="node-sub">BACKWARD / FULL</div>
+      </div>
+      <div style="padding: 0 20px; color: var(--text-dim);">+</div>
+      <div class="arch-node highlight3" style="padding: 12px 18px;">
+        <div class="node-title" style="font-size:0.78rem;">Schema Validation</div>
+        <div class="node-sub">JSON Schema</div>
+      </div>
+      <div style="padding: 0 20px; color: var(--text-dim);">+</div>
+      <div class="arch-node highlight3" style="padding: 12px 18px;">
+        <div class="node-title" style="font-size:0.78rem;">Version History</div>
+        <div class="node-sub">Full audit trail</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========== SLIDE 6: A2A PROTOCOL =========== -->
+<div class="slide" data-notes="Explain the A2A Protocol. It's Google's open standard for agent-to-agent communication. The key construct is the Agent Card — a structured JSON document that declares an agent's name, URL, version, capabilities (streaming, batch, push), and skills with typed input/output modes. Think of it as an OpenAPI spec for an AI agent. The protocol defines a well-known endpoint at /.well-known/agent.json, but that requires knowing the host first. Registry-backed discovery removes that limitation — you can query by capability without knowing any URLs.">
+  <div class="content">
+    <h3>The A2A Protocol</h3>
+    <h2>OpenAPI for AI agents</h2>
+    <div class="cols cols-2" style="margin-top: 28px;">
+      <div>
+        <ul>
+          <li><strong>Agent Cards</strong> — structured capability declarations</li>
+          <li><strong>Skills</strong> — typed input/output modes</li>
+          <li><strong>Capabilities</strong> — streaming, batch, push notifications</li>
+          <li><strong>Discovery</strong> — <code>/.well-known/agent.json</code></li>
+        </ul>
+        <p style="margin-top: 20px;">But <code>well-known</code> requires knowing the host first.</p>
+        <p><strong class="accent">Registry-backed discovery</strong> lets you query by capability.</p>
+      </div>
+      <div>
+        <pre><span class="cmt">// A2A Agent Card</span>
 {
-  "name": "Summarizer Agent",
-  "url": "https://agents.internal/summarizer",
-  "version": "1.0.0",
-  "capabilities": { "streaming": true },
-  "skills": [{
-    "id": "summarize-text",
-    "name": "Text Summarization",
-    "inputModes": ["text"],
-    "outputModes": ["text"]
+  <span class="str">"name"</span>: <span class="str">"Summarizer Agent"</span>,
+  <span class="str">"url"</span>: <span class="str">"https://agents.internal/summarizer"</span>,
+  <span class="str">"version"</span>: <span class="str">"1.0.0"</span>,
+  <span class="str">"capabilities"</span>: { <span class="str">"streaming"</span>: <span class="kw">true</span> },
+  <span class="str">"skills"</span>: [{
+    <span class="str">"id"</span>: <span class="str">"summarize-text"</span>,
+    <span class="str">"name"</span>: <span class="str">"Text Summarization"</span>,
+    <span class="str">"inputModes"</span>: [<span class="str">"text"</span>],
+    <span class="str">"outputModes"</span>: [<span class="str">"text"</span>]
   }]
-}
-  </div>
-  <p class="subtitle">Registered in Apicurio Registry under the <code>ai-agents</code> group</p>
-</div>
-
-<!-- Slide 8: Demo - Register -->
-<div class="slide" id="slide-8">
-  <h2>Demo: Register Agents</h2>
-  <div class="code-block">
-./scripts/01-register-agents.sh
-  </div>
-  <br>
-  <ul>
-    <li>3 agents: Summarizer, Translator, Data Enrichment</li>
-    <li>Each with A2A Agent Card format</li>
-    <li>Stored in Registry under <code>ai-agents</code> group</li>
-  </ul>
-  <br>
-  <p class="subtitle">Open Registry UI → ai-agents group</p>
-</div>
-
-<!-- Slide 9: Prompt Governance -->
-<div class="slide" id="slide-9">
-  <h2>Prompt Template Governance</h2>
-  <br>
-  <table>
-    <tr><th>Change</th><th>Compatible?</th></tr>
-    <tr><td>Add optional variable (with default)</td><td><span class="green">Yes ✓</span></td></tr>
-    <tr><td>Remove a required variable</td><td><span class="red">No ✗ — Rejected</span></td></tr>
-    <tr><td>Rename a variable</td><td><span class="red">No ✗ — Rejected</span></td></tr>
-    <tr><td>Change model metadata</td><td><span class="green">Yes ✓</span></td></tr>
-  </table>
-  <br>
-  <p>BACKWARD compatibility rule: new versions must be consumable by agents using the previous version.</p>
-</div>
-
-<!-- Slide 10: Demo - Prompts -->
-<div class="slide" id="slide-10">
-  <h2>Demo: Prompt Versioning</h2>
-  <div class="code-block">
-./scripts/02-register-prompts.sh
-  </div>
-  <br>
-  <ul>
-    <li>v1: <code>max_sentences</code> + <code>input_text</code></li>
-    <li>v2: adds optional <code>tone</code> with default <code>"neutral"</code> → <span class="green">accepted</span></li>
-    <li>BACKWARD compatibility rule catches breaking changes</li>
-  </ul>
-</div>
-
-<!-- Slide 11: Demo - Breaking Change -->
-<div class="slide" id="slide-11">
-  <h2>Demo: Breaking Change Rejected</h2>
-  <div class="code-block">
-./scripts/05-breaking-change.sh
-  </div>
-  <br>
-  <p>Attempt: rename <code>input_text</code> → <code>content</code></p>
-  <p>Result: <span class="red">HTTP 409 — Rejected</span></p>
-  <br>
-  <p>The registry catches this <span class="highlight">before production</span>, not after.</p>
-  <p class="subtitle">Same pattern that protects your OpenAPI specs from breaking changes.</p>
-</div>
-
-<!-- Slide 12: Demo - Discovery -->
-<div class="slide" id="slide-12">
-  <h2>Demo: Agent Discovery</h2>
-  <div class="code-block">
-./scripts/04-discover-agents.sh
-  </div>
-  <br>
-  <ul>
-    <li>List all agents in the registry</li>
-    <li>Search by name or capability</li>
-    <li>Compare prompt template versions</li>
-    <li>Retrieve model metadata</li>
-  </ul>
-  <br>
-  <p class="subtitle">This is what an orchestrator agent does at runtime.</p>
-</div>
-
-<!-- Slide 13: Discovery Approaches -->
-<div class="slide" id="slide-13">
-  <h2>Why Registry-Based Discovery?</h2>
-  <br>
-  <table>
-    <tr><th>Approach</th><th>Limitation</th></tr>
-    <tr><td>Hardcoded URLs</td><td>Breaks when endpoints change</td></tr>
-    <tr><td>DNS / Service mesh</td><td>Discovers services, not capabilities</td></tr>
-    <tr><td>A2A well-known endpoint</td><td>Requires knowing the host first</td></tr>
-    <tr><td><span class="highlight">Registry-backed</span></td><td>Query by capability, skills, I/O modes</td></tr>
-  </table>
-</div>
-
-<!-- Slide 14: Same Tool, New Artifacts -->
-<div class="slide" id="slide-14">
-  <h2>Same Tool, New Artifacts</h2>
-  <br>
-  <div class="two-col">
-    <div class="card">
-      <h3>Traditional Registry</h3>
-      <ul>
-        <li>Avro Schemas</li>
-        <li>Protobuf Definitions</li>
-        <li>OpenAPI Specs</li>
-        <li>AsyncAPI Specs</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>AI-Native Registry</h3>
-      <ul>
-        <li>A2A Agent Cards</li>
-        <li>Prompt Templates</li>
-        <li>Model Schemas</li>
-        <li>MCP Tool Definitions</li>
-      </ul>
+}</pre>
+      </div>
     </div>
   </div>
-  <br>
-  <p>Same governance patterns. Same compatibility rules. New artifact types.</p>
 </div>
 
-<!-- Slide 15: Takeaways -->
-<div class="slide" id="slide-15">
-  <h2>Key Takeaways</h2>
-  <br>
-  <ul>
-    <li><span class="highlight">OpenAPI → AsyncAPI → A2A</span> — the open standards arc continues into AI agents</li>
-    <li><span class="highlight">A2A Agent Cards</span> are "OpenAPI for agents" — structured, versioned, discoverable</li>
-    <li><span class="highlight">Prompt templates</span> need the same version control and compatibility rules as API specs</li>
-    <li><span class="highlight">Apicurio Registry</span> — one CNCF sandbox tool for OpenAPI, AsyncAPI, and A2A artifacts</li>
-  </ul>
-  <br>
-  <p class="subtitle">The governance tooling for AI agents already exists. It's the same tooling — extended with new artifact types.</p>
+<!-- =========== SLIDE 7: SECTION — LIVE DEMO =========== -->
+<div class="slide section-slide" data-notes="Transition to the live demo. Everything from here on is live — terminal commands against a real Apicurio Registry instance.">
+  <div class="content center">
+    <div class="section-num">02</div>
+    <h2>Live Demo</h2>
+    <p>Agents registering, discovering, and evolving — live on stage</p>
+  </div>
 </div>
 
-<!-- Slide 16: Thank You -->
-<div class="slide" id="slide-16">
-  <h1>Thank You</h1>
-  <br>
-  <p>Carles Arnal</p>
-  <p class="subtitle">Principal Software Engineer — Apicurio</p>
-  <br>
-  <p>Demo repo: <span class="highlight">github.com/carlesarnal/agent-discovery-demo</span></p>
-  <p>Apicurio Registry: <span class="highlight">apicur.io/registry</span></p>
-  <p>A2A Protocol: <span class="highlight">google.github.io/A2A</span></p>
+<!-- =========== SLIDE 8: DEMO — START REGISTRY =========== -->
+<div class="slide" data-notes="Start the registry if it's not already running. Show the clean state — zero artifacts. Open the Apicurio Registry UI in the browser tab.">
+  <div class="content">
+    <h3>Demo Setup</h3>
+    <h2>Start Apicurio Registry</h2>
+    <div class="cmd-row">
+      <code>docker compose up -d && ./scripts/wait-for-registry.sh</code>
+      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+    </div>
+    <div class="cmd-row" style="margin-top: 16px;">
+      <code>curl -s http://localhost:8080/apis/registry/v3/search/artifacts | jq '.count'</code>
+      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+    </div>
+    <p style="margin-top: 24px;">Open <a href="http://localhost:8080" style="color:var(--accent);">http://localhost:8080</a> — Apicurio Registry UI</p>
+    <p>This is the same registry you'd use for <strong>OpenAPI</strong>, <strong>AsyncAPI</strong>, and <strong>Avro</strong> schemas. Clean slate — zero artifacts.</p>
+  </div>
 </div>
 
-<div class="controls">← → or Space to navigate</div>
-<div class="slide-num" id="slide-counter">1 / 16</div>
+<!-- =========== SLIDE 9: DEMO — REGISTER AGENTS =========== -->
+<div class="slide" data-notes="Run the agent registration script. Three agents: Summarizer (text in, text out), Translator (text in, text out), and Data Enrichment (JSON in, JSON out, supports batch). Switch to the Registry UI and show the ai-agents group. Click into summarizer-agent to show the Agent Card JSON — capabilities, skills with typed input/output modes. Point out: this is the A2A Protocol Agent Card format, stored in the same registry as your OpenAPI specs. Any agent can query the registry to find peers by capability.">
+  <div class="content">
+    <h3>Step 1</h3>
+    <h2>Register A2A Agent Cards</h2>
+    <div class="cmd-row">
+      <code>./scripts/01-register-agents.sh</code>
+      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+    </div>
+    <div class="cols cols-3" style="margin-top: 28px;">
+      <div class="card">
+        <h3>Summarizer</h3>
+        <p style="font-size:0.95rem;"><strong>Skills:</strong> Text Summarization, PDF Summarization</p>
+        <div class="tag-row"><span class="badge badge-blue">text &rarr; text</span></div>
+      </div>
+      <div class="card">
+        <h3>Translator</h3>
+        <p style="font-size:0.95rem;"><strong>Skills:</strong> Text Translation</p>
+        <div class="tag-row"><span class="badge badge-purple">text &rarr; text</span></div>
+      </div>
+      <div class="card">
+        <h3>Data Enrichment</h3>
+        <p style="font-size:0.95rem;"><strong>Skills:</strong> Customer Enrichment, Address Validation</p>
+        <div class="tag-row"><span class="badge badge-orange">json &rarr; json</span><span class="badge badge-green">batch</span></div>
+      </div>
+    </div>
+    <p style="margin-top: 20px;">Open <strong>Registry UI &rarr; ai-agents group</strong> to inspect the Agent Cards.</p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 10: DEMO — PROMPT VERSIONING =========== -->
+<div class="slide" data-notes="Run the prompt registration script. Show v1 of summarizer-system-prompt in the UI — two variables: max_sentences (integer, default 3) and input_text (string, required). Show the BACKWARD compatibility rule on the artifact. Then show that v2 was accepted — it added an optional 'tone' variable with default 'neutral'. This is a backward-compatible change because existing agents that don't know about 'tone' will still work — the default kicks in. Click version history to show both versions side by side.">
+  <div class="content">
+    <h3>Step 2</h3>
+    <h2>Prompt template governance</h2>
+    <div class="cmd-row">
+      <code>./scripts/02-register-prompts.sh</code>
+      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+    </div>
+    <div class="cols cols-2" style="margin-top: 28px;">
+      <div class="card">
+        <h3 style="color: var(--accent3);">Version 1</h3>
+        <pre style="font-size:0.82rem; padding: 16px 20px;"><span class="str">"variables"</span>: {
+  <span class="str">"max_sentences"</span>: { <span class="str">"default"</span>: <span class="num">3</span> },
+  <span class="str">"input_text"</span>:    { <span class="str">"required"</span>: <span class="kw">true</span> }
+}</pre>
+      </div>
+      <div class="card">
+        <h3 style="color: var(--accent3);">Version 2 <span class="badge badge-green" style="margin-left: 8px;">compatible</span></h3>
+        <pre style="font-size:0.82rem; padding: 16px 20px;"><span class="str">"variables"</span>: {
+  <span class="str">"max_sentences"</span>: { <span class="str">"default"</span>: <span class="num">3</span> },
+  <span class="str">"input_text"</span>:    { <span class="str">"required"</span>: <span class="kw">true</span> },
+  <span class="str">"tone"</span>:          { <span class="str">"default"</span>: <span class="str">"neutral"</span> }
+}</pre>
+      </div>
+    </div>
+    <p style="margin-top: 20px;">Adding an optional variable with a default is <strong class="accent3">backward compatible</strong>.<br>Existing agents won't break — the same rule as adding an optional field to an OpenAPI schema.</p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 11: DEMO — BREAKING CHANGE =========== -->
+<div class="slide" data-notes="This is the most dramatic demo moment. Run the breaking change script. It tries to register a v3 that removes the required input_text variable and renames it to content. The registry rejects it with HTTP 409. Show the error response. Emphasize: the registry caught this before production, not after. This is the same compatibility checking that protects your OpenAPI specs — you can't remove a required field from a response schema in a backward-compatible way. The governance pattern is identical.">
+  <div class="content">
+    <h3>Step 3</h3>
+    <h2>Breaking change <span style="color: var(--red);">rejected</span></h2>
+    <div class="cmd-row">
+      <code>./scripts/05-breaking-change.sh</code>
+      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+    </div>
+    <div class="cols cols-2" style="margin-top: 28px;">
+      <div class="card">
+        <h3>What changed</h3>
+        <p style="font-size: 1rem;">Renamed <code>input_text</code> &rarr; <code>content</code></p>
+        <p style="font-size: 1rem;">Removed a required variable</p>
+      </div>
+      <div class="card" style="border-color: var(--red);">
+        <h3 style="color: var(--red);">Result</h3>
+        <p style="font-size: 1rem;"><strong style="color: var(--red);">HTTP 409 &mdash; Rejected</strong></p>
+        <p style="font-size: 1rem;">BACKWARD compatibility violation</p>
+      </div>
+    </div>
+    <p style="margin-top: 20px;">The registry catches this <strong class="accent">before production</strong>, not after.<br>Same rule as OpenAPI — you can't remove a required field from a backward-compatible schema.</p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 12: DEMO — AGENT DISCOVERY =========== -->
+<div class="slide" data-notes="Run the discovery script. Show five capabilities: list all agents, search by name, inspect a specific agent's capabilities, compare prompt versions, retrieve model metadata. This is what an orchestrator agent does at runtime — query the registry to find the right agent for the job, check its input/output modes, verify it supports streaming. No hardcoded URLs, no config files, no service mesh tricks.">
+  <div class="content">
+    <h3>Step 4</h3>
+    <h2>Agent discovery in action</h2>
+    <div class="cmd-row">
+      <code>./scripts/04-discover-agents.sh</code>
+      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+    </div>
+    <div style="margin-top: 28px;">
+      <ul>
+        <li><strong>List all agents</strong> — query the <code>ai-agents</code> group</li>
+        <li><strong>Search by name</strong> — find the Translator agent</li>
+        <li><strong>Inspect capabilities</strong> — skills, input/output modes, streaming support</li>
+        <li><strong>Compare prompt versions</strong> — v1 has 2 variables, v2 has 3</li>
+        <li><strong>Retrieve model metadata</strong> — accuracy, framework, artifact URI</li>
+      </ul>
+      <p style="margin-top: 20px;">This is what an orchestrator agent does at runtime.<br>No hardcoded URLs — <strong class="accent">query by capability</strong>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- =========== SLIDE 13: SECTION — DEEP DIVE =========== -->
+<div class="slide section-slide" data-notes="Transition to the deeper concepts. Why registry-based discovery specifically? How do compatibility rules work? How does this fit into the broader standards ecosystem?">
+  <div class="content center">
+    <div class="section-num">03</div>
+    <h2>Why This Matters</h2>
+    <p>Discovery approaches, compatibility rules, and the standards ecosystem</p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 14: DISCOVERY APPROACHES =========== -->
+<div class="slide" data-notes="Compare four discovery approaches. Hardcoded URLs break when endpoints change — it's like hardcoding API base URLs instead of using a gateway. DNS and service meshes discover services, not capabilities — Istio knows 'this pod exists on port 8080' but not 'this agent can summarize PDFs'. The A2A well-known endpoint is better — it describes capabilities — but you need to know the host first, which means you're back to hardcoded URLs or DNS. Registry-backed discovery combines structured capability declarations with centralized, queryable storage. You can search by skill, by input mode, by capability — without knowing any URLs.">
+  <div class="content">
+    <h3>Discovery</h3>
+    <h2>Why registry-based agent discovery?</h2>
+    <table class="comparison" style="margin-top: 24px;">
+      <tr><th>Approach</th><th>What it does</th><th>Limitation</th></tr>
+      <tr><td><strong>Hardcoded URLs</strong></td><td>Direct agent-to-agent calls</td><td>Breaks when endpoints change</td></tr>
+      <tr><td><strong>DNS / Service mesh</strong></td><td>Discovers services by hostname</td><td>Discovers services, not capabilities</td></tr>
+      <tr><td><strong>A2A well-known</strong></td><td>Capabilities at <code>/.well-known/agent.json</code></td><td>Requires knowing the host first</td></tr>
+      <tr><td><strong class="accent">Registry-backed</strong></td><td><strong>Query by capability, skill, I/O mode</strong></td><td class="yes">Centralized dependency</td></tr>
+    </table>
+    <p style="margin-top: 16px;">Same evolution as API discovery: from hardcoded URLs &rarr; to API gateways &rarr; to <strong>OpenAPI-driven catalogs</strong>.</p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 15: COMPATIBILITY RULES =========== -->
+<div class="slide" data-notes="Show the compatibility rules table. These are the same rules that protect OpenAPI schemas and Avro definitions. Adding an optional field (with a default) is backward compatible. Removing a required field is a breaking change. Renaming a field is a breaking change. Changing a type is a breaking change. The registry enforces these rules at registration time — before any data flows. This is the same pattern whether you're governing a Kafka schema, an OpenAPI response definition, or a prompt template.">
+  <div class="content">
+    <h3>Compatibility</h3>
+    <h2>Same rules as OpenAPI schema evolution</h2>
+    <table class="comparison" style="margin-top: 24px;">
+      <tr><th>Change</th><th>OpenAPI schema</th><th>Prompt template</th></tr>
+      <tr><td>Add optional field (with default)</td><td class="yes">Compatible</td><td class="yes">Compatible</td></tr>
+      <tr><td>Remove required field</td><td class="no">Breaking</td><td class="no">Breaking</td></tr>
+      <tr><td>Rename a field</td><td class="no">Breaking</td><td class="no">Breaking</td></tr>
+      <tr><td>Change field type</td><td class="no">Breaking</td><td class="no">Breaking</td></tr>
+      <tr><td>Add new endpoint / skill</td><td class="yes">Compatible</td><td class="yes">Compatible</td></tr>
+    </table>
+    <p style="margin-top: 16px;">The governance pattern is <strong>identical</strong>. Same registry, same rules, new artifact types.</p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 16: SECTION — PRODUCTION =========== -->
+<div class="slide section-slide" data-notes="Transition to production considerations. The demo showed the pattern — now let's talk about what you'd add for a real deployment.">
+  <div class="content center">
+    <div class="section-num">04</div>
+    <h2>Going to Production</h2>
+    <p>What you'd add beyond the demo</p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 17: PRODUCTION CONSIDERATIONS =========== -->
+<div class="slide" data-notes="Four things you'd add for production. First, automated registration — agents register on startup via sidecar or init container, not manual scripts. Second, health-aware discovery — combine with Kubernetes health checks so the registry only returns healthy agents. Third, schema evolution strategy — define compatibility modes per artifact group and enforce them in CI/CD. Fourth, multi-tenancy — use registry groups to isolate agent namespaces across teams, same as you'd separate OpenAPI specs per team.">
+  <div class="content">
+    <h3>Production Hardening</h3>
+    <h2>From demo to deployment</h2>
+    <div class="cols cols-2" style="margin-top: 28px;">
+      <div class="card">
+        <h3>Automated registration</h3>
+        <p style="font-size:1rem;">Agents register on startup via sidecar or init container. Deregister on shutdown. No manual scripts.</p>
+      </div>
+      <div class="card">
+        <h3>Health-aware discovery</h3>
+        <p style="font-size:1rem;">Combine with Kubernetes health checks. Registry returns only healthy agents. Dead agents are pruned.</p>
+      </div>
+      <div class="card">
+        <h3>Schema evolution strategy</h3>
+        <p style="font-size:1rem;">Define compatibility modes per group. Enforce in CI/CD — reject incompatible changes before merge.</p>
+      </div>
+      <div class="card">
+        <h3>Multi-tenancy</h3>
+        <p style="font-size:1rem;">Registry groups isolate agent namespaces per team. Same pattern as separating OpenAPI specs per domain.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========== SLIDE 18: KEY TAKEAWAYS =========== -->
+<div class="slide" data-notes="Four takeaways. One: the open standards arc continues — OpenAPI, AsyncAPI, A2A. The pattern is proven. Two: Agent Cards are OpenAPI for agents — structured, versioned, discoverable. Three: prompt templates need the same governance as API specs — versioning and compatibility rules are not optional. Four: the tooling already exists — Apicurio Registry governs the full spectrum from REST APIs to AI agents in one CNCF sandbox project.">
+  <div class="content">
+    <h3>Takeaways</h3>
+    <h2>Four things to remember</h2>
+    <div class="takeaway-grid" style="margin-top: 28px;">
+      <div class="takeaway-card">
+        <div class="num accent">01</div>
+        <p><strong>The open standards arc continues.</strong> OpenAPI &rarr; AsyncAPI &rarr; A2A. Each generation standardized interface descriptions for its domain.</p>
+      </div>
+      <div class="takeaway-card">
+        <div class="num accent2">02</div>
+        <p><strong>Agent Cards are OpenAPI for agents.</strong> Structured capability declarations — versioned, discoverable, and machine-readable.</p>
+      </div>
+      <div class="takeaway-card">
+        <div class="num accent3">03</div>
+        <p><strong>Prompt templates need governance.</strong> The same version control and compatibility rules you apply to API specs — not optional for AI.</p>
+      </div>
+      <div class="takeaway-card">
+        <div class="num accent4">04</div>
+        <p><strong>The tooling already exists.</strong> Apicurio Registry — one CNCF sandbox project for OpenAPI, AsyncAPI, Avro, Protobuf, and now A2A.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========== SLIDE 19: THANK YOU =========== -->
+<div class="slide title-slide" data-notes="Thank the audience. Share the demo repo link. Mention that the entire demo — scripts, schemas, this presentation — is in the repo. Happy to take questions.">
+  <div class="content center">
+    <h1>Thank You</h1>
+    <p class="subtitle" style="margin-bottom: 32px;">Questions?</p>
+    <div class="title-meta" style="flex-direction: column; gap: 12px;">
+      <span><strong>Carles Arnal</strong> &mdash; Principal Software Engineer</span>
+    </div>
+    <div class="tech-row" style="margin-top: 32px;">
+      <div class="tech-item">github.com/carlesarnal/agent-discovery-demo</div>
+      <div class="tech-item">apicur.io/registry</div>
+      <div class="tech-item">google.github.io/A2A</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- Progress bar -->
+<div class="progress" id="progress"></div>
+
+<!-- Slide counter -->
+<div class="slide-counter" id="counter"></div>
+
+<!-- Presenter timer -->
+<div class="presenter-timer" id="timer">00:00</div>
+
+<!-- Speaker notes -->
+<div class="speaker-notes" id="notes"></div>
+
+<!-- Help overlay -->
+<div class="help-overlay" id="help">
+  <div class="help-box">
+    <h3>Keyboard Shortcuts</h3>
+    <div class="help-row"><span class="help-desc">Next slide</span><span class="help-key">&rarr;</span> <span class="help-key">Space</span></div>
+    <div class="help-row"><span class="help-desc">Previous slide</span><span class="help-key">&larr;</span></div>
+    <div class="help-row"><span class="help-desc">First slide</span><span class="help-key">Home</span></div>
+    <div class="help-row"><span class="help-desc">Last slide</span><span class="help-key">End</span></div>
+    <div class="help-row"><span class="help-desc">Toggle speaker notes</span><span class="help-key">N</span></div>
+    <div class="help-row"><span class="help-desc">Toggle timer</span><span class="help-key">T</span></div>
+    <div class="help-row"><span class="help-desc">Toggle theme</span><span class="help-key">D</span></div>
+    <div class="help-row"><span class="help-desc">This help</span><span class="help-key">?</span></div>
+  </div>
+</div>
 
 <script>
   const slides = document.querySelectorAll('.slide');
+  const progressBar = document.getElementById('progress');
+  const counter = document.getElementById('counter');
+  const notesEl = document.getElementById('notes');
+  const helpEl = document.getElementById('help');
+  const timerEl = document.getElementById('timer');
   let current = 0;
+  let timerStart = null;
+  let timerInterval = null;
 
-  function showSlide(n) {
-    slides[current].classList.remove('active');
-    current = Math.max(0, Math.min(n, slides.length - 1));
-    slides[current].classList.add('active');
-    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + slides.length;
+  function updateUI() {
+    const pct = ((current + 1) / slides.length) * 100;
+    progressBar.style.width = pct + '%';
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    const notes = slides[current].getAttribute('data-notes');
+    notesEl.innerHTML = notes ? notes : '';
+  }
+
+  function goTo(n, direction) {
+    if (n < 0 || n >= slides.length || n === current) return;
+    const prev = slides[current];
+    const next = slides[n];
+    prev.classList.remove('active');
+    prev.classList.add(direction === 'forward' ? 'leaving-left' : 'leaving-right');
+    setTimeout(() => { prev.classList.remove('leaving-left', 'leaving-right'); }, 500);
+    next.classList.add('active');
+    current = n;
+    updateUI();
+  }
+
+  function next() { goTo(current + 1, 'forward'); }
+  function prev() { goTo(current - 1, 'backward'); }
+
+  function toggleTheme() {
+    document.documentElement.classList.toggle('light');
+  }
+
+  function toggleTimer() {
+    if (timerStart === null) {
+      timerStart = Date.now();
+      timerEl.classList.add('visible');
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+        const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+        const s = String(elapsed % 60).padStart(2, '0');
+        timerEl.textContent = m + ':' + s;
+      }, 1000);
+    } else {
+      clearInterval(timerInterval);
+      timerStart = null;
+      timerEl.classList.remove('visible');
+    }
+  }
+
+  function copyCmd(btn) {
+    const code = btn.parentElement.querySelector('code');
+    navigator.clipboard.writeText(code.textContent);
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
   }
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); showSlide(current + 1); }
-    if (e.key === 'ArrowLeft') { e.preventDefault(); showSlide(current - 1); }
-    if (e.key === 'Home') showSlide(0);
-    if (e.key === 'End') showSlide(slides.length - 1);
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+    if (e.key === 'Home') { e.preventDefault(); goTo(0, 'backward'); }
+    if (e.key === 'End') { e.preventDefault(); goTo(slides.length - 1, 'forward'); }
+    if (e.key === 'n' || e.key === 'N') { notesEl.classList.toggle('visible'); }
+    if (e.key === 't' || e.key === 'T') { toggleTimer(); }
+    if (e.key === 'd' || e.key === 'D') { toggleTheme(); }
+    if (e.key === '?') { helpEl.classList.toggle('visible'); }
+    if (e.key === 'Escape') { helpEl.classList.remove('visible'); }
   });
+
+  updateUI();
 </script>
 </body>
 </html>
