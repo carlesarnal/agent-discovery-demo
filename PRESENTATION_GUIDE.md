@@ -2,7 +2,8 @@
 
 **Session:** From OpenAPI to Agent Cards: Governing AI Discovery with Open Standards  
 **Speaker:** Carles Arnal — Principal Software Engineer  
-**Conference:** API Days Amsterdam 2026
+**Conference:** API Days Amsterdam 2026  
+**Time Slot:** 2:55 PM – 3:20 PM (25 minutes)
 
 ---
 
@@ -40,7 +41,7 @@ curl -sf http://localhost:8080/health | jq .status
 
 ---
 
-## Part 1 — Introduction (5 min)
+## Part 1 — Introduction (3 min)
 
 ### Slide 0: Title
 
@@ -63,7 +64,7 @@ curl -sf http://localhost:8080/health | jq .status
 
 ---
 
-## Part 2 — The Solution (5 min)
+## Part 2 — The Solution (4 min)
 
 ### Slide 3: Section divider
 
@@ -90,7 +91,7 @@ curl -sf http://localhost:8080/health | jq .status
 
 ---
 
-## Part 3 — Live Demo (15 min)
+## Part 3 — Live Demo (10 min)
 
 ### Slide 7: Section divider
 
@@ -199,7 +200,7 @@ curl -sf http://localhost:8080/health | jq .status
 
 ---
 
-## Part 4 — Why This Matters (5 min)
+## Part 4 — Why This Matters (4 min)
 
 ### Slide 13: Section divider
 
@@ -222,7 +223,7 @@ curl -sf http://localhost:8080/health | jq .status
 
 ---
 
-## Part 5 — Production and Wrap Up (5 min)
+## Part 5 — Production and Wrap Up (4 min)
 
 ### Slide 16: Section divider
 
@@ -312,11 +313,19 @@ curl -sf http://localhost:8080/health | jq .status
 
 ## Timing Summary
 
-| Section | Duration | Cumulative |
-|---------|----------|------------|
-| Introduction (Title + Standards Arc + Problem) | 5 min | 5 min |
-| The Solution (Registry + Architecture + A2A Protocol) | 5 min | 10 min |
-| Live Demo (Register + Prompts + Breaking Change + Discovery) | 15 min | 25 min |
-| Why This Matters (Discovery Approaches + Compatibility) | 5 min | 30 min |
-| Production + Wrap Up (Production + Takeaways + Thank You) | 5 min | 35 min |
-| **Total (including Q&A buffer)** | **~35 min** | |
+**Time slot: 2:55 PM – 3:20 PM (25 minutes)**
+
+| Section | Duration | Cumulative | Clock |
+|---------|----------|------------|-------|
+| Introduction (Title + Standards Arc + Problem) | 3 min | 3 min | 2:58 |
+| The Solution (Registry + Architecture + A2A Protocol) | 4 min | 7 min | 3:02 |
+| Live Demo (Register + Prompts + Breaking Change + Discovery) | 10 min | 17 min | 3:12 |
+| Why This Matters (Discovery Approaches + Compatibility) | 4 min | 21 min | 3:16 |
+| Production + Wrap Up (Production + Takeaways + Thank You) | 4 min | 25 min | 3:20 |
+| **Total** | **25 min** | | **3:20** |
+
+**Pacing notes:**
+- Start the presenter timer (press `T`) at 2:55
+- If running long at the demo stage, skip the model schema section in discovery (slide 12) and go straight to the breaking change highlight
+- The production slide (17) can be covered briefly — the takeaways (18) are the essential closing
+- If Q&A is separate, you have a small buffer; if Q&A is within the 25 min, trim the demo to 8 min
