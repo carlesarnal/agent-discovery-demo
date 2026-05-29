@@ -362,7 +362,35 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 1: THE STANDARDS ARC =========== -->
+<!-- =========== SLIDE 1: ABOUT ME =========== -->
+<div class="slide" data-notes="Brief intro. Apicurio Registry is a CNCF sandbox project for schema and API governance — OpenAPI, AsyncAPI, Avro, Protobuf. I've been contributing to open source for over a decade, and today I'll show how we extended the registry to govern AI agents.">
+  <div class="content">
+    <h3>About Me</h3>
+    <h2>Carles Arnal</h2>
+    <p style="font-size: 1.3rem; margin-bottom: 24px;">Principal Software Engineer</p>
+    <div class="cols cols-2" style="margin-top: 20px;">
+      <div>
+        <ul>
+          <li><strong>Apicurio Registry</strong> — core contributor</li>
+          <li><strong>10+ years</strong> in open source</li>
+          <li>Schema governance, API lifecycle, event-driven architectures</li>
+        </ul>
+        <div class="tag-row" style="margin-top: 20px;">
+          <span class="badge badge-green">CNCF Sandbox</span>
+          <span class="badge badge-blue">OpenAPI</span>
+          <span class="badge badge-purple">AsyncAPI</span>
+          <span class="badge badge-orange">A2A</span>
+        </div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <p style="font-size: 2.4rem; margin-bottom: 12px;">Apicurio Registry</p>
+        <p style="font-size: 0.95rem;">Schema &amp; API governance for<br>OpenAPI, AsyncAPI, Avro, Protobuf,<br>JSON Schema, GraphQL — and now<br><strong class="accent4">A2A Agent Cards</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========== SLIDE 2: THE STANDARDS ARC =========== -->
 <div class="slide" data-notes="This is the central thesis of the talk. Every generation of distributed systems solved the same problem — describe your interface in a standard format, register it, version it, discover it. OpenAPI did it for REST. AsyncAPI did it for event-driven. Now A2A does it for AI agents. The pattern is proven. The tooling already exists. We just need to extend it.">
   <div class="content center">
     <h3>The Pattern</h3>
@@ -669,7 +697,50 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 13: SECTION — DEEP DIVE =========== -->
+<!-- =========== SLIDE 13: LIVE AGENT DEMO =========== -->
+<div class="slide" data-notes="This is the wow moment. The summarizer agent started earlier and auto-published its Agent Card to the registry. Now the orchestrator — powered by Ollama and the A2A Apicurio Registry extension — will discover the summarizer by querying the registry, inspect its capabilities, and delegate a real task. The LLM autonomously decides which agent to use. This is registry-backed agent discovery in action — not curl scripts, but real agents communicating via the A2A Protocol.">
+  <div class="content">
+    <h3>Step 5</h3>
+    <h2>Real agents, real discovery, <span class="accent3">live</span></h2>
+    <div class="cmd-row">
+      <code>./scripts/07-live-agent-demo.sh</code>
+      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+    </div>
+    <div class="arch-diagram" style="margin: 28px 0;">
+      <div class="arch-node">
+        <div class="node-title">User Request</div>
+        <div class="node-sub">"Summarize..."</div>
+      </div>
+      <div class="arch-arrow">&rarr;</div>
+      <div class="arch-node highlight2">
+        <div class="node-title">Orchestrator</div>
+        <div class="node-sub">Quarkus + Ollama</div>
+      </div>
+      <div class="arch-arrow"><span class="flow-dot"></span> <span class="flow-dot"></span> <span class="flow-dot"></span></div>
+      <div class="arch-node highlight4">
+        <div class="node-title">Apicurio Registry</div>
+        <div class="node-sub">discover agent</div>
+      </div>
+      <div class="arch-arrow"><span class="flow-dot"></span> <span class="flow-dot"></span> <span class="flow-dot"></span></div>
+      <div class="arch-node highlight3">
+        <div class="node-title">Summarizer</div>
+        <div class="node-sub">Quarkus + Ollama</div>
+      </div>
+    </div>
+    <ul>
+      <li>Summarizer <strong>auto-published</strong> its Agent Card on startup</li>
+      <li>Orchestrator <strong>discovers</strong> it by querying the registry</li>
+      <li>Task <strong>delegated</strong> via A2A Protocol — real LLM inference</li>
+    </ul>
+    <div class="tag-row" style="margin-top: 16px;">
+      <span class="badge badge-green">Quarkus LangChain4j</span>
+      <span class="badge badge-blue">Ollama (qwen2.5:1.5b)</span>
+      <span class="badge badge-purple">A2A Protocol</span>
+    </div>
+  </div>
+</div>
+
+<!-- =========== SLIDE 14: SECTION — DEEP DIVE =========== -->
 <div class="slide section-slide" data-notes="Transition to the deeper concepts. Why registry-based discovery specifically? How do compatibility rules work? How does this fit into the broader standards ecosystem?">
   <div class="content center">
     <div class="section-num">03</div>

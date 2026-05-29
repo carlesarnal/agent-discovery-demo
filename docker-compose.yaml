@@ -11,3 +11,45 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  summarizer:
+    build: agents/summarizer
+    ports:
+      - "10010:10010"
+    environment:
+      OLLAMA_URL: http://ollama:11434
+      REGISTRY_URL: http://apicurio-registry:8080
+      AGENT_BASE_URL: http://summarizer
+    depends_on:
+      apicurio-registry:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+
+  orchestrator:
+    build: agents/orchestrator
+    ports:
+      - "10020:10020"
+    environment:
+      OLLAMA_URL: http://ollama:11434
+      REGISTRY_URL: http://apicurio-registry:8080
+    depends_on:
+      apicurio-registry:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+
+volumes:
+  ollama-data:

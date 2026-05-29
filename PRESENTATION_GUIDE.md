@@ -9,35 +9,54 @@
 
 ## Pre-Presentation Setup (do all of this BEFORE the talk)
 
-### Infrastructure (10 min before)
+### Infrastructure (20 min before)
 
 ```bash
-# Start Apicurio Registry
+# Start all services: Registry, Ollama, and build agent images
 docker compose up -d
 
-# Wait for it to be ready
+# Wait for registry
 ./scripts/wait-for-registry.sh
 
-# Verify clean state
+# Pull Ollama model (if not cached — ~1GB download)
+curl -s http://localhost:11434/api/pull -d '{"name": "qwen2.5:1.5b"}'
+
+# Pre-warm Ollama with a dummy request (loads model into memory)
+curl -s http://localhost:11434/api/generate -d '{"model":"qwen2.5:1.5b","prompt":"hello","stream":false}' > /dev/null
+
+# Verify clean registry state
 curl -s http://localhost:8080/apis/registry/v3/search/artifacts | jq '.count'
-# Should return 0
+# Should return 0 (agent card gets published when summarizer starts)
+
+# Start the agents (builds if needed)
+./scripts/06-start-agents.sh
+
+# Verify the summarizer's Agent Card is in the registry
+curl -s http://localhost:8080/apis/registry/v3/groups/a2a-agents/artifacts | jq '.count'
+# Should return 1
+
+# Test the live agent demo works
+curl -s -X POST http://localhost:10020/orchestrate \
+  -H "Content-Type: text/plain" \
+  -d "Summarize: Kubernetes automates container orchestration"
+# Should return a real summary
 ```
 
 ### Browser tabs (pre-load)
 
 1. `http://localhost:8080` — Apicurio Registry UI
-2. `presentation.html` — The slide deck (open locally or via `python3 -m http.server 8082`)
+2. `presentation.html` — Slide deck (via `python3 -m http.server 8082`)
 
 ### Terminal
 
 Have a terminal open in the `scripts/` directory, ready to run demo commands.
 
-### Verify everything is ready
+### Fallback plan
 
-```bash
-curl -sf http://localhost:8080/health | jq .status
-# Should return "UP"
-```
+If the live agent demo fails on stage, you can still show:
+- The curl-based scripts (01-05) for the governance story
+- The Agent Card in the Registry UI (published by the summarizer on startup)
+- The architecture slide explains the flow even without the live response
 
 ---
 
@@ -45,10 +64,14 @@ curl -sf http://localhost:8080/health | jq .status
 
 ### Slide 0: Title
 
-- "Hi everyone, I'm Carles Arnal, Principal Software Engineer. I work on Apicurio Registry, which is an open source schema and API registry — and a CNCF sandbox project. Today I want to talk about how the same open standards approach that governs your REST APIs can now govern AI agents."
-- "This is an API conference, so let me start with something you already know well."
+- "Hi everyone, I'm Carles Arnal. Today I want to talk about how the same open standards approach that governs your REST APIs can now govern AI agents."
 
-### Slide 1: The Standards Arc
+### Slide 1: About Me
+
+- "I'm a Principal Software Engineer and core contributor to Apicurio Registry — a CNCF sandbox project for schema and API governance. We handle OpenAPI, AsyncAPI, Avro, Protobuf, and JSON Schema. And recently, we've extended it to handle AI-native artifacts."
+- *Quick slide — 20 seconds max. Don't linger on bio.*
+
+### Slide 2: The Standards Arc
 
 - "Every generation of distributed systems solved the same problem. In 2015, OpenAPI standardized how we describe REST APIs — structured interface definitions, machine-readable, versioned. Before OpenAPI, every team described their APIs differently. Some used Word documents, some used wiki pages, some didn't document at all. OpenAPI changed that by giving us a standard format that tools could consume."
 - "In 2019, AsyncAPI did the same thing for event-driven architectures. If you're running Kafka or RabbitMQ, AsyncAPI describes your channels, message formats, and bindings in a standard way."
@@ -200,6 +223,29 @@ curl -sf http://localhost:8080/health | jq .status
 
 ---
 
+### Slide 13: Live Agent Demo
+
+**Type in terminal:**
+
+```bash
+./scripts/07-live-agent-demo.sh
+```
+
+**What to show:**
+- The architecture diagram on the slide: User → Orchestrator → Registry → Summarizer
+- Run the script — watch the orchestrator discover and delegate in real-time
+- Show the real LLM-generated summary returned from the summarizer agent
+
+**Script:**
+
+- "Now let me show you something different. Everything we've done so far was curl scripts against the registry. But let me show you real agents."
+- "I have two Quarkus applications running — a Summarizer Agent and an Orchestrator. The Summarizer auto-published its A2A Agent Card to the registry on startup. Watch what happens when I send a request to the Orchestrator."
+- *Run the script*
+- "The Orchestrator used the A2A Apicurio Registry extension to search the registry, found the Summarizer, inspected its capabilities, and delegated the task via the A2A Protocol. The Summarizer used Ollama to generate a real summary and returned it."
+- "That's the full loop — registry-backed agent discovery in action. Not curl scripts, but real agents communicating through open standards."
+
+---
+
 ## Part 4 — Why This Matters (4 min)
 
 ### Slide 13: Section divider
@@ -301,6 +347,17 @@ curl -sf http://localhost:8080/health | jq .status
 **"What about prompt templates that use different LLMs?"**
 - The prompt template includes metadata about the target model (e.g., `"model": "llama3.2"`). Different versions can target different models. The registry tracks all versions, and agents can query for prompts targeting a specific model. This is analogous to API versions targeting different backend implementations.
 
+### Quarkus / LangChain4j / Ollama
+
+**"How does the orchestrator know which agent to delegate to?"**
+- The orchestrator uses the Quarkus LangChain4j A2A Apicurio Registry extension. It provides @Tool-annotated methods — searchA2AAgents, getAgentCardDetails, delegateToA2AAgent — that the LLM can call autonomously. The LLM reads the Agent Card descriptions and skills from the registry search results and decides which agent best matches the user's request. It's the same tool-use pattern as any LangChain4j AI service, but the tools query the registry instead of a database.
+
+**"Why Ollama and not OpenAI or Anthropic?"**
+- For the demo, Ollama keeps everything self-contained — no API keys, no cloud accounts, no external dependencies. You can run the entire stack on a laptop. In production, you'd swap Ollama for any LLM provider — OpenAI, Anthropic, Azure — by changing one line in application.properties. The agent discovery and governance layer is model-agnostic.
+
+**"Can any Quarkus app become an A2A agent?"**
+- Yes. You need three things: an AgentCard producer that declares capabilities, an AgentExecutor that handles incoming tasks, and an AI service that does the actual work. The A2A Java SDK provides the protocol layer. On the discovery side, the Quarkus LangChain4j A2A Apicurio Registry extension auto-publishes the Agent Card and provides discovery tools. It's a few classes and a few config properties.
+
 ### Production / Operations
 
 **"How does this scale to hundreds of agents?"**
@@ -317,15 +374,17 @@ curl -sf http://localhost:8080/health | jq .status
 
 | Section | Duration | Cumulative | Clock |
 |---------|----------|------------|-------|
-| Introduction (Title + Standards Arc + Problem) | 3 min | 3 min | 2:58 |
+| Introduction (Title + Bio + Standards Arc + Problem) | 3 min | 3 min | 2:58 |
 | The Solution (Registry + Architecture + A2A Protocol) | 4 min | 7 min | 3:02 |
-| Live Demo (Register + Prompts + Breaking Change + Discovery) | 10 min | 17 min | 3:12 |
+| Curl Demo (Register + Prompts + Breaking Change + Discovery) | 7 min | 14 min | 3:09 |
+| Live Agent Demo (Orchestrator + Summarizer via Registry) | 3 min | 17 min | 3:12 |
 | Why This Matters (Discovery Approaches + Compatibility) | 4 min | 21 min | 3:16 |
 | Production + Wrap Up (Production + Takeaways + Thank You) | 4 min | 25 min | 3:20 |
 | **Total** | **25 min** | | **3:20** |
 
 **Pacing notes:**
 - Start the presenter timer (press `T`) at 2:55
-- If running long at the demo stage, skip the model schema section in discovery (slide 12) and go straight to the breaking change highlight
-- The production slide (17) can be covered briefly — the takeaways (18) are the essential closing
-- If Q&A is separate, you have a small buffer; if Q&A is within the 25 min, trim the demo to 8 min
+- The live agent demo (slide 13) is the highlight — make sure you reach it by 3:09
+- If running long at the curl demo, skip the model schema section in discovery (slide 12) and go straight to the live agent demo
+- The production slide can be covered briefly — the takeaways are the essential closing
+- If Q&A is separate, you have a small buffer; if Q&A is within the 25 min, trim the curl demo to 5 min

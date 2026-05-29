@@ -64,9 +64,22 @@ docker compose up -d
 | `scripts/03-register-model-schemas.sh` | Register model metadata JSON Schema + sample model |
 | `scripts/04-discover-agents.sh` | Query the registry for agent discovery |
 | `scripts/05-breaking-change.sh` | Demonstrate compatibility rule enforcement (rejected breaking change) |
-| `scripts/run-demo.sh` | Run all steps end-to-end |
+| `scripts/06-start-agents.sh` | Build and start real A2A agents (Summarizer + Orchestrator) with Ollama |
+| `scripts/07-live-agent-demo.sh` | Live demo: orchestrator discovers and delegates to summarizer via registry |
+| `scripts/run-demo.sh` | Run all governance demo steps end-to-end |
 | `scripts/wait-for-registry.sh` | Wait for Apicurio Registry to be healthy |
 | `scripts/cleanup.sh` | Tear down all containers |
+
+## Real A2A Agents
+
+Beyond the curl-based governance demo, this repo includes two real Quarkus agents:
+
+| Agent | Path | Description |
+|-------|------|-------------|
+| **Summarizer** | `agents/summarizer/` | A2A server that summarizes text via Ollama. Auto-publishes its Agent Card to the registry on startup. |
+| **Orchestrator** | `agents/orchestrator/` | Discovers agents via the Apicurio Registry, delegates tasks using the A2A Protocol. Uses the `quarkus-langchain4j-a2a-apicurio-registry` extension. |
+
+Both agents use **Ollama** with `qwen2.5:1.5b` for fast, self-contained LLM inference.
 
 ## Schemas
 
@@ -118,6 +131,8 @@ The same governance patterns that protect OpenAPI specs, AsyncAPI definitions, a
 |-----------|------------|
 | Agent Registry | [Apicurio Registry 3.x](https://www.apicur.io/registry/) (CNCF sandbox) |
 | Agent Protocol | [A2A Protocol](https://google.github.io/A2A/) (Agent-to-Agent) |
+| Agent Framework | [Quarkus LangChain4j](https://docs.quarkiverse.io/quarkus-langchain4j/dev/) with A2A Apicurio Registry extension |
+| LLM Runtime | [Ollama](https://ollama.ai/) with qwen2.5:1.5b |
 | API Standards | [OpenAPI](https://www.openapis.org/), [AsyncAPI](https://www.asyncapi.com/) (also governed by the same registry) |
 | Schema Format | JSON Schema (draft 2020-12) |
 | Container Runtime | Docker / Podman |
