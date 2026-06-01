@@ -241,7 +241,7 @@ If the live agent demo fails on stage, you can still show:
 - "Now let me show you something different. Everything we've done so far was curl scripts against the registry. But let me show you real agents."
 - "I have two Quarkus applications running — a Summarizer Agent and an Orchestrator. The Summarizer auto-published its A2A Agent Card to the registry on startup. Watch what happens when I send a request to the Orchestrator."
 - *Run the script*
-- "The Orchestrator used the A2A Apicurio Registry extension to search the registry, found the Summarizer, inspected its capabilities, and delegated the task via the A2A Protocol. The Summarizer used Ollama to generate a real summary and returned it."
+- "The Orchestrator used the Apicurio Registry SDK to query the registry, found the Summarizer's Agent Card, extracted its URL, and delegated the task via the A2A Protocol. The Summarizer used Ollama to generate a real summary and returned it."
 - "That's the full loop — registry-backed agent discovery in action. Not curl scripts, but real agents communicating through open standards."
 
 ---
@@ -347,16 +347,16 @@ If the live agent demo fails on stage, you can still show:
 **"What about prompt templates that use different LLMs?"**
 - The prompt template includes metadata about the target model (e.g., `"model": "llama3.2"`). Different versions can target different models. The registry tracks all versions, and agents can query for prompts targeting a specific model. This is analogous to API versions targeting different backend implementations.
 
-### Quarkus / LangChain4j / Ollama
+### Quarkus / A2A / Ollama
 
 **"How does the orchestrator know which agent to delegate to?"**
-- The orchestrator uses the Quarkus LangChain4j A2A Apicurio Registry extension. It provides @Tool-annotated methods — searchA2AAgents, getAgentCardDetails, delegateToA2AAgent — that the LLM can call autonomously. The LLM reads the Agent Card descriptions and skills from the registry search results and decides which agent best matches the user's request. It's the same tool-use pattern as any LangChain4j AI service, but the tools query the registry instead of a database.
+- The orchestrator uses the Apicurio Registry Java SDK to query the registry for Agent Cards. It reads the Agent Card JSON — name, description, skills, URL — and delegates to the agent using the A2A Java SDK. In this demo it picks the first agent found; in production you'd match on skills or capabilities. The discovery is a standard registry API call — the same pattern as looking up an OpenAPI spec in a developer portal.
 
 **"Why Ollama and not OpenAI or Anthropic?"**
-- For the demo, Ollama keeps everything self-contained — no API keys, no cloud accounts, no external dependencies. You can run the entire stack on a laptop. In production, you'd swap Ollama for any LLM provider — OpenAI, Anthropic, Azure — by changing one line in application.properties. The agent discovery and governance layer is model-agnostic.
+- For the demo, Ollama keeps everything self-contained — no API keys, no cloud accounts, no external dependencies. You can run the entire stack on a laptop. In production, you'd swap Ollama for any LLM provider. The agent discovery and governance layer is model-agnostic — it doesn't care what LLM the agents use internally.
 
 **"Can any Quarkus app become an A2A agent?"**
-- Yes. You need three things: an AgentCard producer that declares capabilities, an AgentExecutor that handles incoming tasks, and an AI service that does the actual work. The A2A Java SDK provides the protocol layer. On the discovery side, the Quarkus LangChain4j A2A Apicurio Registry extension auto-publishes the Agent Card and provides discovery tools. It's a few classes and a few config properties.
+- Yes. You need three things: an AgentCard producer that declares capabilities, an AgentExecutor that handles incoming tasks, and an AI service that does the actual work (e.g., via Quarkus LangChain4j + Ollama). The A2A Java SDK provides the protocol layer. On startup, the agent publishes its card to the registry using the Apicurio Registry SDK. It's a few classes and a few config properties.
 
 ### Production / Operations
 

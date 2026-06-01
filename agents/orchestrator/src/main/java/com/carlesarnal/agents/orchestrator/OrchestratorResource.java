@@ -11,12 +11,12 @@ import jakarta.ws.rs.core.MediaType;
 public class OrchestratorResource {
 
     @Inject
-    OrchestratorAiService aiService;
+    RegistryDiscoveryService discoveryService;
 
     @POST
     @Consumes(MediaType.TEXT_PLAIN)
     @Produces(MediaType.TEXT_PLAIN)
     public String orchestrate(String request) {
-        return aiService.orchestrate(request);
+        return discoveryService.discoverAndDelegate(request);
     }
 }

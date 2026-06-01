@@ -1,19 +1,18 @@
 package com.carlesarnal.agents.summarizer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.a2a.server.PublicAgentCard;
 import io.a2a.spec.AgentCard;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.apicurio.registry.client.RegistryClient;
+import io.apicurio.registry.rest.client.models.CreateArtifact;
+import io.apicurio.registry.rest.client.models.CreateVersion;
+import io.apicurio.registry.rest.client.models.VersionContent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import io.quarkus.runtime.StartupEvent;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
-
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 
 @ApplicationScoped
 public class RegistryPublisher {
@@ -34,32 +33,34 @@ public class RegistryPublisher {
 
     void onStart(@Observes StartupEvent ev) {
         try {
+            RegistryClient client = RegistryClient.create(registryUrl + "/apis/registry/v3");
+
             ObjectMapper mapper = new ObjectMapper();
             String cardJson = mapper.writeValueAsString(agentCard);
             String artifactId = agentCard.name().toLowerCase().replaceAll("[^a-z0-9]+", "-");
 
-            String url = registryUrl + "/apis/registry/v3/groups/" + groupId + "/artifacts";
+            VersionContent content = new VersionContent();
+            content.setContent(cardJson);
+            content.setContentType("application/json");
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Content-Type", "application/json")
-                    .header("X-Registry-ArtifactId", artifactId)
-                    .header("X-Registry-ArtifactType", "JSON")
-                    .header("X-Registry-Name", agentCard.name())
-                    .header("X-Registry-Description", agentCard.description())
-                    .POST(HttpRequest.BodyPublishers.ofString(cardJson))
-                    .build();
+            CreateVersion version = new CreateVersion();
+            version.setContent(content);
 
-            HttpResponse<String> response = HttpClient.newHttpClient()
-                    .send(request, HttpResponse.BodyHandlers.ofString());
+            CreateArtifact createArtifact = new CreateArtifact();
+            createArtifact.setArtifactId(artifactId);
+            createArtifact.setArtifactType("JSON");
+            createArtifact.setName(agentCard.name());
+            createArtifact.setDescription(agentCard.description());
+            createArtifact.setFirstVersion(version);
 
-            if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                LOG.infof("Published Agent Card '%s' to registry group '%s'", agentCard.name(), groupId);
-            } else {
-                LOG.warnf("Failed to publish Agent Card: HTTP %d - %s", response.statusCode(), response.body());
-            }
+            client.groups()
+                    .byGroupId(groupId)
+                    .artifacts()
+                    .post(createArtifact);
+
+            LOG.infof("Published Agent Card '%s' to registry group '%s'", agentCard.name(), groupId);
         } catch (Exception e) {
-            LOG.warn("Could not publish Agent Card to registry (will retry when registry is available)", e);
+            LOG.warn("Could not publish Agent Card to registry", e);
         }
     }
 }

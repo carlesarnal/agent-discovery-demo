@@ -77,7 +77,7 @@ Beyond the curl-based governance demo, this repo includes two real Quarkus agent
 | Agent | Path | Description |
 |-------|------|-------------|
 | **Summarizer** | `agents/summarizer/` | A2A server that summarizes text via Ollama. Auto-publishes its Agent Card to the registry on startup. |
-| **Orchestrator** | `agents/orchestrator/` | Discovers agents via the Apicurio Registry, delegates tasks using the A2A Protocol. Uses the `quarkus-langchain4j-a2a-apicurio-registry` extension. |
+| **Orchestrator** | `agents/orchestrator/` | Discovers agents via the Apicurio Registry SDK, delegates tasks using the A2A Java SDK. No hardcoded agent URLs. |
 
 Both agents use **Ollama** with `qwen2.5:1.5b` for fast, self-contained LLM inference.
 
@@ -131,7 +131,7 @@ The same governance patterns that protect OpenAPI specs, AsyncAPI definitions, a
 |-----------|------------|
 | Agent Registry | [Apicurio Registry 3.x](https://www.apicur.io/registry/) (CNCF sandbox) |
 | Agent Protocol | [A2A Protocol](https://google.github.io/A2A/) (Agent-to-Agent) |
-| Agent Framework | [Quarkus LangChain4j](https://docs.quarkiverse.io/quarkus-langchain4j/dev/) with A2A Apicurio Registry extension |
+| Agent Framework | [Quarkus](https://quarkus.io/) + [Quarkus LangChain4j](https://docs.quarkiverse.io/quarkus-langchain4j/dev/) + [A2A Java SDK](https://github.com/a2aproject/a2a-java-sdk) |
 | LLM Runtime | [Ollama](https://ollama.ai/) with qwen2.5:1.5b |
 | API Standards | [OpenAPI](https://www.openapis.org/), [AsyncAPI](https://www.asyncapi.com/) (also governed by the same registry) |
 | Schema Format | JSON Schema (draft 2020-12) |
