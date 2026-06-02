@@ -44,7 +44,11 @@ public class RegistryDiscoveryService {
         this.groupId = groupId;
     }
 
-    public record StepEvent(String step, String status, String detail) {}
+    public record StepEvent(String step, String status, String detail, String payload) {
+        public StepEvent(String step, String status, String detail) {
+            this(step, status, detail, null);
+        }
+    }
 
     public String discoverAndDelegate(String userRequest) {
         return discoverAndDelegate(userRequest, e -> {});
@@ -64,7 +68,16 @@ public class RegistryDiscoveryService {
             for (SearchedArtifact a : results.getArtifacts()) {
                 agentNames.add(a.getName() != null ? a.getName() : a.getArtifactId());
             }
-            onStep.accept(new StepEvent("search", "done", "Found " + agentNames.size() + " agents: " + String.join(", ", agentNames)));
+            String agentsJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(
+                    results.getArtifacts().stream().map(a -> {
+                        ObjectNode n = mapper.createObjectNode();
+                        n.put("artifactId", a.getArtifactId());
+                        n.put("name", a.getName());
+                        n.put("type", a.getArtifactType());
+                        n.put("groupId", a.getGroupId());
+                        return n;
+                    }).toList());
+            onStep.accept(new StepEvent("search", "done", "Found " + agentNames.size() + " agents: " + String.join(", ", agentNames), agentsJson));
 
             SearchedArtifact chosen = results.getArtifacts().get(0);
             String chosenName = chosen.getName() != null ? chosen.getName() : chosen.getArtifactId();
@@ -85,7 +98,7 @@ public class RegistryDiscoveryService {
                 }
                 skills = String.join(", ", skillNames);
             }
-            onStep.accept(new StepEvent("inspect", "done", "Agent: " + chosenName + " | Skills: " + skills + " | URL: " + agentUrl));
+            onStep.accept(new StepEvent("inspect", "done", "Agent: " + chosenName + " | Skills: " + skills + " | URL: " + agentUrl, cardJson));
 
             if (agentUrl == null) {
                 onStep.accept(new StepEvent("delegate", "error", "Agent Card has no URL"));
@@ -93,8 +106,13 @@ public class RegistryDiscoveryService {
             }
 
             onStep.accept(new StepEvent("delegate", "running", "Sending task via A2A Protocol to " + agentUrl + "..."));
-            String response = delegateViaA2A(agentUrl, userRequest);
-            onStep.accept(new StepEvent("delegate", "done", "Response received from " + chosenName));
+            String[] a2aPayloads = new String[2];
+            String response = delegateViaA2A(agentUrl, userRequest, a2aPayloads);
+            String delegatePayload = mapper.createObjectNode()
+                    .put("request", a2aPayloads[0])
+                    .put("response", a2aPayloads[1])
+                    .toString();
+            onStep.accept(new StepEvent("delegate", "done", "Response received from " + chosenName, delegatePayload));
 
             onStep.accept(new StepEvent("result", "done", response));
             return response;
@@ -105,7 +123,7 @@ public class RegistryDiscoveryService {
         }
     }
 
-    private String delegateViaA2A(String agentUrl, String message) throws Exception {
+    private String delegateViaA2A(String agentUrl, String message, String[] payloads) throws Exception {
         ObjectNode textPart = mapper.createObjectNode();
         textPart.put("kind", "text");
         textPart.put("text", message);
@@ -128,13 +146,17 @@ public class RegistryDiscoveryService {
         request.put("method", "message/send");
         request.set("params", params);
 
+        String requestBody = mapper.writeValueAsString(request);
+        if (payloads != null) payloads[0] = requestBody;
+
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .uri(URI.create(agentUrl))
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(request)))
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
 
         HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        if (payloads != null) payloads[1] = response.body();
 
         JsonNode responseJson = mapper.readTree(response.body());
         JsonNode result = responseJson.get("result");
