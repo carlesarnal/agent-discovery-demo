@@ -77,42 +77,82 @@ public class RegistryDiscoveryService {
                         n.put("groupId", a.getGroupId());
                         return n;
                     }).toList());
-            onStep.accept(new StepEvent("search", "done", "Found " + agentNames.size() + " agents: " + String.join(", ", agentNames), agentsJson));
+            onStep.accept(new StepEvent("search", "done",
+                    "Found " + agentNames.size() + " agents: " + String.join(", ", agentNames), agentsJson));
 
-            SearchedArtifact chosen = results.getArtifacts().get(0);
-            String chosenName = chosen.getName() != null ? chosen.getName() : chosen.getArtifactId();
+            // Read all Agent Cards and pick the best match
+            onStep.accept(new StepEvent("inspect", "running", "Reading Agent Cards and matching skills to request..."));
 
-            onStep.accept(new StepEvent("inspect", "running", "Reading Agent Card for '" + chosenName + "'..."));
-            InputStream content = registryClient.groups().byGroupId(groupId)
-                    .artifacts().byArtifactId(chosen.getArtifactId())
-                    .versions().byVersionExpression("branch=latest").content().get();
-            String cardJson = new String(content.readAllBytes(), StandardCharsets.UTF_8);
-            JsonNode card = mapper.readTree(cardJson);
+            record AgentCandidate(String name, String artifactId, String url, String cardJson, int score, String skills) {}
 
-            String agentUrl = card.has("url") ? card.get("url").asText() : null;
-            String skills = "";
-            if (card.has("skills")) {
+            List<AgentCandidate> candidates = new ArrayList<>();
+            for (SearchedArtifact artifact : results.getArtifacts()) {
+                InputStream content = registryClient.groups().byGroupId(groupId)
+                        .artifacts().byArtifactId(artifact.getArtifactId())
+                        .versions().byVersionExpression("branch=latest").content().get();
+                String cardJson = new String(content.readAllBytes(), StandardCharsets.UTF_8);
+                JsonNode card = mapper.readTree(cardJson);
+
+                String url = card.has("url") ? card.get("url").asText() : null;
+                String name = card.has("name") ? card.get("name").asText() : artifact.getArtifactId();
+
                 List<String> skillNames = new ArrayList<>();
-                for (JsonNode s : card.get("skills")) {
-                    skillNames.add(s.get("name").asText());
+                List<String> skillDescriptions = new ArrayList<>();
+                if (card.has("skills")) {
+                    for (JsonNode s : card.get("skills")) {
+                        skillNames.add(s.get("name").asText());
+                        if (s.has("description")) skillDescriptions.add(s.get("description").asText());
+                        if (s.has("tags")) {
+                            for (JsonNode tag : s.get("tags")) skillDescriptions.add(tag.asText());
+                        }
+                    }
                 }
-                skills = String.join(", ", skillNames);
-            }
-            onStep.accept(new StepEvent("inspect", "done", "Agent: " + chosenName + " | Skills: " + skills + " | URL: " + agentUrl, cardJson));
+                String description = card.has("description") ? card.get("description").asText() : "";
 
-            if (agentUrl == null) {
-                onStep.accept(new StepEvent("delegate", "error", "Agent Card has no URL"));
+                int score = computeMatchScore(userRequest, name, description, skillNames, skillDescriptions);
+                candidates.add(new AgentCandidate(name, artifact.getArtifactId(), url, cardJson, score,
+                        String.join(", ", skillNames)));
+            }
+
+            candidates.sort((a, b) -> Integer.compare(b.score, a.score));
+            AgentCandidate chosen = candidates.get(0);
+
+            StringBuilder matchDetail = new StringBuilder();
+            for (AgentCandidate c : candidates) {
+                String marker = c == chosen ? " >>> SELECTED" : "";
+                matchDetail.append(String.format("%s (score: %d, skills: %s)%s\n", c.name, c.score, c.skills, marker));
+            }
+
+            onStep.accept(new StepEvent("inspect", "done",
+                    "Selected: " + chosen.name + " (score: " + chosen.score + ") | Skills: " + chosen.skills,
+                    chosen.cardJson));
+
+            onStep.accept(new StepEvent("match", "done", matchDetail.toString().trim(),
+                    mapper.writerWithDefaultPrettyPrinter().writeValueAsString(
+                            candidates.stream().map(c -> {
+                                ObjectNode n = mapper.createObjectNode();
+                                n.put("agent", c.name);
+                                n.put("score", c.score);
+                                n.put("skills", c.skills);
+                                n.put("selected", c == chosen);
+                                return n;
+                            }).toList())));
+
+            if (chosen.url == null) {
+                onStep.accept(new StepEvent("delegate", "error", "Selected agent has no URL"));
                 return "Agent Card has no URL.";
             }
 
-            onStep.accept(new StepEvent("delegate", "running", "Sending task via A2A Protocol to " + agentUrl + "..."));
+            onStep.accept(new StepEvent("delegate", "running",
+                    "Delegating to " + chosen.name + " via A2A Protocol at " + chosen.url + "..."));
             String[] a2aPayloads = new String[2];
-            String response = delegateViaA2A(agentUrl, userRequest, a2aPayloads);
+            String response = delegateViaA2A(chosen.url, userRequest, a2aPayloads);
             String delegatePayload = mapper.createObjectNode()
                     .put("request", a2aPayloads[0])
                     .put("response", a2aPayloads[1])
                     .toString();
-            onStep.accept(new StepEvent("delegate", "done", "Response received from " + chosenName, delegatePayload));
+            onStep.accept(new StepEvent("delegate", "done",
+                    "Response received from " + chosen.name, delegatePayload));
 
             onStep.accept(new StepEvent("result", "done", response));
             return response;
@@ -121,6 +161,31 @@ public class RegistryDiscoveryService {
             onStep.accept(new StepEvent("error", "error", e.getMessage()));
             return "Error: " + e.getMessage();
         }
+    }
+
+    private int computeMatchScore(String request, String agentName, String description,
+                                  List<String> skillNames, List<String> skillDescriptions) {
+        String lower = request.toLowerCase();
+        int score = 0;
+
+        for (String skill : skillNames) {
+            for (String word : skill.toLowerCase().split("\\s+")) {
+                if (word.length() > 3 && lower.contains(word)) score += 10;
+            }
+        }
+        for (String desc : skillDescriptions) {
+            for (String word : desc.toLowerCase().split("\\s+")) {
+                if (word.length() > 3 && lower.contains(word)) score += 5;
+            }
+        }
+        for (String word : description.toLowerCase().split("\\s+")) {
+            if (word.length() > 3 && lower.contains(word)) score += 3;
+        }
+        for (String word : agentName.toLowerCase().split("\\s+")) {
+            if (word.length() > 3 && lower.contains(word)) score += 8;
+        }
+
+        return score;
     }
 
     private String delegateViaA2A(String agentUrl, String message, String[] payloads) throws Exception {

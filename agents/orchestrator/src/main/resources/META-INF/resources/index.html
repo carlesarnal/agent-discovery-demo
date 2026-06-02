@@ -6,22 +6,18 @@
 <title>Agent Discovery Orchestrator</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-
   :root {
     --bg: #0f1117; --card: #1a1d27; --code: #151820;
     --text: #e4e7ef; --dim: #8b90a0;
     --blue: #4f8ff7; --purple: #a78bfa; --green: #34d399;
-    --orange: #fb923c; --red: #ef4444; --border: #2a2e3b;
+    --orange: #fb923c; --pink: #f472b6; --red: #ef4444; --border: #2a2e3b;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 32px; }
-
-  h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; }
-  .subtitle { color: var(--dim); font-size: 0.95rem; margin-bottom: 28px; }
-
+  h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { color: var(--dim); font-size: 0.9rem; margin-bottom: 24px; }
   .container { max-width: 1200px; margin: 0 auto; }
-
-  .input-area { display: flex; gap: 12px; margin-bottom: 28px; }
+  .input-area { display: flex; gap: 12px; margin-bottom: 24px; }
   .input-area input {
     flex: 1; background: var(--card); border: 1px solid var(--border);
     border-radius: 10px; padding: 14px 18px; color: var(--text);
@@ -31,93 +27,81 @@
   .input-area input::placeholder { color: var(--dim); }
   .input-area button {
     background: var(--blue); color: white; border: none; border-radius: 10px;
-    padding: 14px 28px; font-size: 1rem; font-weight: 600; cursor: pointer;
-    white-space: nowrap;
+    padding: 14px 28px; font-size: 1rem; font-weight: 600; cursor: pointer; white-space: nowrap;
   }
   .input-area button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; }
-
-  /* Left: flow steps */
-  .flow { display: flex; flex-direction: column; gap: 0; }
-  .step {
-    display: flex; align-items: flex-start; gap: 14px;
-    padding: 14px 0; opacity: 0.25; transition: opacity 0.4s; cursor: pointer;
-  }
-  .step.active, .step.done, .step.error { opacity: 1; }
-  .step.selected { background: rgba(79,143,247,0.05); margin: 0 -12px; padding: 14px 12px; border-radius: 8px; }
-
-  .step-icon {
-    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; font-weight: 700; border: 2px solid var(--border);
-    background: var(--card); transition: all 0.4s;
-  }
-  .step.active .step-icon { border-color: var(--blue); box-shadow: 0 0 12px rgba(79,143,247,0.25); }
-  .step.done .step-icon { border-color: var(--green); background: rgba(52,211,153,0.1); }
-  .step.error .step-icon { border-color: var(--red); background: rgba(239,68,68,0.1); }
-
-  .step-content { flex: 1; min-width: 0; }
-  .step-title { font-weight: 600; font-size: 0.88rem; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
-  .step-detail {
-    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
-    color: var(--dim); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .step.active .step-detail { color: var(--blue); }
-  .step.done .step-detail { color: var(--green); }
-  .step-time { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--dim); margin-top: 2px; }
-
-  .connector { width: 2px; height: 16px; background: var(--border); margin-left: 19px; transition: background 0.4s; }
-  .connector.done { background: var(--green); }
-  .connector.active { background: var(--blue); }
-
   .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
   .badge-blue { background: rgba(79,143,247,0.15); color: var(--blue); }
   .badge-green { background: rgba(52,211,153,0.15); color: var(--green); }
   .badge-purple { background: rgba(167,139,250,0.15); color: var(--purple); }
   .badge-orange { background: rgba(251,146,60,0.15); color: var(--orange); }
+  .badge-pink { background: rgba(244,114,182,0.15); color: var(--pink); }
 
-  /* Right: detail panels */
-  .detail-area { min-height: 400px; }
-
-  .panel {
+  /* Event log */
+  .log { display: flex; flex-direction: column; gap: 12px; }
+  .log-entry {
     background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    overflow: hidden; display: none;
+    overflow: hidden; opacity: 0; transform: translateY(8px);
+    animation: fadeIn 0.3s ease forwards;
   }
-  .panel.visible { display: block; }
+  @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
 
-  .panel-header {
-    padding: 14px 18px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
+  .log-entry.running { border-color: var(--blue); }
+  .log-entry.done { border-color: var(--green); }
+  .log-entry.error { border-color: var(--red); }
+
+  .log-header {
+    padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+    cursor: pointer; user-select: none;
   }
-  .panel-header h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--blue); }
-  .panel-header .panel-badge { font-size: 0.7rem; color: var(--dim); }
+  .log-header:hover { background: rgba(255,255,255,0.02); }
 
-  .panel-body {
-    padding: 16px 18px; font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem; line-height: 1.6; color: var(--dim);
-    max-height: 420px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+  .log-icon {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; font-weight: 700; border: 2px solid var(--border);
+    background: var(--code);
   }
+  .log-entry.running .log-icon { border-color: var(--blue); animation: pulse 1.5s ease-in-out infinite; }
+  .log-entry.done .log-icon { border-color: var(--green); background: rgba(52,211,153,0.1); }
+  .log-entry.error .log-icon { border-color: var(--red); }
 
-  .panel-body .key { color: var(--blue); }
-  .panel-body .str { color: var(--green); }
-  .panel-body .label { color: var(--orange); font-weight: 600; display: block; margin-top: 12px; margin-bottom: 4px; }
+  .log-title { font-weight: 600; font-size: 0.85rem; flex: 1; }
+  .log-time { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--dim); }
+  .log-detail {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    color: var(--dim); padding: 0 16px 10px 58px; line-height: 1.4;
+  }
+  .log-entry.running .log-detail { color: var(--blue); }
+  .log-entry.done .log-detail { color: var(--green); }
 
-  /* Result box */
+  .log-payload {
+    display: none; padding: 0 16px 14px 16px;
+  }
+  .log-payload.visible { display: block; }
+  .log-payload pre {
+    background: var(--code); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; line-height: 1.5; color: var(--dim);
+    max-height: 300px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+  }
+  .log-payload .label { color: var(--orange); font-weight: 600; font-size: 0.72rem; display: block; margin: 8px 0 4px 0; }
+  .log-payload .label:first-child { margin-top: 0; }
+
+  /* Result */
   .result-box {
     background: var(--card); border: 2px solid var(--green); border-radius: 12px;
-    padding: 24px; margin-top: 24px; display: none;
+    padding: 24px; margin-top: 16px; display: none;
+    animation: fadeIn 0.4s ease forwards;
   }
   .result-box.visible { display: block; }
   .result-box h3 { font-size: 0.8rem; color: var(--green); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
   .result-box p { font-size: 1.05rem; line-height: 1.7; }
 
   @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
-  .step.active .step-icon { animation: pulse 1.5s ease-in-out infinite; }
 </style>
 </head>
 <body>
-
 <div class="container">
   <h1>Agent Discovery Orchestrator</h1>
   <p class="subtitle">Registry-backed discovery and delegation via open standards
@@ -127,86 +111,11 @@
   </p>
 
   <div class="input-area">
-    <input type="text" id="request" placeholder="e.g. Summarize the benefits of open standards for AI agent governance" />
+    <input type="text" id="request" placeholder="e.g. Summarize the benefits of open standards for AI governance" />
     <button id="send" onclick="run()">Orchestrate</button>
   </div>
 
-  <div class="layout">
-    <div class="flow" id="flow">
-      <div class="step" id="step-search" onclick="showPanel('search')">
-        <div class="step-icon">1</div>
-        <div class="step-content">
-          <div class="step-title">Discover Agents <span class="badge badge-blue">Registry SDK</span></div>
-          <div class="step-detail" id="detail-search">Query registry for AGENT_CARD artifacts</div>
-          <div class="step-time" id="time-search"></div>
-        </div>
-      </div>
-      <div class="connector" id="conn-1"></div>
-
-      <div class="step" id="step-inspect" onclick="showPanel('inspect')">
-        <div class="step-icon">2</div>
-        <div class="step-content">
-          <div class="step-title">Inspect Agent Card <span class="badge badge-purple">A2A</span></div>
-          <div class="step-detail" id="detail-inspect">Read capabilities, skills, endpoint URL</div>
-          <div class="step-time" id="time-inspect"></div>
-        </div>
-      </div>
-      <div class="connector" id="conn-2"></div>
-
-      <div class="step" id="step-delegate" onclick="showPanel('delegate')">
-        <div class="step-icon">3</div>
-        <div class="step-content">
-          <div class="step-title">Delegate via A2A <span class="badge badge-orange">JSON-RPC</span></div>
-          <div class="step-detail" id="detail-delegate">Send task to discovered agent</div>
-          <div class="step-time" id="time-delegate"></div>
-        </div>
-      </div>
-      <div class="connector" id="conn-3"></div>
-
-      <div class="step" id="step-result" onclick="showPanel('result')">
-        <div class="step-icon">4</div>
-        <div class="step-content">
-          <div class="step-title">Result <span class="badge badge-green">LLM</span></div>
-          <div class="step-detail" id="detail-result">Waiting for response...</div>
-          <div class="step-time" id="time-result"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="detail-area">
-      <div class="panel" id="panel-search">
-        <div class="panel-header">
-          <h3>Registry Search Results</h3>
-          <span class="panel-badge">GET /groups/a2a-agents/artifacts</span>
-        </div>
-        <div class="panel-body" id="panel-search-body">Waiting...</div>
-      </div>
-
-      <div class="panel" id="panel-inspect">
-        <div class="panel-header">
-          <h3>Agent Card Content</h3>
-          <span class="panel-badge">AGENT_CARD artifact</span>
-        </div>
-        <div class="panel-body" id="panel-inspect-body">Waiting...</div>
-      </div>
-
-      <div class="panel" id="panel-delegate">
-        <div class="panel-header">
-          <h3>A2A Protocol Exchange</h3>
-          <span class="panel-badge">JSON-RPC 2.0</span>
-        </div>
-        <div class="panel-body" id="panel-delegate-body">Waiting...</div>
-      </div>
-
-      <div class="panel" id="panel-result">
-        <div class="panel-header">
-          <h3>Agent Response</h3>
-          <span class="panel-badge">LLM Output</span>
-        </div>
-        <div class="panel-body" id="panel-result-body" style="color: var(--text); font-family: 'Inter', sans-serif; font-size: 1rem; line-height: 1.7;">Waiting...</div>
-      </div>
-    </div>
-  </div>
+  <div class="log" id="log"></div>
 
   <div class="result-box" id="result-box">
     <h3>Agent Response</h3>
@@ -215,84 +124,113 @@
 </div>
 
 <script>
-const steps = ['search', 'inspect', 'delegate', 'result'];
+const stepConfig = {
+  search:   { num: '1', title: 'Discover Agents', badge: 'Registry SDK', badgeClass: 'badge-blue' },
+  inspect:  { num: '2', title: 'Inspect Agent Cards', badge: 'AGENT_CARD', badgeClass: 'badge-purple' },
+  match:    { num: '3', title: 'Select Best Agent', badge: 'Skill Matching', badgeClass: 'badge-pink' },
+  delegate: { num: '4', title: 'Delegate via A2A', badge: 'JSON-RPC', badgeClass: 'badge-orange' },
+  result:   { num: '5', title: 'Result', badge: 'LLM Response', badgeClass: 'badge-green' },
+  error:    { num: '!', title: 'Error', badge: 'Failed', badgeClass: 'badge-orange' }
+};
+
 let startTime = null;
 let stepTimes = {};
 
-function resetFlow() {
+function resetLog() {
   startTime = Date.now();
   stepTimes = {};
-  steps.forEach(s => {
-    document.getElementById('step-' + s).className = 'step';
-    document.getElementById('time-' + s).textContent = '';
-    document.getElementById('panel-' + s + '-body').textContent = 'Waiting...';
-    document.getElementById('panel-' + s).classList.remove('visible');
-  });
-  document.getElementById('detail-search').textContent = 'Query registry for AGENT_CARD artifacts';
-  document.getElementById('detail-inspect').textContent = 'Read capabilities, skills, endpoint URL';
-  document.getElementById('detail-delegate').textContent = 'Send task to discovered agent';
-  document.getElementById('detail-result').textContent = 'Waiting for response...';
-  document.querySelectorAll('.connector').forEach(c => c.className = 'connector');
-  document.querySelectorAll('.step').forEach(s => s.classList.remove('selected'));
+  document.getElementById('log').innerHTML = '';
   document.getElementById('result-box').classList.remove('visible');
   document.getElementById('result-text').textContent = '';
 }
 
-function showPanel(step) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('visible'));
-  document.querySelectorAll('.step').forEach(s => s.classList.remove('selected'));
-  document.getElementById('panel-' + step).classList.add('visible');
-  document.getElementById('step-' + step).classList.add('selected');
-}
-
 function prettyJson(str) {
-  try { return JSON.stringify(JSON.parse(str), null, 2); }
-  catch { return str; }
+  try { return JSON.stringify(JSON.parse(str), null, 2); } catch { return str; }
 }
 
-function setStep(step, status, detail, payload) {
-  const el = document.getElementById('step-' + step);
-  const cls = status === 'running' ? 'active' : status;
-  el.className = 'step ' + cls;
-  document.getElementById('detail-' + step).textContent = detail;
-
+function addLogEntry(step, status, detail, payload) {
+  const log = document.getElementById('log');
+  const cfg = stepConfig[step] || { num: '?', title: step, badge: step, badgeClass: 'badge-blue' };
   const elapsed = Date.now() - startTime;
-  if (status === 'running') {
-    stepTimes[step] = elapsed;
-  }
-  if (status === 'done' || status === 'error') {
-    const duration = elapsed - (stepTimes[step] || 0);
-    document.getElementById('time-' + step).textContent = (elapsed / 1000).toFixed(1) + 's total | ' + (duration / 1000).toFixed(1) + 's';
-  }
+  const cls = status === 'running' ? 'running' : status;
 
-  const idx = steps.indexOf(step);
-  if (idx > 0) {
-    document.getElementById('conn-' + idx).className = 'connector ' + cls;
-  }
-
-  const panelBody = document.getElementById('panel-' + step + '-body');
-  if (step === 'result' && (status === 'done' || status === 'error')) {
-    panelBody.textContent = detail;
-    const resultBox = document.getElementById('result-box');
-    document.getElementById('result-text').textContent = detail;
-    resultBox.classList.add('visible');
-  } else if (payload) {
-    if (step === 'delegate') {
-      try {
-        const p = JSON.parse(payload);
-        panelBody.innerHTML = '<span class="label">REQUEST (message/send)</span>' +
-          prettyJson(p.request) +
-          '<span class="label">RESPONSE</span>' +
-          prettyJson(p.response);
-      } catch { panelBody.textContent = payload; }
-    } else {
-      panelBody.textContent = prettyJson(payload);
+  // Check if entry for this step already exists (update running → done)
+  let existing = document.getElementById('log-' + step);
+  if (existing) {
+    existing.className = 'log-entry ' + cls;
+    existing.querySelector('.log-detail').textContent = detail;
+    if (status === 'done' || status === 'error') {
+      const duration = elapsed - (stepTimes[step] || 0);
+      existing.querySelector('.log-time').textContent = (duration / 1000).toFixed(1) + 's';
     }
+    if (payload) {
+      setPayload(existing, step, payload);
+    }
+    if (step === 'result' && status === 'done') {
+      showResult(detail);
+    }
+    return;
   }
 
-  if (status === 'done' || status === 'active') {
-    showPanel(step);
+  if (status === 'running') stepTimes[step] = elapsed;
+
+  const entry = document.createElement('div');
+  entry.className = 'log-entry ' + cls;
+  entry.id = 'log-' + step;
+
+  const timeStr = (status === 'done' || status === 'error')
+    ? ((elapsed - (stepTimes[step] || 0)) / 1000).toFixed(1) + 's'
+    : '';
+
+  entry.innerHTML = `
+    <div class="log-header" onclick="togglePayload('${step}')">
+      <div class="log-icon">${cfg.num}</div>
+      <div class="log-title">${cfg.title} <span class="badge ${cfg.badgeClass}">${cfg.badge}</span></div>
+      <div class="log-time">${timeStr}</div>
+    </div>
+    <div class="log-detail">${detail}</div>
+    <div class="log-payload" id="payload-${step}"></div>
+  `;
+
+  log.appendChild(entry);
+
+  if (payload) {
+    setPayload(entry, step, payload);
   }
+
+  if (step === 'result' && status === 'done') {
+    showResult(detail);
+  }
+
+  entry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function setPayload(entry, step, payload) {
+  const payloadEl = entry.querySelector('.log-payload');
+  if (step === 'delegate') {
+    try {
+      const p = JSON.parse(payload);
+      payloadEl.innerHTML = '<span class="label">REQUEST (message/send)</span><pre>' +
+        prettyJson(p.request) + '</pre>' +
+        '<span class="label">RESPONSE</span><pre>' +
+        prettyJson(p.response) + '</pre>';
+    } catch { payloadEl.innerHTML = '<pre>' + payload + '</pre>'; }
+  } else if (step === 'match') {
+    payloadEl.innerHTML = '<pre>' + prettyJson(payload) + '</pre>';
+  } else {
+    payloadEl.innerHTML = '<pre>' + prettyJson(payload) + '</pre>';
+  }
+  payloadEl.classList.add('visible');
+}
+
+function togglePayload(step) {
+  const el = document.getElementById('payload-' + step);
+  if (el) el.classList.toggle('visible');
+}
+
+function showResult(text) {
+  document.getElementById('result-text').textContent = text;
+  document.getElementById('result-box').classList.add('visible');
 }
 
 async function run() {
@@ -302,7 +240,7 @@ async function run() {
   if (!text) return;
 
   btn.disabled = true;
-  resetFlow();
+  resetLog();
 
   try {
     const response = await fetch('/orchestrate/stream', {
@@ -329,13 +267,13 @@ async function run() {
         if (trimmed.startsWith('data:')) {
           try {
             const event = JSON.parse(trimmed.slice(5));
-            setStep(event.step, event.status, event.detail, event.payload);
+            addLogEntry(event.step, event.status, event.detail, event.payload);
           } catch (e) {}
         }
       }
     }
   } catch (e) {
-    setStep('search', 'error', 'Connection failed: ' + e.message);
+    addLogEntry('error', 'error', 'Connection failed: ' + e.message);
   }
 
   btn.disabled = false;
