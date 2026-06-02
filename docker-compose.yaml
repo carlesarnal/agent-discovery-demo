@@ -7,7 +7,7 @@ services:
       APICURIO_STORAGE_KIND: "sql"
       APICURIO_STORAGE_SQL_KIND: "h2"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/apis/registry/v3/system/info"]
       interval: 5s
       timeout: 5s
       retries: 10

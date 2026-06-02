@@ -3,7 +3,9 @@ package com.carlesarnal.agents.summarizer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.a2a.server.PublicAgentCard;
 import io.a2a.spec.AgentCard;
-import io.apicurio.registry.client.RegistryClient;
+import io.apicurio.registry.client.RegistryClientFactory;
+import io.apicurio.registry.client.common.RegistryClientOptions;
+import io.apicurio.registry.rest.client.RegistryClient;
 import io.apicurio.registry.rest.client.models.CreateArtifact;
 import io.apicurio.registry.rest.client.models.CreateVersion;
 import io.apicurio.registry.rest.client.models.VersionContent;
@@ -33,7 +35,8 @@ public class RegistryPublisher {
 
     void onStart(@Observes StartupEvent ev) {
         try {
-            RegistryClient client = RegistryClient.create(registryUrl + "/apis/registry/v3");
+            RegistryClient client = RegistryClientFactory.create(
+                    RegistryClientOptions.create(registryUrl + "/apis/registry/v3"));
 
             ObjectMapper mapper = new ObjectMapper();
             String cardJson = mapper.writeValueAsString(agentCard);

@@ -11,20 +11,17 @@ echo "=== Registering Prompt Templates ==="
 echo "--- Registering summarizer-system-prompt v1 ---"
 curl -s -X POST "$REGISTRY_URL/apis/registry/v3/groups/$GROUP/artifacts" \
   -H "Content-Type: application/json" \
-  -H "X-Registry-ArtifactId: summarizer-system-prompt" \
-  -H "X-Registry-ArtifactType: JSON" \
   -d '{
-    "template": "You are a summarization assistant. Summarize the following text in {{max_sentences}} sentences.\n\nText: {{input_text}}\n\nSummary:",
-    "variables": {
-      "max_sentences": {"type": "integer", "default": 3},
-      "input_text": {"type": "string", "required": true}
-    },
-    "metadata": {
-      "model": "llama3.2",
-      "temperature": 0.3,
-      "version": "1.0.0"
+    "artifactId": "summarizer-system-prompt",
+    "artifactType": "JSON",
+    "name": "Summarizer System Prompt",
+    "firstVersion": {
+      "content": {
+        "content": "{\"template\":\"You are a summarization assistant. Summarize the following text in {{max_sentences}} sentences.\\n\\nText: {{input_text}}\\n\\nSummary:\",\"variables\":{\"max_sentences\":{\"type\":\"integer\",\"default\":3},\"input_text\":{\"type\":\"string\",\"required\":true}},\"metadata\":{\"model\":\"llama3.2\",\"temperature\":0.3,\"version\":\"1.0.0\"}}",
+        "contentType": "application/json"
+      }
     }
-  }' | jq .
+  }' | jq .artifact
 echo ""
 
 # Enable BACKWARD compatibility
@@ -41,18 +38,11 @@ echo "--- Creating version 2 (compatible change: add optional 'tone' variable) -
 curl -s -X POST "$REGISTRY_URL/apis/registry/v3/groups/$GROUP/artifacts/summarizer-system-prompt/versions" \
   -H "Content-Type: application/json" \
   -d '{
-    "template": "You are a summarization assistant. Summarize the following text in {{max_sentences}} sentences. Use a {{tone}} tone.\n\nText: {{input_text}}\n\nSummary:",
-    "variables": {
-      "max_sentences": {"type": "integer", "default": 3},
-      "input_text": {"type": "string", "required": true},
-      "tone": {"type": "string", "default": "neutral"}
-    },
-    "metadata": {
-      "model": "llama3.2",
-      "temperature": 0.3,
-      "version": "2.0.0"
+    "content": {
+      "content": "{\"template\":\"You are a summarization assistant. Summarize the following text in {{max_sentences}} sentences. Use a {{tone}} tone.\\n\\nText: {{input_text}}\\n\\nSummary:\",\"variables\":{\"max_sentences\":{\"type\":\"integer\",\"default\":3},\"input_text\":{\"type\":\"string\",\"required\":true},\"tone\":{\"type\":\"string\",\"default\":\"neutral\"}},\"metadata\":{\"model\":\"llama3.2\",\"temperature\":0.3,\"version\":\"2.0.0\"}}",
+      "contentType": "application/json"
     }
-  }' | jq .
+  }' | jq '{version: .version, state: .state}'
 echo ""
 echo "Version 2 registered successfully (backward compatible)"
 echo ""
@@ -61,17 +51,17 @@ echo ""
 echo "--- Registering chat-prompt template ---"
 curl -s -X POST "$REGISTRY_URL/apis/registry/v3/groups/$GROUP/artifacts" \
   -H "Content-Type: application/json" \
-  -H "X-Registry-ArtifactId: chat-prompt" \
-  -H "X-Registry-ArtifactType: JSON" \
   -d '{
-    "template": "{{system_prompt}}\n\nConversation history:\n{{conversation_history}}\n\nUser: {{question}}\n\nAssistant:",
-    "variables": {
-      "system_prompt": {"type": "string", "required": true},
-      "question": {"type": "string", "required": true},
-      "conversation_history": {"type": "string", "default": ""},
-      "include_examples": {"type": "boolean", "default": false}
+    "artifactId": "chat-prompt",
+    "artifactType": "JSON",
+    "name": "Chat Prompt",
+    "firstVersion": {
+      "content": {
+        "content": "{\"template\":\"{{system_prompt}}\\n\\nConversation history:\\n{{conversation_history}}\\n\\nUser: {{question}}\\n\\nAssistant:\",\"variables\":{\"system_prompt\":{\"type\":\"string\",\"required\":true},\"question\":{\"type\":\"string\",\"required\":true},\"conversation_history\":{\"type\":\"string\",\"default\":\"\"},\"include_examples\":{\"type\":\"boolean\",\"default\":false}}}",
+        "contentType": "application/json"
+      }
     }
-  }' | jq .
+  }' | jq .artifact
 
 echo ""
 echo "=== Prompt templates registered ==="

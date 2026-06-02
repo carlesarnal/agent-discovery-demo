@@ -14,7 +14,7 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <quarkus.platform.version>3.28.1</quarkus.platform.version>
-        <a2a-sdk.version>0.3.0.Beta1</a2a-sdk.version>
+        <a2a-sdk.version>0.3.2.Final</a2a-sdk.version>
         <surefire-plugin.version>3.5.3</surefire-plugin.version>
     </properties>
 
@@ -45,17 +45,22 @@
             <version>3.2.4</version>
         </dependency>
         <dependency>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-java-sdk-common</artifactId>
+            <version>3.2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-java-sdk-adapter-jdk</artifactId>
+            <version>3.2.4</version>
+        </dependency>
+        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest-client</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest-client-jackson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.github.a2asdk</groupId>
-            <artifactId>a2a-java-sdk-reference-jsonrpc</artifactId>
-            <version>${a2a-sdk.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>

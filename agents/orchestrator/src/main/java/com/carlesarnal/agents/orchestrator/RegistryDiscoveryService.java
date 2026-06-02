@@ -2,13 +2,12 @@ package com.carlesarnal.agents.orchestrator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.a2a.client.A2AClient;
-import io.a2a.spec.MessageSendParams;
-import io.a2a.spec.Part;
-import io.a2a.spec.Task;
-import io.a2a.spec.TextPart;
-import io.apicurio.registry.client.RegistryClient;
-import io.apicurio.registry.rest.client.models.ArtifactMetaData;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.apicurio.registry.client.RegistryClientFactory;
+import io.apicurio.registry.client.common.RegistryClientOptions;
+import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.rest.client.models.SearchedArtifact;
 import io.apicurio.registry.rest.client.models.ArtifactSearchResults;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -16,8 +15,11 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -28,12 +30,14 @@ public class RegistryDiscoveryService {
     private final RegistryClient registryClient;
     private final String groupId;
     private final ObjectMapper mapper = new ObjectMapper();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @Inject
     public RegistryDiscoveryService(
             @ConfigProperty(name = "registry.url", defaultValue = "http://localhost:8080") String registryUrl,
             @ConfigProperty(name = "registry.group-id", defaultValue = "a2a-agents") String groupId) {
-        this.registryClient = RegistryClient.create(registryUrl + "/apis/registry/v3");
+        this.registryClient = RegistryClientFactory.create(
+                RegistryClientOptions.create(registryUrl + "/apis/registry/v3"));
         this.groupId = groupId;
     }
 
@@ -45,7 +49,7 @@ public class RegistryDiscoveryService {
             }
 
             LOG.infof("Discovered agent at: %s", agentUrl);
-            return delegateToAgent(agentUrl, userRequest);
+            return delegateViaA2A(agentUrl, userRequest);
         } catch (Exception e) {
             LOG.error("Orchestration failed", e);
             return "Error: " + e.getMessage();
@@ -64,7 +68,7 @@ public class RegistryDiscoveryService {
             return null;
         }
 
-        ArtifactMetaData firstAgent = results.getArtifacts().get(0);
+        SearchedArtifact firstAgent = results.getArtifacts().get(0);
         LOG.infof("Found agent: %s (%s)", firstAgent.getName(), firstAgent.getArtifactId());
 
         return getAgentUrl(firstAgent.getArtifactId());
@@ -86,33 +90,51 @@ public class RegistryDiscoveryService {
         return card.has("url") ? card.get("url").asText() : null;
     }
 
-    private String delegateToAgent(String agentUrl, String message) throws Exception {
-        A2AClient client = A2AClient.builder()
-                .url(agentUrl)
+    private String delegateViaA2A(String agentUrl, String message) throws Exception {
+        ObjectNode textPart = mapper.createObjectNode();
+        textPart.put("type", "text");
+        textPart.put("text", message);
+
+        ArrayNode parts = mapper.createArrayNode();
+        parts.add(textPart);
+
+        ObjectNode msg = mapper.createObjectNode();
+        msg.put("role", "user");
+        msg.set("parts", parts);
+        msg.put("messageId", UUID.randomUUID().toString());
+
+        ObjectNode params = mapper.createObjectNode();
+        params.set("message", msg);
+
+        ObjectNode request = mapper.createObjectNode();
+        request.put("jsonrpc", "2.0");
+        request.put("id", UUID.randomUUID().toString());
+        request.put("method", "message/send");
+        request.set("params", params);
+
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(agentUrl))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(request)))
                 .build();
 
-        MessageSendParams params = MessageSendParams.builder()
-                .message(MessageSendParams.Message.builder()
-                        .role("user")
-                        .parts(List.of(new TextPart(message, null)))
-                        .messageId(UUID.randomUUID().toString())
-                        .build())
-                .build();
+        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
-        Task task = client.sendMessage(params);
-
-        if (task.getArtifacts() != null && !task.getArtifacts().isEmpty()) {
-            StringBuilder result = new StringBuilder();
-            for (var artifact : task.getArtifacts()) {
-                for (Part<?> part : artifact.parts()) {
-                    if (part instanceof TextPart textPart) {
-                        result.append(textPart.getText());
+        JsonNode responseJson = mapper.readTree(response.body());
+        JsonNode result = responseJson.get("result");
+        if (result != null && result.has("artifacts")) {
+            JsonNode artifacts = result.get("artifacts");
+            StringBuilder sb = new StringBuilder();
+            for (JsonNode artifact : artifacts) {
+                for (JsonNode part : artifact.get("parts")) {
+                    if ("text".equals(part.get("type").asText())) {
+                        sb.append(part.get("text").asText());
                     }
                 }
             }
-            return result.toString();
+            return sb.toString();
         }
 
-        return "Agent completed but returned no artifacts.";
+        return "Agent responded: " + response.body();
     }
 }

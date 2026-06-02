@@ -5,7 +5,7 @@ set -euo pipefail
 REGISTRY_URL="${REGISTRY_URL:-http://localhost:8080}"
 
 echo "Waiting for Apicurio Registry at $REGISTRY_URL..."
-until curl -sf "$REGISTRY_URL/health" > /dev/null 2>&1; do
+until curl -sf "$REGISTRY_URL/apis/registry/v3/system/info" > /dev/null 2>&1; do
   sleep 2
 done
 echo "Registry is ready!"

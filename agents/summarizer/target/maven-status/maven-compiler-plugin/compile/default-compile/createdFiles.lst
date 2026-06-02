@@ -1,0 +1,5 @@
+com/carlesarnal/agents/summarizer/RegistryPublisher.class
+com/carlesarnal/agents/summarizer/SummarizerAgentCardProducer.class
+com/carlesarnal/agents/summarizer/SummarizerAgentExecutorProducer.class
+com/carlesarnal/agents/summarizer/SummarizerAgentExecutorProducer$SummarizerAgentExecutor.class
+com/carlesarnal/agents/summarizer/SummarizerAgent.class
