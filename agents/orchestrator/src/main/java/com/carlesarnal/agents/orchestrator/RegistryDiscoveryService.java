@@ -35,10 +35,14 @@ public class RegistryDiscoveryService {
     private final ObjectMapper mapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
+    private final AgentSelectorAiService agentSelector;
+
     @Inject
     public RegistryDiscoveryService(
             @ConfigProperty(name = "registry.url", defaultValue = "http://localhost:8080") String registryUrl,
-            @ConfigProperty(name = "registry.group-id", defaultValue = "a2a-agents") String groupId) {
+            @ConfigProperty(name = "registry.group-id", defaultValue = "a2a-agents") String groupId,
+            AgentSelectorAiService agentSelector) {
+        this.agentSelector = agentSelector;
         this.registryClient = RegistryClientFactory.create(
                 RegistryClientOptions.create(registryUrl + "/apis/registry/v3"));
         this.groupId = groupId;
@@ -80,12 +84,15 @@ public class RegistryDiscoveryService {
             onStep.accept(new StepEvent("search", "done",
                     "Found " + agentNames.size() + " agents: " + String.join(", ", agentNames), agentsJson));
 
-            // Read all Agent Cards and pick the best match
-            onStep.accept(new StepEvent("inspect", "running", "Reading Agent Cards and matching skills to request..."));
+            // Read all Agent Cards
+            onStep.accept(new StepEvent("inspect", "running", "Reading Agent Cards from registry..."));
 
-            record AgentCandidate(String name, String artifactId, String url, String cardJson, int score, String skills) {}
+            record AgentCandidate(String name, String artifactId, String url, String cardJson, String skills) {}
 
             List<AgentCandidate> candidates = new ArrayList<>();
+            StringBuilder llmPrompt = new StringBuilder();
+            llmPrompt.append("User request: ").append(userRequest).append("\n\nAvailable agents:\n");
+
             for (SearchedArtifact artifact : results.getArtifacts()) {
                 InputStream content = registryClient.groups().byGroupId(groupId)
                         .artifacts().byArtifactId(artifact.getArtifactId())
@@ -97,46 +104,61 @@ public class RegistryDiscoveryService {
                 String name = card.has("name") ? card.get("name").asText() : artifact.getArtifactId();
 
                 List<String> skillNames = new ArrayList<>();
-                List<String> skillDescriptions = new ArrayList<>();
                 if (card.has("skills")) {
                     for (JsonNode s : card.get("skills")) {
                         skillNames.add(s.get("name").asText());
-                        if (s.has("description")) skillDescriptions.add(s.get("description").asText());
-                        if (s.has("tags")) {
-                            for (JsonNode tag : s.get("tags")) skillDescriptions.add(tag.asText());
-                        }
                     }
                 }
+                String skills = String.join(", ", skillNames);
                 String description = card.has("description") ? card.get("description").asText() : "";
 
-                int score = computeMatchScore(userRequest, name, description, skillNames, skillDescriptions);
-                candidates.add(new AgentCandidate(name, artifact.getArtifactId(), url, cardJson, score,
-                        String.join(", ", skillNames)));
+                candidates.add(new AgentCandidate(name, artifact.getArtifactId(), url, cardJson, skills));
+                llmPrompt.append("- artifactId: ").append(artifact.getArtifactId())
+                        .append(", name: ").append(name)
+                        .append(", description: ").append(description)
+                        .append(", skills: ").append(skills).append("\n");
             }
 
-            candidates.sort((a, b) -> Integer.compare(b.score, a.score));
-            AgentCandidate chosen = candidates.get(0);
-
-            StringBuilder matchDetail = new StringBuilder();
-            for (AgentCandidate c : candidates) {
-                String marker = c == chosen ? " >>> SELECTED" : "";
-                matchDetail.append(String.format("%s (score: %d, skills: %s)%s\n", c.name, c.score, c.skills, marker));
-            }
-
+            String allCardsJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(
+                    candidates.stream().map(c -> {
+                        ObjectNode n = mapper.createObjectNode();
+                        n.put("artifactId", c.artifactId);
+                        n.put("name", c.name);
+                        n.put("skills", c.skills);
+                        return n;
+                    }).toList());
             onStep.accept(new StepEvent("inspect", "done",
-                    "Selected: " + chosen.name + " (score: " + chosen.score + ") | Skills: " + chosen.skills,
-                    chosen.cardJson));
+                    "Read " + candidates.size() + " Agent Cards: " +
+                    candidates.stream().map(c -> c.name).reduce((a, b) -> a + ", " + b).orElse(""),
+                    allCardsJson));
 
-            onStep.accept(new StepEvent("match", "done", matchDetail.toString().trim(),
-                    mapper.writerWithDefaultPrettyPrinter().writeValueAsString(
-                            candidates.stream().map(c -> {
-                                ObjectNode n = mapper.createObjectNode();
-                                n.put("agent", c.name);
-                                n.put("score", c.score);
-                                n.put("skills", c.skills);
-                                n.put("selected", c == chosen);
-                                return n;
-                            }).toList())));
+            // Use LLM to select the best agent
+            onStep.accept(new StepEvent("match", "running", "Asking LLM to select the best agent for this request..."));
+            String selectedId = agentSelector.selectAgent(llmPrompt.toString()).trim();
+            LOG.infof("LLM selected agent: '%s'", selectedId);
+
+            AgentCandidate chosen = candidates.stream()
+                    .filter(c -> selectedId.contains(c.artifactId))
+                    .findFirst()
+                    .orElse(candidates.get(0));
+
+            ObjectNode matchPayload = mapper.createObjectNode();
+            matchPayload.put("llmInput", llmPrompt.toString());
+            matchPayload.put("llmOutput", selectedId);
+            ArrayNode candidatesArray = mapper.createArrayNode();
+            for (AgentCandidate c : candidates) {
+                ObjectNode n = mapper.createObjectNode();
+                n.put("agent", c.name);
+                n.put("artifactId", c.artifactId);
+                n.put("skills", c.skills);
+                n.put("selected", c == chosen);
+                candidatesArray.add(n);
+            }
+            matchPayload.set("candidates", candidatesArray);
+
+            onStep.accept(new StepEvent("match", "done",
+                    "LLM selected: " + chosen.name + " (artifactId: " + chosen.artifactId + ") | Skills: " + chosen.skills,
+                    mapper.writerWithDefaultPrettyPrinter().writeValueAsString(matchPayload)));
 
             if (chosen.url == null) {
                 onStep.accept(new StepEvent("delegate", "error", "Selected agent has no URL"));
@@ -161,31 +183,6 @@ public class RegistryDiscoveryService {
             onStep.accept(new StepEvent("error", "error", e.getMessage()));
             return "Error: " + e.getMessage();
         }
-    }
-
-    private int computeMatchScore(String request, String agentName, String description,
-                                  List<String> skillNames, List<String> skillDescriptions) {
-        String lower = request.toLowerCase();
-        int score = 0;
-
-        for (String skill : skillNames) {
-            for (String word : skill.toLowerCase().split("\\s+")) {
-                if (word.length() > 3 && lower.contains(word)) score += 10;
-            }
-        }
-        for (String desc : skillDescriptions) {
-            for (String word : desc.toLowerCase().split("\\s+")) {
-                if (word.length() > 3 && lower.contains(word)) score += 5;
-            }
-        }
-        for (String word : description.toLowerCase().split("\\s+")) {
-            if (word.length() > 3 && lower.contains(word)) score += 3;
-        }
-        for (String word : agentName.toLowerCase().split("\\s+")) {
-            if (word.length() > 3 && lower.contains(word)) score += 8;
-        }
-
-        return score;
     }
 
     private String delegateViaA2A(String agentUrl, String message, String[] payloads) throws Exception {
