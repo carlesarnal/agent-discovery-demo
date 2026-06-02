@@ -92,7 +92,7 @@ public class RegistryDiscoveryService {
 
     private String delegateViaA2A(String agentUrl, String message) throws Exception {
         ObjectNode textPart = mapper.createObjectNode();
-        textPart.put("type", "text");
+        textPart.put("kind", "text");
         textPart.put("text", message);
 
         ArrayNode parts = mapper.createArrayNode();
@@ -102,6 +102,7 @@ public class RegistryDiscoveryService {
         msg.put("role", "user");
         msg.set("parts", parts);
         msg.put("messageId", UUID.randomUUID().toString());
+        msg.put("kind", "message");
 
         ObjectNode params = mapper.createObjectNode();
         params.set("message", msg);
@@ -127,7 +128,7 @@ public class RegistryDiscoveryService {
             StringBuilder sb = new StringBuilder();
             for (JsonNode artifact : artifacts) {
                 for (JsonNode part : artifact.get("parts")) {
-                    if ("text".equals(part.get("type").asText())) {
+                    if ("text".equals(part.path("kind").asText())) {
                         sb.append(part.get("text").asText());
                     }
                 }
