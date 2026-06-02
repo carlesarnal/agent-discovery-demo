@@ -207,6 +207,11 @@
       </div>
     </div>
   </div>
+
+  <div class="result-box" id="result-box">
+    <h3>Agent Response</h3>
+    <p id="result-text"></p>
+  </div>
 </div>
 
 <script>
@@ -229,6 +234,8 @@ function resetFlow() {
   document.getElementById('detail-result').textContent = 'Waiting for response...';
   document.querySelectorAll('.connector').forEach(c => c.className = 'connector');
   document.querySelectorAll('.step').forEach(s => s.classList.remove('selected'));
+  document.getElementById('result-box').classList.remove('visible');
+  document.getElementById('result-text').textContent = '';
 }
 
 function showPanel(step) {
@@ -263,8 +270,13 @@ function setStep(step, status, detail, payload) {
     document.getElementById('conn-' + idx).className = 'connector ' + cls;
   }
 
-  if (payload) {
-    const panelBody = document.getElementById('panel-' + step + '-body');
+  const panelBody = document.getElementById('panel-' + step + '-body');
+  if (step === 'result' && (status === 'done' || status === 'error')) {
+    panelBody.textContent = detail;
+    const resultBox = document.getElementById('result-box');
+    document.getElementById('result-text').textContent = detail;
+    resultBox.classList.add('visible');
+  } else if (payload) {
     if (step === 'delegate') {
       try {
         const p = JSON.parse(payload);
@@ -273,8 +285,6 @@ function setStep(step, status, detail, payload) {
           '<span class="label">RESPONSE</span>' +
           prettyJson(p.response);
       } catch { panelBody.textContent = payload; }
-    } else if (step === 'result') {
-      panelBody.textContent = payload;
     } else {
       panelBody.textContent = prettyJson(payload);
     }

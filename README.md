@@ -46,8 +46,8 @@ graph LR
 ## Quick Start
 
 ```bash
-# Start Apicurio Registry and Ollama
-docker compose up -d apicurio-registry ollama
+# Start Apicurio Registry, Registry UI, and Ollama
+docker compose up -d apicurio-registry apicurio-registry-ui ollama
 
 # Wait for registry to be ready
 ./scripts/wait-for-registry.sh
@@ -62,8 +62,8 @@ cd agents/orchestrator && mvn package -DskipTests -q && cd ../..
 # Pull Ollama model and start the real agents
 ./scripts/06-start-agents.sh
 
-# Run the live agent demo
-./scripts/07-live-agent-demo.sh
+# Open the orchestrator dashboard
+open http://localhost:10020
 ```
 
 ## Demo Scripts
@@ -74,7 +74,7 @@ cd agents/orchestrator && mvn package -DskipTests -q && cd ../..
 | `scripts/02-register-prompts.sh` | Register prompt templates with BACKWARD compatibility versioning |
 | `scripts/03-register-model-schemas.sh` | Register model metadata JSON Schema + sample model |
 | `scripts/04-discover-agents.sh` | Query the registry for agent discovery |
-| `scripts/05-breaking-change.sh` | Demonstrate compatibility rule enforcement (rejected breaking change) |
+| `scripts/05-breaking-change.sh` | Demonstrate compatibility rule enforcement — variable type changes and removals are rejected (HTTP 409) |
 | `scripts/06-start-agents.sh` | Build and start real A2A agents (Summarizer + Orchestrator) with Ollama |
 | `scripts/07-live-agent-demo.sh` | Live demo: orchestrator discovers and delegates to summarizer via registry |
 | `scripts/run-demo.sh` | Run all governance demo steps end-to-end |
@@ -88,7 +88,7 @@ Beyond the curl-based governance demo, this repo includes two real Quarkus agent
 | Agent | Path | Description |
 |-------|------|-------------|
 | **Summarizer** | `agents/summarizer/` | A2A server that summarizes text via Ollama. Auto-publishes its Agent Card to the registry on startup. |
-| **Orchestrator** | `agents/orchestrator/` | Discovers agents via the Apicurio Registry Java SDK, delegates tasks via A2A JSON-RPC protocol. Web dashboard at http://localhost:10020 shows the discovery-to-delegation flow in real-time with step-by-step animations. |
+| **Orchestrator** | `agents/orchestrator/` | Discovers agents via the Apicurio Registry Java SDK, delegates tasks via A2A JSON-RPC protocol. Web dashboard at http://localhost:10020 shows the full discovery-to-delegation flow in real-time — registry search results, Agent Card content, A2A protocol exchange, and LLM response with timing data. |
 
 Both agents use **Ollama** with `qwen2.5:1.5b` for fast, self-contained LLM inference.
 
@@ -100,13 +100,30 @@ Both agents use **Ollama** with `qwen2.5:1.5b` for fast, self-contained LLM infe
 | `schemas/model-metadata-schema.json` | JSON Schema for ML model metadata |
 | `schemas/prompt-template-schema.json` | JSON Schema for prompt template structure |
 
-## Registry UI
+## Web UIs
 
-After starting, open http://localhost:8080 to browse registered artifacts:
+| UI | URL | Description |
+|----|-----|-------------|
+| **Registry UI** | http://localhost:8888 | Browse artifacts: Agent Cards, Prompt Templates, Model Schemas |
+| **Orchestrator Dashboard** | http://localhost:10020 | Live agent discovery and delegation flow with payload inspection |
+| **A2A Discovery** | http://localhost:8080/.well-known/agents | A2A well-known endpoint listing all registered agents |
 
-- **`ai-agents`** group — A2A Agent Cards
-- **`prompts`** group — Prompt Templates with version history
-- **`model-schemas`** group — Model Metadata and validation schemas
+### Registry UI Groups
+
+- **`ai-agents`** — A2A Agent Cards (`AGENT_CARD` type)
+- **`prompts`** — Prompt Templates with version history (`PROMPT_TEMPLATE` type)
+- **`model-schemas`** — Model Metadata (`MODEL_SCHEMA` type)
+
+### Orchestrator Dashboard
+
+The dashboard at http://localhost:10020 shows each step of the orchestration flow in real-time:
+
+1. **Discover Agents** — Registry SDK query results (artifact IDs, names, types)
+2. **Inspect Agent Card** — Full A2A Agent Card JSON (skills, capabilities, URL)
+3. **Delegate via A2A** — Raw JSON-RPC request and response payloads
+4. **Result** — LLM-generated response with timing data
+
+Click any step to inspect its payload in the detail panel.
 
 ## Key Concepts
 
@@ -121,11 +138,11 @@ After starting, open http://localhost:8080 to browse registered artifacts:
 
 ### Prompt Template Compatibility
 
-Apicurio Registry enforces compatibility rules on prompt template versions:
+Apicurio Registry enforces compatibility rules on `PROMPT_TEMPLATE` versions:
 
 - **Adding** an optional variable (with default) → **BACKWARD compatible** ✓
-- **Removing** a required variable → **Breaking change** ✗ (rejected by registry)
-- **Renaming** a variable → **Breaking change** ✗ (rejected by registry)
+- **Changing** a variable type (integer → string) → **Breaking change** ✗ (HTTP 409)
+- **Removing** a variable still used in the template → **Breaking change** ✗ (HTTP 409)
 
 ### The Open Standards Arc: OpenAPI → AsyncAPI → A2A
 

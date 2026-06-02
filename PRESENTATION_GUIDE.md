@@ -194,16 +194,17 @@ If the live agent demo fails on stage, you can still show:
 ```
 
 **What to show:**
-- Run the script — watch it get rejected
-- Show the HTTP 409 response with error details
-- This is the dramatic demo moment — pause and let the rejection sink in
+- Run the script — watch both breaking changes get rejected with HTTP 409
+- Show the clear error messages: "Variable type changed from integer to string" and "Variable removed but still used in template"
+- This is the dramatic demo moment — pause and let the rejections sink in
 
 **Script:**
 
-- "Now let's try something that should fail. I'm going to register a version 3 that removes the required `input_text` variable and renames it to `content`."
-- *Run the script* "HTTP 409 — rejected. The registry blocked this change because it violates the BACKWARD compatibility rule. Removing a required variable breaks downstream agents that depend on it."
-- "This is the same protection you get with OpenAPI schemas. You can't remove a required field from a response schema in a backward-compatible way. The registry catches this at registration time — before any data flows, before any agent breaks."
-- "In a world without this governance, Team A would rename that variable, push it to production, and Team B's agent would silently start producing garbage. With the registry, the change is blocked at the source."
+- "Now let's try two things that should fail."
+- *Run the script*
+- "Attempt 1: I changed `max_sentences` from integer to string. HTTP 409 — rejected. The error says: 'Variable type changed from integer to string.' The registry knows the type contract."
+- "Attempt 2: I removed `input_text` from the variables, but the template still references it. HTTP 409 again — 'Variable removed but still used in the template.'"
+- "These are the same rules that protect your OpenAPI schemas. You can't change a field type or remove a required property in a backward-compatible way. The registry catches this at registration time — before any agent breaks."
 
 ### Slide 12: Agent Discovery
 
