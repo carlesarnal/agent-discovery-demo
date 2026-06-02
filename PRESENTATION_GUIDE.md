@@ -13,7 +13,7 @@
 
 ```bash
 # 1. Start Apicurio Registry and Ollama
-docker compose up -d apicurio-registry ollama
+docker compose up -d apicurio-registry apicurio-registry-ui ollama
 ./scripts/wait-for-registry.sh
 
 # 2. Pull Ollama model (~1GB download, cached after first pull)
@@ -97,7 +97,7 @@ If the live agent demo fails on stage, you can still show:
 - "Now, in 2025, the A2A Protocol — the Agent-to-Agent Protocol by Google — brings that same approach to AI agents. Structured capability declarations, typed interfaces, machine-readable discovery."
 - "The pattern is the same one we've relied on for a decade: describe your interface in a standard format, register it, version it, and let consumers discover it programmatically. The only thing that changes is the artifact type."
 
-### Slide 2: The Problem
+### Slide 3: The Problem
 
 - "But here's the thing — most organizations building with AI agents aren't doing any of this yet. There's no governance, no versioning, no compatibility checking."
 - "Here's a scenario that's happening right now in hundreds of companies. Team A maintains a summarization agent. They update a prompt template — maybe they rename a variable from `input_text` to `content`. Seems harmless. But Team B's orchestrator agent was passing `input_text`. Now it silently gets ignored. The agent doesn't crash — it just produces garbage output. No error, no alert, no trace."
@@ -277,7 +277,7 @@ If the live agent demo fails on stage, you can still show:
 - "Step 3 — Select: here's the interesting part. The orchestrator uses the LLM to pick the best agent. It sends all agent descriptions to Ollama and asks 'which agent should handle this?' The LLM picks the Summarizer."
 - *Click the match entry to show the LLM prompt and response*
 - "Step 4 — Delegate: it sends the task to the Summarizer via the A2A Protocol."
-- "Step 5 — the Summarizer used Ollama to generate a real summary."
+- "Step 5 — the Summarizer fetched its prompt template from the registry — the same one we registered earlier — rendered it with the user's text, and sent it to Ollama. That's the full loop: governance AND runtime from the same registry."
 
 **Demo 2 — Translation (the switch):**
 
@@ -290,7 +290,7 @@ If the live agent demo fails on stage, you can still show:
 
 ## Part 4 — Why This Matters (4 min)
 
-### Slide 13: Section divider
+### Slide 14: Section divider
 
 - "Let me step back from the demo and explain why this matters beyond the technical implementation."
 
@@ -350,7 +350,7 @@ If the live agent demo fails on stage, you can still show:
 | Breaking change not rejected | Compatibility rule may not be set; re-run `02-register-prompts.sh` which enables BACKWARD |
 | Want to reset state | `./scripts/cleanup.sh && docker compose up -d && ./scripts/wait-for-registry.sh` |
 | Port 8080 in use | `docker stop $(docker ps -q --filter publish=8080)` or change port in docker-compose.yaml |
-| Registry UI not loading | Clear browser cache or try incognito; check `curl http://localhost:8080/health` |
+| Registry UI not loading | Clear browser cache or try incognito; check `curl http://localhost:8080/apis/registry/v3/system/info` |
 
 ---
 
@@ -395,7 +395,7 @@ If the live agent demo fails on stage, you can still show:
 ### Quarkus / A2A / Ollama
 
 **"How does the orchestrator know which agent to delegate to?"**
-- The orchestrator uses the Apicurio Registry Java SDK to query the registry for Agent Cards. It reads the Agent Card JSON — name, description, skills, URL — and delegates to the agent using the A2A Java SDK. In this demo it picks the first agent found; in production you'd match on skills or capabilities. The discovery is a standard registry API call — the same pattern as looking up an OpenAPI spec in a developer portal.
+- The orchestrator uses the Apicurio Registry Java SDK to query the registry for Agent Cards. It reads the Agent Card JSON — name, description, skills, URL — and delegates to the agent using the A2A Java SDK. It uses the LLM to select the best agent — passing all discovered agent descriptions to Ollama and asking which agent best matches the user's request. The discovery is a standard registry API call, and the selection is an LLM routing decision.
 
 **"Why Ollama and not OpenAI or Anthropic?"**
 - For the demo, Ollama keeps everything self-contained — no API keys, no cloud accounts, no external dependencies. You can run the entire stack on a laptop. In production, you'd swap Ollama for any LLM provider. The agent discovery and governance layer is model-agnostic — it doesn't care what LLM the agents use internally.
@@ -421,8 +421,8 @@ If the live agent demo fails on stage, you can still show:
 |---------|----------|------------|-------|
 | Introduction (Title + Bio + Standards Arc + Problem) | 3 min | 3 min | 2:58 |
 | The Solution (Registry + Architecture + A2A Protocol) | 4 min | 7 min | 3:02 |
-| Curl Demo (Register + Prompts + Breaking Change + Discovery) | 7 min | 14 min | 3:09 |
-| Live Agent Demo (Orchestrator + Summarizer via Registry) | 3 min | 17 min | 3:12 |
+| Curl Demo (Register + Prompts + Runtime + Breaking Change + Discovery) | 8 min | 15 min | 3:10 |
+| Live Agent Demo (Orchestrator + Summarizer + Translator) | 3 min | 18 min | 3:13 |
 | Why This Matters (Discovery Approaches + Compatibility) | 4 min | 21 min | 3:16 |
 | Production + Wrap Up (Production + Takeaways + Thank You) | 4 min | 25 min | 3:20 |
 | **Total** | **25 min** | | **3:20** |

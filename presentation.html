@@ -418,7 +418,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 2: THE PROBLEM =========== -->
+<!-- =========== SLIDE 3: THE PROBLEM =========== -->
 <div class="slide" data-notes="Frame the problem with a concrete scenario. Team A changes a prompt template — renames a variable, removes a field. Team B's agent was using that variable. It silently degrades. No error, no alert — just wrong outputs. This happened to APIs 10 years ago. OpenAPI solved it. It happened to Kafka schemas. Avro + Schema Registry solved it. Now it's happening to AI agents.">
   <div class="content">
     <h3>The Problem</h3>
@@ -585,7 +585,7 @@
       <code>curl -s http://localhost:8080/apis/registry/v3/search/artifacts | jq '.count'</code>
       <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
     </div>
-    <p style="margin-top: 24px;">Open <a href="http://localhost:8080" style="color:var(--accent);">http://localhost:8080</a> — Apicurio Registry UI</p>
+    <p style="margin-top: 24px;">Open <a href="http://localhost:8888" style="color:var(--accent);">http://localhost:8888</a> — Apicurio Registry UI</p>
     <p>This is the same registry you'd use for <strong>OpenAPI</strong>, <strong>AsyncAPI</strong>, and <strong>Avro</strong> schemas. Clean slate — zero artifacts.</p>
   </div>
 </div>
@@ -697,8 +697,8 @@
     <div class="cols cols-2" style="margin-top: 28px;">
       <div class="card">
         <h3>What changed</h3>
-        <p style="font-size: 1rem;">Renamed <code>input_text</code> &rarr; <code>content</code></p>
-        <p style="font-size: 1rem;">Removed a required variable</p>
+        <p style="font-size: 1rem;">Changed <code>max_sentences</code> type: integer &rarr; string</p>
+        <p style="font-size: 1rem;">Removed <code>input_text</code> from variables (still in template)</p>
       </div>
       <div class="card" style="border-color: var(--red);">
         <h3 style="color: var(--red);">Result</h3>
@@ -733,39 +733,36 @@
 </div>
 
 <!-- =========== SLIDE 13: LIVE AGENT DEMO =========== -->
-<div class="slide" data-notes="This is the wow moment. The summarizer agent started earlier and auto-published its Agent Card to the registry. Now the orchestrator — powered by Ollama and the A2A Apicurio Registry extension — will discover the summarizer by querying the registry, inspect its capabilities, and delegate a real task. The LLM autonomously decides which agent to use. This is registry-backed agent discovery in action — not curl scripts, but real agents communicating via the A2A Protocol.">
+<div class="slide" data-notes="This is the wow moment. Both the Summarizer and Translator agents auto-published their Agent Cards to the registry on startup. The orchestrator uses the Registry SDK to discover them and the LLM to select the best agent for each request. Send two requests: summarize → Summarizer, translate → Translator. Show the dashboard at localhost:10020 — each step logged with expandable payloads. The LLM selection step shows the prompt and response.">
   <div class="content">
     <h3>Step 5</h3>
     <h2>Real agents, real discovery, <span class="accent3">live</span></h2>
-    <div class="cmd-row">
-      <code>./scripts/07-live-agent-demo.sh</code>
-      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
-    </div>
-    <div class="arch-diagram" style="margin: 28px 0;">
+    <p style="margin-bottom: 16px;">Open <a href="http://localhost:10020" style="color:var(--accent);">http://localhost:10020</a> — Orchestrator Dashboard</p>
+    <div class="arch-diagram" style="margin: 20px 0;">
       <div class="arch-node">
         <div class="node-title">User Request</div>
-        <div class="node-sub">"Summarize..."</div>
+        <div class="node-sub">"Summarize..." or "Translate..."</div>
       </div>
       <div class="arch-arrow">&rarr;</div>
       <div class="arch-node highlight2">
         <div class="node-title">Orchestrator</div>
-        <div class="node-sub">Quarkus + Ollama</div>
+        <div class="node-sub">LLM selects agent</div>
       </div>
       <div class="arch-arrow"><span class="flow-dot"></span> <span class="flow-dot"></span> <span class="flow-dot"></span></div>
       <div class="arch-node highlight4">
-        <div class="node-title">Apicurio Registry</div>
-        <div class="node-sub">discover agent</div>
+        <div class="node-title">Registry</div>
+        <div class="node-sub">discover + select</div>
       </div>
       <div class="arch-arrow"><span class="flow-dot"></span> <span class="flow-dot"></span> <span class="flow-dot"></span></div>
       <div class="arch-node highlight3">
         <div class="node-title">Summarizer</div>
-        <div class="node-sub">Quarkus + Ollama</div>
+        <div class="node-sub">or Translator</div>
       </div>
     </div>
     <ul>
-      <li>Summarizer <strong>auto-published</strong> its Agent Card on startup</li>
-      <li>Orchestrator <strong>discovers</strong> it by querying the registry</li>
-      <li>Task <strong>delegated</strong> via A2A Protocol — real LLM inference</li>
+      <li>Both agents <strong>auto-published</strong> their Agent Cards on startup</li>
+      <li>Orchestrator <strong>discovers</strong> all agents, <strong>LLM selects</strong> the best match</li>
+      <li>Task <strong>delegated</strong> via A2A Protocol — agent fetches prompt from registry</li>
     </ul>
     <div class="tag-row" style="margin-top: 16px;">
       <span class="badge badge-green">Quarkus</span>
@@ -785,7 +782,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 14: DISCOVERY APPROACHES =========== -->
+<!-- =========== SLIDE 15: DISCOVERY APPROACHES =========== -->
 <div class="slide" data-notes="Compare four discovery approaches. Hardcoded URLs break when endpoints change — it's like hardcoding API base URLs instead of using a gateway. DNS and service meshes discover services, not capabilities — Istio knows 'this pod exists on port 8080' but not 'this agent can summarize PDFs'. The A2A well-known endpoint is better — it describes capabilities — but you need to know the host first, which means you're back to hardcoded URLs or DNS. Registry-backed discovery combines structured capability declarations with centralized, queryable storage. You can search by skill, by input mode, by capability — without knowing any URLs.">
   <div class="content">
     <h3>Discovery</h3>
@@ -810,7 +807,7 @@
       <tr><th>Change</th><th>OpenAPI schema</th><th>Prompt template</th></tr>
       <tr><td>Add optional field (with default)</td><td class="yes">Compatible</td><td class="yes">Compatible</td></tr>
       <tr><td>Remove required field</td><td class="no">Breaking</td><td class="no">Breaking</td></tr>
-      <tr><td>Rename a field</td><td class="no">Breaking</td><td class="no">Breaking</td></tr>
+      <tr><td>Remove variable used in template</td><td class="no">Breaking</td><td class="no">Breaking</td></tr>
       <tr><td>Change field type</td><td class="no">Breaking</td><td class="no">Breaking</td></tr>
       <tr><td>Add new endpoint / skill</td><td class="yes">Compatible</td><td class="yes">Compatible</td></tr>
     </table>
