@@ -52,8 +52,9 @@ curl -s -X POST http://localhost:10020/orchestrate \
 
 ### Browser tabs (pre-load)
 
-1. `http://localhost:8080` — Apicurio Registry UI
-2. `presentation.html` — Slide deck (via `python3 -m http.server 8082`)
+1. `http://localhost:8888` — Apicurio Registry UI
+2. `http://localhost:10020` — Orchestrator Dashboard (live agent demo)
+3. `presentation.html` — Slide deck (via `python3 -m http.server 8082`)
 
 ### Terminal
 
@@ -233,24 +234,26 @@ If the live agent demo fails on stage, you can still show:
 
 ### Slide 13: Live Agent Demo
 
-**Type in terminal:**
-
-```bash
-./scripts/07-live-agent-demo.sh
-```
+**Open in browser:** `http://localhost:10020`
 
 **What to show:**
-- The architecture diagram on the slide: User → Orchestrator → Registry → Summarizer
-- Run the script — watch the orchestrator discover and delegate in real-time
-- Show the real LLM-generated summary returned from the summarizer agent
+- The orchestrator dashboard with the visual flow: Discover → Inspect → Delegate → Result
+- Type a request in the input field
+- Watch each step light up in real-time as it happens
+- Show the LLM-generated summary appear at the bottom
 
 **Script:**
 
-- "Now let me show you something different. Everything we've done so far was curl scripts against the registry. But let me show you real agents."
-- "I have two Quarkus applications running — a Summarizer Agent and an Orchestrator. The Summarizer auto-published its A2A Agent Card to the registry on startup. Watch what happens when I send a request to the Orchestrator."
-- *Run the script*
-- "The Orchestrator used the Apicurio Registry SDK to query the registry, found the Summarizer's Agent Card, extracted its URL, and delegated the task via the A2A Protocol. The Summarizer used Ollama to generate a real summary and returned it."
-- "That's the full loop — registry-backed agent discovery in action. Not curl scripts, but real agents communicating through open standards."
+- "Now let me show you something different. Everything we've done so far was curl scripts against the registry. Let me show you real agents."
+- "I have two Quarkus applications running — a Summarizer Agent and an Orchestrator. The Summarizer auto-published its A2A Agent Card to the registry on startup."
+- *Open http://localhost:10020 in the browser*
+- "This is the orchestrator dashboard. Watch what happens when I send a request."
+- *Type: "Summarize the key benefits of open standards for governing AI agents" and hit Enter*
+- "Step 1 — the orchestrator queries the Apicurio Registry using the Java SDK. It finds the Summarizer Agent."
+- "Step 2 — it reads the Agent Card. Skills: Text Summarization. URL: the summarizer's endpoint."
+- "Step 3 — it delegates the task via the A2A Protocol — a standard JSON-RPC call."
+- "Step 4 — the summarizer used Ollama to generate a real summary and returned it."
+- "That's the full loop — registry-backed agent discovery in action. No hardcoded URLs. The orchestrator discovered the agent at runtime through the registry."
 
 ---
 

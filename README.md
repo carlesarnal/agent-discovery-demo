@@ -88,7 +88,7 @@ Beyond the curl-based governance demo, this repo includes two real Quarkus agent
 | Agent | Path | Description |
 |-------|------|-------------|
 | **Summarizer** | `agents/summarizer/` | A2A server that summarizes text via Ollama. Auto-publishes its Agent Card to the registry on startup. |
-| **Orchestrator** | `agents/orchestrator/` | Discovers agents via the Apicurio Registry Java SDK, delegates tasks via A2A JSON-RPC protocol. No hardcoded agent URLs — queries the registry at runtime. |
+| **Orchestrator** | `agents/orchestrator/` | Discovers agents via the Apicurio Registry Java SDK, delegates tasks via A2A JSON-RPC protocol. Web dashboard at http://localhost:10020 shows the discovery-to-delegation flow in real-time with step-by-step animations. |
 
 Both agents use **Ollama** with `qwen2.5:1.5b` for fast, self-contained LLM inference.
 

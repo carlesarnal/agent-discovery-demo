@@ -20,7 +20,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @ApplicationScoped
 public class RegistryDiscoveryService {
@@ -41,53 +44,65 @@ public class RegistryDiscoveryService {
         this.groupId = groupId;
     }
 
+    public record StepEvent(String step, String status, String detail) {}
+
     public String discoverAndDelegate(String userRequest) {
+        return discoverAndDelegate(userRequest, e -> {});
+    }
+
+    public String discoverAndDelegate(String userRequest, Consumer<StepEvent> onStep) {
         try {
-            String agentUrl = discoverAgent();
-            if (agentUrl == null) {
+            onStep.accept(new StepEvent("search", "running", "Querying registry for agents in group '" + groupId + "'..."));
+            ArtifactSearchResults results = registryClient.groups().byGroupId(groupId).artifacts().get();
+
+            if (results.getArtifacts() == null || results.getArtifacts().isEmpty()) {
+                onStep.accept(new StepEvent("search", "error", "No agents found in registry"));
                 return "No agents found in the registry.";
             }
 
-            LOG.infof("Discovered agent at: %s", agentUrl);
-            return delegateViaA2A(agentUrl, userRequest);
+            List<String> agentNames = new ArrayList<>();
+            for (SearchedArtifact a : results.getArtifacts()) {
+                agentNames.add(a.getName() != null ? a.getName() : a.getArtifactId());
+            }
+            onStep.accept(new StepEvent("search", "done", "Found " + agentNames.size() + " agents: " + String.join(", ", agentNames)));
+
+            SearchedArtifact chosen = results.getArtifacts().get(0);
+            String chosenName = chosen.getName() != null ? chosen.getName() : chosen.getArtifactId();
+
+            onStep.accept(new StepEvent("inspect", "running", "Reading Agent Card for '" + chosenName + "'..."));
+            InputStream content = registryClient.groups().byGroupId(groupId)
+                    .artifacts().byArtifactId(chosen.getArtifactId())
+                    .versions().byVersionExpression("branch=latest").content().get();
+            String cardJson = new String(content.readAllBytes(), StandardCharsets.UTF_8);
+            JsonNode card = mapper.readTree(cardJson);
+
+            String agentUrl = card.has("url") ? card.get("url").asText() : null;
+            String skills = "";
+            if (card.has("skills")) {
+                List<String> skillNames = new ArrayList<>();
+                for (JsonNode s : card.get("skills")) {
+                    skillNames.add(s.get("name").asText());
+                }
+                skills = String.join(", ", skillNames);
+            }
+            onStep.accept(new StepEvent("inspect", "done", "Agent: " + chosenName + " | Skills: " + skills + " | URL: " + agentUrl));
+
+            if (agentUrl == null) {
+                onStep.accept(new StepEvent("delegate", "error", "Agent Card has no URL"));
+                return "Agent Card has no URL.";
+            }
+
+            onStep.accept(new StepEvent("delegate", "running", "Sending task via A2A Protocol to " + agentUrl + "..."));
+            String response = delegateViaA2A(agentUrl, userRequest);
+            onStep.accept(new StepEvent("delegate", "done", "Response received from " + chosenName));
+
+            onStep.accept(new StepEvent("result", "done", response));
+            return response;
         } catch (Exception e) {
             LOG.error("Orchestration failed", e);
+            onStep.accept(new StepEvent("error", "error", e.getMessage()));
             return "Error: " + e.getMessage();
         }
-    }
-
-    private String discoverAgent() throws Exception {
-        ArtifactSearchResults results = registryClient
-                .groups()
-                .byGroupId(groupId)
-                .artifacts()
-                .get();
-
-        if (results.getArtifacts() == null || results.getArtifacts().isEmpty()) {
-            LOG.warn("No artifacts found in registry group: " + groupId);
-            return null;
-        }
-
-        SearchedArtifact firstAgent = results.getArtifacts().get(0);
-        LOG.infof("Found agent: %s (%s)", firstAgent.getName(), firstAgent.getArtifactId());
-
-        return getAgentUrl(firstAgent.getArtifactId());
-    }
-
-    private String getAgentUrl(String artifactId) throws Exception {
-        InputStream content = registryClient
-                .groups()
-                .byGroupId(groupId)
-                .artifacts()
-                .byArtifactId(artifactId)
-                .versions()
-                .byVersionExpression("branch=latest")
-                .content()
-                .get();
-
-        String json = new String(content.readAllBytes(), StandardCharsets.UTF_8);
-        JsonNode card = mapper.readTree(json);
-        return card.has("url") ? card.get("url").asText() : null;
     }
 
     private String delegateViaA2A(String agentUrl, String message) throws Exception {
