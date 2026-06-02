@@ -41,18 +41,29 @@ graph LR
 
 - Docker and Docker Compose
 - `curl` and `jq`
+- Java 21+ and Maven (for building the agents)
 
 ## Quick Start
 
 ```bash
-# Start Apicurio Registry
-docker compose up -d
+# Start Apicurio Registry and Ollama
+docker compose up -d apicurio-registry ollama
 
 # Wait for registry to be ready
 ./scripts/wait-for-registry.sh
 
-# Run the full demo
+# Run the governance demo (curl-based scripts)
 ./scripts/run-demo.sh
+
+# Build the agents
+cd agents/summarizer && mvn package -DskipTests -q && cd ../..
+cd agents/orchestrator && mvn package -DskipTests -q && cd ../..
+
+# Pull Ollama model and start the real agents
+./scripts/06-start-agents.sh
+
+# Run the live agent demo
+./scripts/07-live-agent-demo.sh
 ```
 
 ## Demo Scripts
@@ -77,7 +88,7 @@ Beyond the curl-based governance demo, this repo includes two real Quarkus agent
 | Agent | Path | Description |
 |-------|------|-------------|
 | **Summarizer** | `agents/summarizer/` | A2A server that summarizes text via Ollama. Auto-publishes its Agent Card to the registry on startup. |
-| **Orchestrator** | `agents/orchestrator/` | Discovers agents via the Apicurio Registry SDK, delegates tasks using the A2A Java SDK. No hardcoded agent URLs. |
+| **Orchestrator** | `agents/orchestrator/` | Discovers agents via the Apicurio Registry Java SDK, delegates tasks via A2A JSON-RPC protocol. No hardcoded agent URLs — queries the registry at runtime. |
 
 Both agents use **Ollama** with `qwen2.5:1.5b` for fast, self-contained LLM inference.
 

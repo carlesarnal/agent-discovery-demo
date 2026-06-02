@@ -12,34 +12,42 @@
 ### Infrastructure (20 min before)
 
 ```bash
-# Start all services: Registry, Ollama, and build agent images
-docker compose up -d
-
-# Wait for registry
+# 1. Start Apicurio Registry and Ollama
+docker compose up -d apicurio-registry ollama
 ./scripts/wait-for-registry.sh
 
-# Pull Ollama model (if not cached — ~1GB download)
+# 2. Pull Ollama model (~1GB download, cached after first pull)
 curl -s http://localhost:11434/api/pull -d '{"name": "qwen2.5:1.5b"}'
 
-# Pre-warm Ollama with a dummy request (loads model into memory)
-curl -s http://localhost:11434/api/generate -d '{"model":"qwen2.5:1.5b","prompt":"hello","stream":false}' > /dev/null
+# 3. Pre-warm Ollama (loads model into GPU/memory — first request is slow)
+curl -s http://localhost:11434/api/generate \
+  -d '{"model":"qwen2.5:1.5b","prompt":"hello","stream":false}' > /dev/null
 
-# Verify clean registry state
+# 4. Build the agents (if not already built)
+cd agents/summarizer && mvn package -DskipTests -q && cd ../..
+cd agents/orchestrator && mvn package -DskipTests -q && cd ../..
+
+# 5. Verify clean registry
 curl -s http://localhost:8080/apis/registry/v3/search/artifacts | jq '.count'
-# Should return 0 (agent card gets published when summarizer starts)
+# Should return 0
 
-# Start the agents (builds if needed)
-./scripts/06-start-agents.sh
+# 6. Start the summarizer agent (publishes Agent Card on startup)
+cd agents/summarizer && java -jar target/summarizer-agent-1.0-SNAPSHOT-runner.jar &
+sleep 8
 
-# Verify the summarizer's Agent Card is in the registry
+# 7. Verify Agent Card was published
 curl -s http://localhost:8080/apis/registry/v3/groups/a2a-agents/artifacts | jq '.count'
 # Should return 1
 
-# Test the live agent demo works
+# 8. Start the orchestrator agent
+cd agents/orchestrator && java -jar target/orchestrator-agent-1.0-SNAPSHOT-runner.jar &
+sleep 6
+
+# 9. Test the full flow
 curl -s -X POST http://localhost:10020/orchestrate \
   -H "Content-Type: text/plain" \
   -d "Summarize: Kubernetes automates container orchestration"
-# Should return a real summary
+# Should return a real LLM-generated summary
 ```
 
 ### Browser tabs (pre-load)
