@@ -51,7 +51,7 @@ public class RegistryPublisher {
 
             CreateArtifact createArtifact = new CreateArtifact();
             createArtifact.setArtifactId(artifactId);
-            createArtifact.setArtifactType("JSON");
+            createArtifact.setArtifactType("AGENT_CARD");
             createArtifact.setName(agentCard.name());
             createArtifact.setDescription(agentCard.description());
             createArtifact.setFirstVersion(version);

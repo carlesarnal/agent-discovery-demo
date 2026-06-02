@@ -1,5 +1,5 @@
 #!/bin/bash
-# Register versioned prompt templates in Apicurio Registry
+# Register versioned prompt templates using PROMPT_TEMPLATE artifact type
 set -euo pipefail
 
 REGISTRY_URL="${REGISTRY_URL:-http://localhost:8080}"
@@ -13,11 +13,11 @@ curl -s -X POST "$REGISTRY_URL/apis/registry/v3/groups/$GROUP/artifacts" \
   -H "Content-Type: application/json" \
   -d '{
     "artifactId": "summarizer-system-prompt",
-    "artifactType": "JSON",
+    "artifactType": "PROMPT_TEMPLATE",
     "name": "Summarizer System Prompt",
     "firstVersion": {
       "content": {
-        "content": "{\"template\":\"You are a summarization assistant. Summarize the following text in {{max_sentences}} sentences.\\n\\nText: {{input_text}}\\n\\nSummary:\",\"variables\":{\"max_sentences\":{\"type\":\"integer\",\"default\":3},\"input_text\":{\"type\":\"string\",\"required\":true}},\"metadata\":{\"model\":\"llama3.2\",\"temperature\":0.3,\"version\":\"1.0.0\"}}",
+        "content": "{\"templateId\":\"summarizer-system-prompt\",\"name\":\"Summarizer System Prompt\",\"version\":\"1.0.0\",\"description\":\"System prompt for text summarization\",\"templateFormat\":\"mustache\",\"model\":{\"api\":\"chat\",\"parameters\":{\"temperature\":0.3}},\"template\":\"You are a summarization assistant. Summarize the following text in {{max_sentences}} sentences.\\n\\nText: {{input_text}}\\n\\nSummary:\",\"variables\":{\"max_sentences\":{\"type\":\"integer\",\"default\":3},\"input_text\":{\"type\":\"string\",\"required\":true}}}",
         "contentType": "application/json"
       }
     }
@@ -39,7 +39,7 @@ curl -s -X POST "$REGISTRY_URL/apis/registry/v3/groups/$GROUP/artifacts/summariz
   -H "Content-Type: application/json" \
   -d '{
     "content": {
-      "content": "{\"template\":\"You are a summarization assistant. Summarize the following text in {{max_sentences}} sentences. Use a {{tone}} tone.\\n\\nText: {{input_text}}\\n\\nSummary:\",\"variables\":{\"max_sentences\":{\"type\":\"integer\",\"default\":3},\"input_text\":{\"type\":\"string\",\"required\":true},\"tone\":{\"type\":\"string\",\"default\":\"neutral\"}},\"metadata\":{\"model\":\"llama3.2\",\"temperature\":0.3,\"version\":\"2.0.0\"}}",
+      "content": "{\"templateId\":\"summarizer-system-prompt\",\"name\":\"Summarizer System Prompt\",\"version\":\"2.0.0\",\"description\":\"System prompt for text summarization with tone control\",\"templateFormat\":\"mustache\",\"model\":{\"api\":\"chat\",\"parameters\":{\"temperature\":0.3}},\"template\":\"You are a summarization assistant. Summarize the following text in {{max_sentences}} sentences. Use a {{tone}} tone.\\n\\nText: {{input_text}}\\n\\nSummary:\",\"variables\":{\"max_sentences\":{\"type\":\"integer\",\"default\":3},\"input_text\":{\"type\":\"string\",\"required\":true},\"tone\":{\"type\":\"string\",\"default\":\"neutral\"}}}",
       "contentType": "application/json"
     }
   }' | jq '{version: .version, state: .state}'
@@ -53,16 +53,16 @@ curl -s -X POST "$REGISTRY_URL/apis/registry/v3/groups/$GROUP/artifacts" \
   -H "Content-Type: application/json" \
   -d '{
     "artifactId": "chat-prompt",
-    "artifactType": "JSON",
+    "artifactType": "PROMPT_TEMPLATE",
     "name": "Chat Prompt",
     "firstVersion": {
       "content": {
-        "content": "{\"template\":\"{{system_prompt}}\\n\\nConversation history:\\n{{conversation_history}}\\n\\nUser: {{question}}\\n\\nAssistant:\",\"variables\":{\"system_prompt\":{\"type\":\"string\",\"required\":true},\"question\":{\"type\":\"string\",\"required\":true},\"conversation_history\":{\"type\":\"string\",\"default\":\"\"},\"include_examples\":{\"type\":\"boolean\",\"default\":false}}}",
+        "content": "{\"templateId\":\"chat-prompt\",\"name\":\"Chat Prompt\",\"version\":\"1.0.0\",\"description\":\"General chat prompt with conversation history\",\"templateFormat\":\"mustache\",\"template\":\"{{system_prompt}}\\n\\nConversation history:\\n{{conversation_history}}\\n\\nUser: {{question}}\\n\\nAssistant:\",\"variables\":{\"system_prompt\":{\"type\":\"string\",\"required\":true},\"question\":{\"type\":\"string\",\"required\":true},\"conversation_history\":{\"type\":\"string\",\"default\":\"\"},\"include_examples\":{\"type\":\"boolean\",\"default\":false}}}",
         "contentType": "application/json"
       }
     }
   }' | jq .artifact
 
 echo ""
-echo "=== Prompt templates registered ==="
+echo "=== Prompt templates registered (type: PROMPT_TEMPLATE) ==="
 echo "View them at: $REGISTRY_URL/ui/artifacts?groupId=$GROUP"

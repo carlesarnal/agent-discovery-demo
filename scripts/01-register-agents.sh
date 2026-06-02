@@ -1,5 +1,5 @@
 #!/bin/bash
-# Register A2A Agent Cards in Apicurio Registry
+# Register A2A Agent Cards in Apicurio Registry using AGENT_CARD artifact type
 set -euo pipefail
 
 REGISTRY_URL="${REGISTRY_URL:-http://localhost:8080}"
@@ -13,7 +13,7 @@ curl -s -X POST "$REGISTRY_URL/apis/registry/v3/groups/$GROUP/artifacts" \
   -H "Content-Type: application/json" \
   -d '{
     "artifactId": "summarizer-agent",
-    "artifactType": "JSON",
+    "artifactType": "AGENT_CARD",
     "name": "Summarizer Agent",
     "description": "Summarizes long documents into concise abstracts",
     "firstVersion": {
@@ -31,7 +31,7 @@ curl -s -X POST "$REGISTRY_URL/apis/registry/v3/groups/$GROUP/artifacts" \
   -H "Content-Type: application/json" \
   -d '{
     "artifactId": "translator-agent",
-    "artifactType": "JSON",
+    "artifactType": "AGENT_CARD",
     "name": "Translator Agent",
     "description": "Translates text between languages using LLM-powered translation",
     "firstVersion": {
@@ -49,7 +49,7 @@ curl -s -X POST "$REGISTRY_URL/apis/registry/v3/groups/$GROUP/artifacts" \
   -H "Content-Type: application/json" \
   -d '{
     "artifactId": "data-enrichment-agent",
-    "artifactType": "JSON",
+    "artifactType": "AGENT_CARD",
     "name": "Data Enrichment Agent",
     "description": "Enriches structured data with external sources and LLM-powered inference",
     "firstVersion": {
@@ -61,5 +61,5 @@ curl -s -X POST "$REGISTRY_URL/apis/registry/v3/groups/$GROUP/artifacts" \
   }' | jq .artifact
 
 echo ""
-echo "=== 3 agents registered ==="
+echo "=== 3 agents registered (type: AGENT_CARD) ==="
 echo "View them at: $REGISTRY_URL/ui/artifacts?groupId=$GROUP"

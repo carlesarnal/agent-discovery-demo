@@ -6,11 +6,24 @@ services:
     environment:
       APICURIO_STORAGE_KIND: "sql"
       APICURIO_STORAGE_SQL_KIND: "h2"
+      APICURIO_A2A_ENABLED: "true"
+      APICURIO_A2A_AGENT_NAME: "Apicurio Agent Registry"
+      APICURIO_A2A_AGENT_DESCRIPTION: "A2A Agent discovery and governance powered by Apicurio Registry"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/apis/registry/v3/system/info"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  apicurio-registry-ui:
+    image: quay.io/apicurio/apicurio-registry-ui:3.2.4
+    ports:
+      - "8888:8080"
+    environment:
+      REGISTRY_API_URL: "http://localhost:8080/apis/registry/v3"
+    depends_on:
+      apicurio-registry:
+        condition: service_healthy
 
   ollama:
     image: ollama/ollama:latest
