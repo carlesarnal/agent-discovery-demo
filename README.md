@@ -57,12 +57,15 @@ docker compose up -d apicurio-registry apicurio-registry-ui ollama
 
 # Build the agents
 cd agents/summarizer && mvn package -DskipTests -q && cd ../..
+cd agents/translator && mvn package -DskipTests -q && cd ../..
 cd agents/orchestrator && mvn package -DskipTests -q && cd ../..
 
 # Pull Ollama model and start the real agents
 ./scripts/06-start-agents.sh
 
-# Open the orchestrator dashboard
+# Open the orchestrator dashboard and try both:
+#   "Summarize the benefits of open standards" → routes to Summarizer
+#   "Translate to French: Hello world" → routes to Translator
 open http://localhost:10020
 ```
 
@@ -83,14 +86,26 @@ open http://localhost:10020
 
 ## Real A2A Agents
 
-Beyond the curl-based governance demo, this repo includes two real Quarkus agents:
+Beyond the curl-based governance demo, this repo includes three Quarkus agents and an LLM-powered orchestrator:
 
-| Agent | Path | Description |
-|-------|------|-------------|
-| **Summarizer** | `agents/summarizer/` | A2A server that summarizes text via Ollama. Auto-publishes its Agent Card to the registry on startup. |
-| **Orchestrator** | `agents/orchestrator/` | Discovers agents via the Apicurio Registry Java SDK, delegates tasks via A2A JSON-RPC protocol. Web dashboard at http://localhost:10020 shows the full discovery-to-delegation flow in real-time — registry search results, Agent Card content, A2A protocol exchange, and LLM response with timing data. |
+| Agent | Path | Port | Description |
+|-------|------|------|-------------|
+| **Summarizer** | `agents/summarizer/` | 10010 | A2A server that summarizes text via Ollama. Auto-publishes its `AGENT_CARD` to the registry on startup. |
+| **Translator** | `agents/translator/` | 10030 | A2A server that translates text between languages via Ollama. Auto-publishes its `AGENT_CARD` to the registry on startup. |
+| **Orchestrator** | `agents/orchestrator/` | 10020 | Discovers all agents from the registry, uses Ollama to intelligently select the best agent for each request, and delegates via A2A JSON-RPC. Web dashboard at http://localhost:10020. |
 
-Both agents use **Ollama** with `qwen2.5:1.5b` for fast, self-contained LLM inference.
+All agents use **Ollama** with `qwen2.5:1.5b` for fast, self-contained LLM inference.
+
+### How Agent Selection Works
+
+The orchestrator doesn't hardcode which agent to use. Instead:
+
+1. It queries the registry for all `AGENT_CARD` artifacts
+2. It reads each Agent Card (name, description, skills)
+3. It sends all agent descriptions to the LLM and asks it to pick the best `artifactId` for the user's request
+4. It delegates the task to the LLM-selected agent via A2A JSON-RPC
+
+Example: "Summarize the benefits of open source" → LLM picks **Summarizer Agent**. "Translate to French: Hello" → LLM picks **Translator Agent**.
 
 ## Schemas
 

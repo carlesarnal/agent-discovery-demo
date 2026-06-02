@@ -98,6 +98,15 @@
   .result-box h3 { font-size: 0.8rem; color: var(--green); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
   .result-box p { font-size: 1.05rem; line-height: 1.7; }
 
+  .log-links { padding: 4px 16px 10px 58px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .log-links a {
+    font-size: 0.7rem; font-weight: 600; color: var(--blue);
+    background: rgba(79,143,247,0.1); border: 1px solid rgba(79,143,247,0.25);
+    padding: 3px 10px; border-radius: 8px; text-decoration: none;
+    transition: background 0.2s;
+  }
+  .log-links a:hover { background: rgba(79,143,247,0.2); }
+
   @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 </style>
 </head>
@@ -144,8 +153,32 @@ function resetLog() {
   document.getElementById('result-text').textContent = '';
 }
 
+const REGISTRY_UI = 'http://localhost:8888';
+
 function prettyJson(str) {
   try { return JSON.stringify(JSON.parse(str), null, 2); } catch { return str; }
+}
+
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+function getStepLinks(step, payload) {
+  const links = [];
+  if (step === 'search') {
+    links.push(`<a href="${REGISTRY_UI}/explore?groupId=a2a-agents" target="_blank">View agents in Registry UI</a>`);
+    links.push(`<a href="http://localhost:8080/.well-known/agents" target="_blank">.well-known/agents</a>`);
+  } else if (step === 'inspect') {
+    links.push(`<a href="${REGISTRY_UI}/explore?groupId=a2a-agents" target="_blank">Browse Agent Cards</a>`);
+  } else if (step === 'match') {
+    links.push(`<a href="${REGISTRY_UI}/explore?groupId=a2a-agents" target="_blank">Registry UI</a>`);
+  } else if (step === 'delegate') {
+    links.push(`<a href="http://localhost:8080/.well-known/agents" target="_blank">A2A Discovery</a>`);
+  }
+  if (links.length === 0) return '';
+  return `<div class="log-links">${links.join('')}</div>`;
 }
 
 function addLogEntry(step, status, detail, payload) {
@@ -182,13 +215,15 @@ function addLogEntry(step, status, detail, payload) {
     ? ((elapsed - (stepTimes[step] || 0)) / 1000).toFixed(1) + 's'
     : '';
 
+  const links = getStepLinks(step, payload);
   entry.innerHTML = `
     <div class="log-header" onclick="togglePayload('${step}')">
       <div class="log-icon">${cfg.num}</div>
       <div class="log-title">${cfg.title} <span class="badge ${cfg.badgeClass}">${cfg.badge}</span></div>
       <div class="log-time">${timeStr}</div>
     </div>
-    <div class="log-detail">${detail}</div>
+    <div class="log-detail">${escapeHtml(detail)}</div>
+    ${links}
     <div class="log-payload" id="payload-${step}"></div>
   `;
 

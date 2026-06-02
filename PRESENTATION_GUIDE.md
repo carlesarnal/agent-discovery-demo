@@ -25,6 +25,7 @@ curl -s http://localhost:11434/api/generate \
 
 # 4. Build the agents (if not already built)
 cd agents/summarizer && mvn package -DskipTests -q && cd ../..
+cd agents/translator && mvn package -DskipTests -q && cd ../..
 cd agents/orchestrator && mvn package -DskipTests -q && cd ../..
 
 # 5. Verify clean registry
@@ -35,19 +36,28 @@ curl -s http://localhost:8080/apis/registry/v3/search/artifacts | jq '.count'
 cd agents/summarizer && java -jar target/summarizer-agent-1.0-SNAPSHOT-runner.jar &
 sleep 8
 
-# 7. Verify Agent Card was published
-curl -s http://localhost:8080/apis/registry/v3/groups/a2a-agents/artifacts | jq '.count'
-# Should return 1
+# 7. Start the translator agent (publishes Agent Card on startup)
+cd agents/translator && java -jar target/translator-agent-1.0-SNAPSHOT-runner.jar &
+sleep 8
 
-# 8. Start the orchestrator agent
+# 8. Verify both Agent Cards were published
+curl -s http://localhost:8080/apis/registry/v3/groups/a2a-agents/artifacts | jq '.count'
+# Should return 2
+
+# 9. Start the orchestrator agent
 cd agents/orchestrator && java -jar target/orchestrator-agent-1.0-SNAPSHOT-runner.jar &
 sleep 6
 
-# 9. Test the full flow
+# 10. Test both delegation paths
 curl -s -X POST http://localhost:10020/orchestrate \
   -H "Content-Type: text/plain" \
   -d "Summarize: Kubernetes automates container orchestration"
-# Should return a real LLM-generated summary
+# Should return a summary (routed to Summarizer)
+
+curl -s -X POST http://localhost:10020/orchestrate \
+  -H "Content-Type: text/plain" \
+  -d "Translate to French: Hello, how are you?"
+# Should return French translation (routed to Translator)
 ```
 
 ### Browser tabs (pre-load)
@@ -238,23 +248,29 @@ If the live agent demo fails on stage, you can still show:
 **Open in browser:** `http://localhost:10020`
 
 **What to show:**
-- The orchestrator dashboard with the visual flow: Discover → Inspect → Delegate → Result
-- Type a request in the input field
-- Watch each step light up in real-time as it happens
-- Show the LLM-generated summary appear at the bottom
+- The orchestrator dashboard with the scrolling event log
+- Send TWO requests to show dynamic agent selection
+- Click the Registry UI links in the log entries to show the artifacts
+- Watch each step appear in real-time with expandable payloads
 
-**Script:**
+**Demo 1 — Summarization:**
 
-- "Now let me show you something different. Everything we've done so far was curl scripts against the registry. Let me show you real agents."
-- "I have two Quarkus applications running — a Summarizer Agent and an Orchestrator. The Summarizer auto-published its A2A Agent Card to the registry on startup."
 - *Open http://localhost:10020 in the browser*
-- "This is the orchestrator dashboard. Watch what happens when I send a request."
+- "I have three things running: a Summarizer Agent, a Translator Agent, and an Orchestrator. Both agents auto-published their A2A Agent Cards to the registry on startup. The orchestrator has no hardcoded knowledge of these agents."
 - *Type: "Summarize the key benefits of open standards for governing AI agents" and hit Enter*
-- "Step 1 — the orchestrator queries the Apicurio Registry using the Java SDK. It finds the Summarizer Agent."
-- "Step 2 — it reads the Agent Card. Skills: Text Summarization. URL: the summarizer's endpoint."
-- "Step 3 — it delegates the task via the A2A Protocol — a standard JSON-RPC call."
-- "Step 4 — the summarizer used Ollama to generate a real summary and returned it."
-- "That's the full loop — registry-backed agent discovery in action. No hardcoded URLs. The orchestrator discovered the agent at runtime through the registry."
+- "Step 1 — Discover: the orchestrator queries the registry and finds TWO agents."
+- "Step 2 — Inspect: it reads both Agent Cards — the Summarizer with Text Summarization skills, and the Translator with Text Translation skills."
+- "Step 3 — Select: here's the interesting part. The orchestrator uses the LLM to pick the best agent. It sends all agent descriptions to Ollama and asks 'which agent should handle this?' The LLM picks the Summarizer."
+- *Click the match entry to show the LLM prompt and response*
+- "Step 4 — Delegate: it sends the task to the Summarizer via the A2A Protocol."
+- "Step 5 — the Summarizer used Ollama to generate a real summary."
+
+**Demo 2 — Translation (the switch):**
+
+- *Type: "Translate to French: Open standards improve interoperability" and hit Enter*
+- "Same orchestrator, same registry query, same two agents discovered. But watch step 3..."
+- "The LLM picks the TRANSLATOR this time. The orchestrator routes the request to a completely different agent — discovered dynamically, selected intelligently."
+- "No hardcoded URLs, no if/else routing, no config changes. The orchestrator discovered agents through the registry and used the LLM to decide who should handle the task. That's registry-backed agent discovery in action."
 
 ---
 
