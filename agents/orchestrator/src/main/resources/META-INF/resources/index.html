@@ -107,6 +107,11 @@
   }
   .log-links a:hover { background: rgba(79,143,247,0.2); }
 
+  .log-tip {
+    padding: 0 16px 8px 58px; font-size: 0.72rem; color: var(--dim);
+    font-style: italic; line-height: 1.4;
+  }
+
   @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 </style>
 </head>
@@ -134,12 +139,18 @@
 
 <script>
 const stepConfig = {
-  search:   { num: '1', title: 'Discover Agents', badge: 'Registry SDK', badgeClass: 'badge-blue' },
-  inspect:  { num: '2', title: 'Inspect Agent Cards', badge: 'AGENT_CARD', badgeClass: 'badge-purple' },
-  match:    { num: '3', title: 'Select Best Agent', badge: 'Skill Matching', badgeClass: 'badge-pink' },
-  delegate: { num: '4', title: 'Delegate via A2A', badge: 'JSON-RPC', badgeClass: 'badge-orange' },
-  result:   { num: '5', title: 'Result', badge: 'LLM Response', badgeClass: 'badge-green' },
-  error:    { num: '!', title: 'Error', badge: 'Failed', badgeClass: 'badge-orange' }
+  search:   { num: '1', title: 'Discover Agents', badge: 'Registry SDK', badgeClass: 'badge-blue',
+              tip: 'Query Apicurio Registry for all AGENT_CARD artifacts in the a2a-agents group' },
+  inspect:  { num: '2', title: 'Inspect Agent Cards', badge: 'AGENT_CARD', badgeClass: 'badge-purple',
+              tip: 'Read each Agent Card to extract name, skills, capabilities, and endpoint URL' },
+  match:    { num: '3', title: 'Select Best Agent', badge: 'LLM Router', badgeClass: 'badge-pink',
+              tip: 'Send all agent descriptions to the LLM and ask it to pick the best one for this request' },
+  delegate: { num: '4', title: 'Delegate via A2A', badge: 'JSON-RPC', badgeClass: 'badge-orange',
+              tip: 'Send the task to the selected agent using the A2A Protocol (JSON-RPC message/send)' },
+  result:   { num: '5', title: 'Result', badge: 'LLM Response', badgeClass: 'badge-green',
+              tip: 'The selected agent processed the request using its prompt template from the registry + Ollama' },
+  error:    { num: '!', title: 'Error', badge: 'Failed', badgeClass: 'badge-orange',
+              tip: 'Something went wrong during the orchestration flow' }
 };
 
 let startTime = null;
@@ -216,12 +227,14 @@ function addLogEntry(step, status, detail, payload) {
     : '';
 
   const links = getStepLinks(step, payload);
+  const tip = cfg.tip ? `<div class="log-tip">${cfg.tip}</div>` : '';
   entry.innerHTML = `
     <div class="log-header" onclick="togglePayload('${step}')">
       <div class="log-icon">${cfg.num}</div>
       <div class="log-title">${cfg.title} <span class="badge ${cfg.badgeClass}">${cfg.badge}</span></div>
       <div class="log-time">${timeStr}</div>
     </div>
+    ${tip}
     <div class="log-detail">${escapeHtml(detail)}</div>
     ${links}
     <div class="log-payload" id="payload-${step}"></div>
