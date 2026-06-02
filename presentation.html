@@ -650,6 +650,41 @@
   </div>
 </div>
 
+<!-- =========== SLIDE 10b: PROMPTS AT RUNTIME =========== -->
+<div class="slide" data-notes="This is a key point — the prompt templates aren't just governed artifacts, they're used at runtime. The Summarizer Agent calls the registry's render API on every request: it passes the user's text as input_text, the registry renders the mustache template, and the agent sends the rendered prompt to Ollama. This means updating a prompt template in the registry — say, adding the tone variable in v2 — takes effect immediately. No redeployment. The registry is both the governance layer AND the runtime prompt store.">
+  <div class="content">
+    <h3>Not just governance</h3>
+    <h2>Agents fetch prompts from the registry <span class="accent3">at runtime</span></h2>
+    <div class="arch-diagram" style="margin: 28px 0;">
+      <div class="arch-node highlight">
+        <div class="node-title">User Request</div>
+        <div class="node-sub">"Summarize this..."</div>
+      </div>
+      <div class="arch-arrow">&rarr;</div>
+      <div class="arch-node highlight2">
+        <div class="node-title">Summarizer Agent</div>
+        <div class="node-sub">needs a prompt</div>
+      </div>
+      <div class="arch-arrow"><span class="flow-dot"></span> <span class="flow-dot"></span> <span class="flow-dot"></span></div>
+      <div class="arch-node highlight4" style="min-width: 180px;">
+        <div class="node-title">Registry /render</div>
+        <div class="node-sub">renders template + variables</div>
+      </div>
+      <div class="arch-arrow">&rarr;</div>
+      <div class="arch-node highlight3">
+        <div class="node-title">Ollama</div>
+        <div class="node-sub">LLM inference</div>
+      </div>
+    </div>
+    <ul>
+      <li><strong>Agent calls</strong> the registry's render API with <code>input_text</code>, <code>max_sentences</code>, <code>tone</code></li>
+      <li><strong>Registry renders</strong> the mustache template and returns the full prompt</li>
+      <li><strong>Update a template</strong> in the registry &rarr; takes effect <strong class="accent3">immediately</strong>, no redeployment</li>
+    </ul>
+    <p style="margin-top: 16px;">The registry is both the <strong>governance layer</strong> and the <strong>runtime prompt store</strong>.</p>
+  </div>
+</div>
+
 <!-- =========== SLIDE 11: DEMO — BREAKING CHANGE =========== -->
 <div class="slide" data-notes="This is the most dramatic demo moment. Run the breaking change script. It tries to register a v3 that removes the required input_text variable and renames it to content. The registry rejects it with HTTP 409. Show the error response. Emphasize: the registry caught this before production, not after. This is the same compatibility checking that protects your OpenAPI specs — you can't remove a required field from a response schema in a backward-compatible way. The governance pattern is identical.">
   <div class="content">

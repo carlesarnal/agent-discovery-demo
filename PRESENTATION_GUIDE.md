@@ -194,6 +194,20 @@ If the live agent demo fails on stage, you can still show:
 - "I've enabled a BACKWARD compatibility rule on this artifact. This means new versions must be consumable by agents using the previous version — same rule you'd apply to an OpenAPI response schema."
 - "Version 2 adds an optional `tone` variable with a default of `neutral`. This is accepted — it's backward compatible because existing agents that don't know about `tone` will still work. The default kicks in."
 - *Click version history* "And here's the version history — both versions stored, auditable, rollback-ready."
+- "But this isn't just storage — the agents actually fetch these prompts at runtime. Let me show you."
+
+### Slide 10b: Prompts at Runtime
+
+**What to show:**
+- The architecture diagram: User → Agent → Registry /render → Ollama
+- This is a talking slide — no terminal commands needed
+
+**Script:**
+
+- "But here's the thing — these prompt templates aren't just governance artifacts. The agents actually USE them at runtime."
+- "When the Summarizer Agent receives a request, it doesn't have a hardcoded prompt. It calls the registry's render API, passes the user's text as `input_text`, and the registry renders the mustache template into a full prompt. Then the agent sends that rendered prompt to Ollama."
+- "This means if you update the prompt template in the registry — say, you add the `tone` variable in version 2 — the agent picks it up immediately on the next request. No redeployment, no restart. The prompt governance and the prompt runtime are the same system."
+- "The registry is both the governance layer AND the runtime prompt store. That's the key insight — you don't need a separate prompt management tool. The same registry that enforces compatibility rules also serves the prompts."
 
 ### Slide 11: Breaking Change
 
@@ -367,7 +381,10 @@ If the live agent demo fails on stage, you can still show:
 ### Prompt Governance
 
 **"Can the registry actually detect prompt breaking changes, or is it just JSON diff?"**
-- In the current demo, compatibility checking works at the JSON structure level — same as Avro or JSON Schema compatibility. It detects added/removed fields, type changes, and required/optional changes. For prompt-specific semantics (e.g., detecting that a template's *meaning* changed even if the structure didn't), you'd need custom validation rules or an LLM-based compatibility checker — an interesting extension but not yet implemented.
+- The `PROMPT_TEMPLATE` type has dedicated compatibility checking. It detects variable type changes (e.g. integer → string, rejected with HTTP 409) and variables removed from the variables list but still referenced in the template (also rejected). These aren't generic JSON diffs — they're prompt-specific checks that understand the relationship between the template and its variables.
+
+**"Are the prompt templates actually used at runtime, or just stored?"**
+- They're used at runtime. The Summarizer Agent calls the registry's `/render` API on every request — it passes the user's text as `input_text`, the registry renders the mustache template with the variables, and the agent sends the rendered prompt to Ollama. Updating a prompt template in the registry takes effect immediately on the next request, with no agent redeployment. The registry is both the governance layer and the runtime prompt store.
 
 **"Who should own prompt templates — the platform team or the AI team?"**
 - Both, with the registry as the boundary. The AI team creates and evolves prompt templates. The platform team sets compatibility rules and CI/CD enforcement. This mirrors how API teams own their OpenAPI specs but platform teams enforce compatibility rules and deployment gates.
