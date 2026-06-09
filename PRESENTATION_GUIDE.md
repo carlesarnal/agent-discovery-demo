@@ -108,24 +108,24 @@ If the live agent demo fails on stage, you can still show:
 
 ## Part 2 — The Solution (4 min)
 
-### Slide 3: Section divider
+### Slide 4: Section divider
 
 - "So what's the solution? We don't need new tooling. We need to extend the tooling that already works."
 
-### Slide 4: Apicurio Registry
+### Slide 5: Apicurio Registry
 
 - "This is Apicurio Registry. It's a CNCF sandbox project that already governs OpenAPI specs, AsyncAPI definitions, Avro schemas, Protobuf definitions, JSON Schema — all the interface contracts you're probably already managing."
 - "What we've done is extend it with AI-native artifact types: A2A Agent Cards, prompt templates, model schemas, and MCP tool definitions. The governance framework is identical — versioning, compatibility rules, schema validation, lifecycle management. Same tool, new artifacts."
 - "If you're using Apicurio Registry or Confluent Schema Registry for your Kafka schemas today, you already understand the pattern. We're applying it to AI agents."
 - "And because it's a registry — not a config file, not a wiki page — it's queryable. Agents can discover each other at runtime by querying the registry for capabilities, input/output modes, or skills. It's the same evolution that APIs went through: from hardcoded URLs to API gateways to OpenAPI-driven developer portals."
 
-### Slide 5: Architecture
+### Slide 6: Architecture
 
 - "Here's the architecture. Agent A registers its A2A Agent Card in the registry — capabilities, skills, endpoint URL. Agent B, the orchestrator, queries the registry to discover agents by capability. It doesn't need to know any URLs in advance."
 - "The registry enforces three things: compatibility rules — so a breaking change to a prompt template is rejected before it reaches production. Schema validation — so malformed model metadata is rejected at registration time. And version history — so you can audit every change and roll back if needed."
 - "This is the same pattern as registering an OpenAPI spec in a developer portal and letting consumers discover APIs programmatically. The difference is that the consumers are agents, not humans."
 
-### Slide 6: A2A Protocol
+### Slide 7: A2A Protocol
 
 - "Let me quickly explain the A2A Protocol. It's Google's open standard for agent-to-agent communication. The key construct is the Agent Card — a structured JSON document that declares an agent's name, URL, version, capabilities, and skills."
 - "Think of it as an OpenAPI spec for an AI agent. An OpenAPI spec describes endpoints, request/response schemas, and authentication. An Agent Card describes skills, input/output modes, and capabilities like streaming or batch processing."
@@ -135,11 +135,11 @@ If the live agent demo fails on stage, you can still show:
 
 ## Part 3 — Live Demo (10 min)
 
-### Slide 7: Section divider
+### Slide 8: Section divider
 
 - "Alright, time for the live demo. Everything from here is live — real terminal commands against a real Apicurio Registry instance. Let me show you the open standards arc in action."
 
-### Slide 8: Start Registry
+### Slide 9: Start Registry
 
 **What to do:**
 - Registry should already be running from pre-talk setup
@@ -150,7 +150,7 @@ If the live agent demo fails on stage, you can still show:
 
 - "The registry is already running. Let me verify it's clean — zero artifacts. And here's the Apicurio Registry UI. If you've used it before for OpenAPI or Avro schemas, this looks familiar. Same UI, same groups, same version history. We're just going to put different artifacts in it."
 
-### Slide 9: Register Agents
+### Slide 10: Register Agents
 
 **Type in terminal:**
 
@@ -159,19 +159,19 @@ If the live agent demo fails on stage, you can still show:
 ```
 
 **What to show:**
-- Run the script — watch three agents register
+- Run the script — watch three Agent Cards register
 - Switch to Registry UI → click `ai-agents` group
 - Click into `summarizer-agent` → show the Agent Card JSON
 - Point out: capabilities (streaming: true), skills (Text Summarization, PDF Summarization), input/output modes
 
 **Script:**
 
-- "Let's register three agents. Each one is an A2A Agent Card — a structured JSON document describing the agent's capabilities."
-- "We have a Summarizer that handles text and PDF input, a Translator for text-to-text translation, and a Data Enrichment agent that works with structured JSON and supports batch processing."
+- "Let's register three Agent Cards. Each one is a structured JSON document describing an agent's capabilities using the A2A Protocol format."
+- "We have a Summarizer that handles text and PDF input, a Translator for text-to-text translation, and a Data Enrichment agent that works with structured JSON and supports batch processing. The first two have real agents running behind them — the third shows how different capability types are described in the same registry."
 - *Switch to UI* "Here they are in the registry, under the ai-agents group. Let me click into the Summarizer. You can see the full Agent Card — name, URL, version, capabilities, and two skills with typed input/output modes."
 - "This is the A2A Protocol Agent Card format, stored in the same registry as your OpenAPI specs. Any agent in the system can now query the registry to discover these agents by capability — no hardcoded URLs, no config files."
 
-### Slide 10: Prompt Versioning
+### Slide 11: Prompt Versioning
 
 **Type in terminal:**
 
@@ -196,7 +196,7 @@ If the live agent demo fails on stage, you can still show:
 - *Click version history* "And here's the version history — both versions stored, auditable, rollback-ready."
 - "But this isn't just storage — the agents actually fetch these prompts at runtime. Let me show you."
 
-### Slide 10b: Prompts at Runtime
+### Slide 12: Prompts at Runtime
 
 **What to show:**
 - The architecture diagram: User → Agent → Registry /render → Ollama
@@ -209,7 +209,7 @@ If the live agent demo fails on stage, you can still show:
 - "This means if you update the prompt template in the registry — say, you add the `tone` variable in version 2 — the agent picks it up immediately on the next request. No redeployment, no restart. The prompt governance and the prompt runtime are the same system."
 - "The registry is both the governance layer AND the runtime prompt store. That's the key insight — you don't need a separate prompt management tool. The same registry that enforces compatibility rules also serves the prompts."
 
-### Slide 11: Breaking Change
+### Slide 13: Breaking Change
 
 **Type in terminal:**
 
@@ -230,7 +230,7 @@ If the live agent demo fails on stage, you can still show:
 - "Attempt 2: I removed `input_text` from the variables, but the template still references it. HTTP 409 again — 'Variable removed but still used in the template.'"
 - "These are the same rules that protect your OpenAPI schemas. You can't change a field type or remove a required property in a backward-compatible way. The registry catches this at registration time — before any agent breaks."
 
-### Slide 12: Agent Discovery
+### Slide 14: Agent Discovery
 
 **Type in terminal:**
 
@@ -257,7 +257,7 @@ If the live agent demo fails on stage, you can still show:
 
 ---
 
-### Slide 13: Live Agent Demo
+### Slide 15: Live Agent Demo
 
 **Open in browser:** `http://localhost:10020`
 
@@ -290,11 +290,11 @@ If the live agent demo fails on stage, you can still show:
 
 ## Part 4 — Why This Matters (4 min)
 
-### Slide 14: Section divider
+### Slide 16: Section divider
 
 - "Let me step back from the demo and explain why this matters beyond the technical implementation."
 
-### Slide 14: Discovery Approaches
+### Slide 17: Discovery Approaches
 
 - "There are four ways to do agent discovery, and each one has a limitation."
 - "Hardcoded URLs — you put agent endpoints in a config file. This breaks every time an endpoint changes or an agent moves. It's the equivalent of hardcoding API base URLs in your frontend code."
@@ -302,7 +302,7 @@ If the live agent demo fails on stage, you can still show:
 - "The A2A well-known endpoint is better — it describes capabilities in a standard format. But you need to know the host first. You need a URL to get the URL. That's a chicken-and-egg problem."
 - "Registry-backed discovery solves all three. You can query by capability, by skill, by input mode — without knowing any URLs. It's the same evolution that APIs went through: from hardcoded URLs to API gateways to OpenAPI-driven developer portals."
 
-### Slide 15: Compatibility Rules
+### Slide 18: Compatibility Rules
 
 - "The compatibility rules are identical to what you already know from OpenAPI and Avro schema evolution."
 - "Adding an optional field with a default — compatible. Whether it's adding an optional property to an OpenAPI response schema or adding an optional variable to a prompt template."
@@ -313,11 +313,11 @@ If the live agent demo fails on stage, you can still show:
 
 ## Part 5 — Production and Wrap Up (4 min)
 
-### Slide 16: Section divider
+### Slide 19: Section divider
 
 - "Let's quickly talk about what you'd add to take this from a demo to a real deployment."
 
-### Slide 17: Production Considerations
+### Slide 20: Production Considerations
 
 - "Four things you'd add for production."
 - "First, automated registration. In the demo I ran scripts manually. In production, agents register on startup via a sidecar or init container — similar to how services register with Consul. They deregister on shutdown. No manual intervention."
@@ -325,7 +325,7 @@ If the live agent demo fails on stage, you can still show:
 - "Third, schema evolution strategy. Define compatibility modes per artifact group — BACKWARD for prompt templates, FULL for agent cards. Enforce in CI/CD so incompatible changes are rejected before merge, not at deploy time."
 - "Fourth, multi-tenancy. Use registry groups to isolate agent namespaces across teams — the same way you'd separate OpenAPI specs per domain or per team. The registry supports fine-grained access control."
 
-### Slide 18: Key Takeaways
+### Slide 21: Key Takeaways
 
 - "Let me wrap up with four takeaways."
 - "One: the open standards arc continues. OpenAPI standardized REST APIs. AsyncAPI standardized event-driven architectures. The A2A Protocol standardizes AI agent interfaces. Each generation solved the same problem — describe your interface, register it, version it, discover it."
@@ -333,7 +333,7 @@ If the live agent demo fails on stage, you can still show:
 - "Three: prompt templates need governance. The same version control and compatibility rules you apply to API specs are not optional for AI. Without them, you get silent failures, untraceable bugs, and broken pipelines."
 - "Four: the tooling already exists. Apicurio Registry — one CNCF sandbox project — governs OpenAPI, AsyncAPI, Avro, Protobuf, and now A2A Agent Cards, prompt templates, and model schemas. Same tool, same rules, new artifact types."
 
-### Slide 19: Thank You
+### Slide 22: Thank You
 
 - "Thank you. The entire demo — scripts, schemas, this presentation — is on GitHub. The link is right here on the slide. Feel free to fork it, run it, and try it with your own agents."
 - "I'm happy to take any questions."

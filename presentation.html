@@ -444,7 +444,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 3: SECTION — THE SOLUTION =========== -->
+<!-- =========== SLIDE 4: SECTION — THE SOLUTION =========== -->
 <div class="slide section-slide" data-notes="Transition to the solution. We don't need new tooling — we need to extend the tooling that already works.">
   <div class="content center">
     <div class="section-num">01</div>
@@ -453,7 +453,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 4: APICURIO REGISTRY =========== -->
+<!-- =========== SLIDE 5: APICURIO REGISTRY =========== -->
 <div class="slide" data-notes="Introduce Apicurio Registry. This is a CNCF sandbox project that already governs OpenAPI, AsyncAPI, Avro, Protobuf, JSON Schema, and GraphQL definitions. It provides versioning, compatibility checking, validation, and lifecycle management. The key insight is that A2A Agent Cards, prompt templates, and model schemas are just new artifact types — the governance framework is identical. Same tool, new artifacts. If you're already using Apicurio or Confluent Schema Registry for your Kafka schemas, you already understand the pattern.">
   <div class="content">
     <h3>Apicurio Registry</h3>
@@ -487,7 +487,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 5: ARCHITECTURE =========== -->
+<!-- =========== SLIDE 6: ARCHITECTURE =========== -->
 <div class="slide" data-notes="Show the architecture. Agents register their A2A Agent Cards in the registry. Other agents query the registry to discover peers by capability. The registry enforces compatibility rules — if someone pushes a breaking change to a prompt template, the registry rejects it before it reaches production. This is the same pattern as registering an OpenAPI spec in the registry and letting consumers discover APIs programmatically.">
   <div class="content center">
     <h3>Architecture</h3>
@@ -528,7 +528,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 6: A2A PROTOCOL =========== -->
+<!-- =========== SLIDE 7: A2A PROTOCOL =========== -->
 <div class="slide" data-notes="Explain the A2A Protocol. It's Google's open standard for agent-to-agent communication. The key construct is the Agent Card — a structured JSON document that declares an agent's name, URL, version, capabilities (streaming, batch, push), and skills with typed input/output modes. Think of it as an OpenAPI spec for an AI agent. The protocol defines a well-known endpoint at /.well-known/agent.json, but that requires knowing the host first. Registry-backed discovery removes that limitation — you can query by capability without knowing any URLs.">
   <div class="content">
     <h3>The A2A Protocol</h3>
@@ -563,7 +563,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 7: SECTION — LIVE DEMO =========== -->
+<!-- =========== SLIDE 8: SECTION — LIVE DEMO =========== -->
 <div class="slide section-slide" data-notes="Transition to the live demo. Everything from here on is live — terminal commands against a real Apicurio Registry instance.">
   <div class="content center">
     <div class="section-num">02</div>
@@ -572,7 +572,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 8: DEMO — START REGISTRY =========== -->
+<!-- =========== SLIDE 9: DEMO — START REGISTRY =========== -->
 <div class="slide" data-notes="Start the registry if it's not already running. Show the clean state — zero artifacts. Open the Apicurio Registry UI in the browser tab.">
   <div class="content">
     <h3>Demo Setup</h3>
@@ -590,8 +590,8 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 9: DEMO — REGISTER AGENTS =========== -->
-<div class="slide" data-notes="Run the agent registration script. Three agents: Summarizer (text in, text out), Translator (text in, text out), and Data Enrichment (JSON in, JSON out, supports batch). Switch to the Registry UI and show the ai-agents group. Click into summarizer-agent to show the Agent Card JSON — capabilities, skills with typed input/output modes. Point out: this is the A2A Protocol Agent Card format, stored in the same registry as your OpenAPI specs. Any agent can query the registry to find peers by capability.">
+<!-- =========== SLIDE 10: DEMO — REGISTER AGENTS =========== -->
+<div class="slide" data-notes="Run the agent registration script. Three Agent Cards: Summarizer (text in, text out), Translator (text in, text out), and Data Enrichment (JSON in, JSON out, supports batch). The first two have real Quarkus agents behind them; the third shows how different capability types (JSON, batch) are described in the same registry. Switch to the Registry UI and show the ai-agents group. Click into summarizer-agent to show the Agent Card JSON.">
   <div class="content">
     <h3>Step 1</h3>
     <h2>Register A2A Agent Cards</h2>
@@ -620,7 +620,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 10: DEMO — PROMPT VERSIONING =========== -->
+<!-- =========== SLIDE 11: DEMO — PROMPT VERSIONING =========== -->
 <div class="slide" data-notes="Run the prompt registration script. Show v1 of summarizer-system-prompt in the UI — two variables: max_sentences (integer, default 3) and input_text (string, required). Show the BACKWARD compatibility rule on the artifact. Then show that v2 was accepted — it added an optional 'tone' variable with default 'neutral'. This is a backward-compatible change because existing agents that don't know about 'tone' will still work — the default kicks in. Click version history to show both versions side by side.">
   <div class="content">
     <h3>Step 2</h3>
@@ -650,7 +650,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 10b: PROMPTS AT RUNTIME =========== -->
+<!-- =========== SLIDE 12: PROMPTS AT RUNTIME =========== -->
 <div class="slide" data-notes="This is a key point — the prompt templates aren't just governed artifacts, they're used at runtime. The Summarizer Agent calls the registry's render API on every request: it passes the user's text as input_text, the registry renders the mustache template, and the agent sends the rendered prompt to Ollama. This means updating a prompt template in the registry — say, adding the tone variable in v2 — takes effect immediately. No redeployment. The registry is both the governance layer AND the runtime prompt store.">
   <div class="content">
     <h3>Not just governance</h3>
@@ -685,7 +685,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 11: DEMO — BREAKING CHANGE =========== -->
+<!-- =========== SLIDE 13: DEMO — BREAKING CHANGE =========== -->
 <div class="slide" data-notes="This is the most dramatic demo moment. Run the breaking change script. It tries to register a v3 that removes the required input_text variable and renames it to content. The registry rejects it with HTTP 409. Show the error response. Emphasize: the registry caught this before production, not after. This is the same compatibility checking that protects your OpenAPI specs — you can't remove a required field from a response schema in a backward-compatible way. The governance pattern is identical.">
   <div class="content">
     <h3>Step 3</h3>
@@ -710,7 +710,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 12: DEMO — AGENT DISCOVERY =========== -->
+<!-- =========== SLIDE 14: DEMO — AGENT DISCOVERY =========== -->
 <div class="slide" data-notes="Run the discovery script. Show five capabilities: list all agents, search by name, inspect a specific agent's capabilities, compare prompt versions, retrieve model metadata. This is what an orchestrator agent does at runtime — query the registry to find the right agent for the job, check its input/output modes, verify it supports streaming. No hardcoded URLs, no config files, no service mesh tricks.">
   <div class="content">
     <h3>Step 4</h3>
@@ -732,7 +732,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 13: LIVE AGENT DEMO =========== -->
+<!-- =========== SLIDE 15: LIVE AGENT DEMO =========== -->
 <div class="slide" data-notes="This is the wow moment. Both the Summarizer and Translator agents auto-published their Agent Cards to the registry on startup. The orchestrator uses the Registry SDK to discover them and the LLM to select the best agent for each request. Send two requests: summarize → Summarizer, translate → Translator. Show the dashboard at localhost:10020 — each step logged with expandable payloads. The LLM selection step shows the prompt and response.">
   <div class="content">
     <h3>Step 5</h3>
@@ -773,7 +773,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 14: SECTION — DEEP DIVE =========== -->
+<!-- =========== SLIDE 16: SECTION — DEEP DIVE =========== -->
 <div class="slide section-slide" data-notes="Transition to the deeper concepts. Why registry-based discovery specifically? How do compatibility rules work? How does this fit into the broader standards ecosystem?">
   <div class="content center">
     <div class="section-num">03</div>
@@ -782,7 +782,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 15: DISCOVERY APPROACHES =========== -->
+<!-- =========== SLIDE 17: DISCOVERY APPROACHES =========== -->
 <div class="slide" data-notes="Compare four discovery approaches. Hardcoded URLs break when endpoints change — it's like hardcoding API base URLs instead of using a gateway. DNS and service meshes discover services, not capabilities — Istio knows 'this pod exists on port 8080' but not 'this agent can summarize PDFs'. The A2A well-known endpoint is better — it describes capabilities — but you need to know the host first, which means you're back to hardcoded URLs or DNS. Registry-backed discovery combines structured capability declarations with centralized, queryable storage. You can search by skill, by input mode, by capability — without knowing any URLs.">
   <div class="content">
     <h3>Discovery</h3>
@@ -798,7 +798,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 15: COMPATIBILITY RULES =========== -->
+<!-- =========== SLIDE 18: COMPATIBILITY RULES =========== -->
 <div class="slide" data-notes="Show the compatibility rules table. These are the same rules that protect OpenAPI schemas and Avro definitions. Adding an optional field (with a default) is backward compatible. Removing a required field is a breaking change. Renaming a field is a breaking change. Changing a type is a breaking change. The registry enforces these rules at registration time — before any data flows. This is the same pattern whether you're governing a Kafka schema, an OpenAPI response definition, or a prompt template.">
   <div class="content">
     <h3>Compatibility</h3>
@@ -815,7 +815,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 16: SECTION — PRODUCTION =========== -->
+<!-- =========== SLIDE 19: SECTION — PRODUCTION =========== -->
 <div class="slide section-slide" data-notes="Transition to production considerations. The demo showed the pattern — now let's talk about what you'd add for a real deployment.">
   <div class="content center">
     <div class="section-num">04</div>
@@ -824,7 +824,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 17: PRODUCTION CONSIDERATIONS =========== -->
+<!-- =========== SLIDE 20: PRODUCTION CONSIDERATIONS =========== -->
 <div class="slide" data-notes="Four things you'd add for production. First, automated registration — agents register on startup via sidecar or init container, not manual scripts. Second, health-aware discovery — combine with Kubernetes health checks so the registry only returns healthy agents. Third, schema evolution strategy — define compatibility modes per artifact group and enforce them in CI/CD. Fourth, multi-tenancy — use registry groups to isolate agent namespaces across teams, same as you'd separate OpenAPI specs per team.">
   <div class="content">
     <h3>Production Hardening</h3>
@@ -850,7 +850,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 18: KEY TAKEAWAYS =========== -->
+<!-- =========== SLIDE 21: KEY TAKEAWAYS =========== -->
 <div class="slide" data-notes="Four takeaways. One: the open standards arc continues — OpenAPI, AsyncAPI, A2A. The pattern is proven. Two: Agent Cards are OpenAPI for agents — structured, versioned, discoverable. Three: prompt templates need the same governance as API specs — versioning and compatibility rules are not optional. Four: the tooling already exists — Apicurio Registry governs the full spectrum from REST APIs to AI agents in one CNCF sandbox project.">
   <div class="content">
     <h3>Takeaways</h3>
@@ -876,7 +876,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 19: THANK YOU =========== -->
+<!-- =========== SLIDE 22: THANK YOU =========== -->
 <div class="slide title-slide" data-notes="Thank the audience. Share the demo repo link. Mention that the entire demo — scripts, schemas, this presentation — is in the repo. Happy to take questions.">
   <div class="content center">
     <h1>Thank You</h1>
