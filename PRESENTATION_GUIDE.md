@@ -9,7 +9,7 @@
 
 ## Pre-Presentation Setup (do all of this BEFORE the talk)
 
-### Infrastructure (20 min before)
+### Infrastructure (45 min before, or the night before)
 
 ```bash
 # 1. Start Apicurio Registry and Ollama
