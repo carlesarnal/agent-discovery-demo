@@ -23,10 +23,8 @@ curl -s http://localhost:11434/api/pull -d '{"name": "qwen2.5:1.5b"}'
 curl -s http://localhost:11434/api/generate \
   -d '{"model":"qwen2.5:1.5b","prompt":"hello","stream":false}' > /dev/null
 
-# 4. Build the agents (if not already built)
-cd agents/summarizer && mvn package -DskipTests -q && cd ../..
-cd agents/translator && mvn package -DskipTests -q && cd ../..
-cd agents/orchestrator && mvn package -DskipTests -q && cd ../..
+# 4. Pre-build the agent Docker images (so startup is fast on stage)
+docker compose build summarizer translator orchestrator
 
 # 5. Verify clean registry
 curl -s http://localhost:8080/apis/registry/v3/search/artifacts | jq '.count'
@@ -34,7 +32,8 @@ curl -s http://localhost:8080/apis/registry/v3/search/artifacts | jq '.count'
 
 # DON'T start the agents yet — they self-register on startup,
 # and we want the registry clean for Act 1 (curl-based governance demo).
-# The agents will be started live on stage during Act 2.
+# The agents will be started live on stage during Act 2 with:
+#   ./scripts/06-start-agents.sh
 ```
 
 ### Browser tabs (pre-load)

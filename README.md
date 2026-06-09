@@ -41,7 +41,6 @@ graph LR
 
 - Docker and Docker Compose
 - `curl` and `jq`
-- Java 21+ and Maven (for building the agents)
 
 ## Quick Start
 
@@ -55,12 +54,7 @@ docker compose up -d apicurio-registry apicurio-registry-ui ollama
 # Run the governance demo (curl-based scripts)
 ./scripts/run-demo.sh
 
-# Build the agents
-cd agents/summarizer && mvn package -DskipTests -q && cd ../..
-cd agents/translator && mvn package -DskipTests -q && cd ../..
-cd agents/orchestrator && mvn package -DskipTests -q && cd ../..
-
-# Pull Ollama model and start the real agents
+# Start the real agents (builds Docker images, pulls Ollama model)
 ./scripts/06-start-agents.sh
 
 # Open the orchestrator dashboard and try both:

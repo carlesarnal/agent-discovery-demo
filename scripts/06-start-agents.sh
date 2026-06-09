@@ -1,5 +1,5 @@
 #!/bin/bash
-# Start the real A2A agents with Ollama
+# Start the real A2A agents via Docker Compose
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -22,40 +22,19 @@ curl -sf http://localhost:11434/api/generate -d '{"model":"qwen2.5:1.5b","prompt
 echo "Model loaded"
 echo ""
 
-# Build agents
-echo "--- Building agents ---"
-cd "$PROJECT_DIR/agents/summarizer" && mvn package -DskipTests -q
-cd "$PROJECT_DIR/agents/translator" && mvn package -DskipTests -q
-cd "$PROJECT_DIR/agents/orchestrator" && mvn package -DskipTests -q
-echo "All agents built"
+# Start the agents via docker compose
+echo "--- Starting agents (building if needed) ---"
+docker compose -f "$PROJECT_DIR/docker-compose.yaml" up -d --build summarizer translator orchestrator
 echo ""
 
-# Kill any existing agent processes
-for port in 10010 10020 10030; do
-  lsof -i :$port -t 2>/dev/null | xargs kill -9 2>/dev/null || true
+# Wait for agents to be ready
+echo "--- Waiting for agents to start ---"
+for port in 10010 10030 10020; do
+  until curl -sf "http://localhost:$port/" > /dev/null 2>&1; do
+    sleep 2
+  done
+  echo "  Port $port ready"
 done
-sleep 1
-
-# Start all three agents
-echo "--- Starting Summarizer Agent (port 10010) ---"
-cd "$PROJECT_DIR/agents/summarizer"
-java -jar target/summarizer-agent-1.0-SNAPSHOT-runner.jar > /tmp/summarizer.log 2>&1 &
-sleep 8
-grep -q "started in" /tmp/summarizer.log && echo "Summarizer Agent is ready!" || echo "WARNING: Summarizer may not be ready — check /tmp/summarizer.log"
-echo ""
-
-echo "--- Starting Translator Agent (port 10030) ---"
-cd "$PROJECT_DIR/agents/translator"
-java -jar target/translator-agent-1.0-SNAPSHOT-runner.jar > /tmp/translator.log 2>&1 &
-sleep 8
-grep -q "started in" /tmp/translator.log && echo "Translator Agent is ready!" || echo "WARNING: Translator may not be ready — check /tmp/translator.log"
-echo ""
-
-echo "--- Starting Orchestrator Agent (port 10020) ---"
-cd "$PROJECT_DIR/agents/orchestrator"
-java -jar target/orchestrator-agent-1.0-SNAPSHOT-runner.jar > /tmp/orchestrator.log 2>&1 &
-sleep 6
-grep -q "started in" /tmp/orchestrator.log && echo "Orchestrator Agent is ready!" || echo "WARNING: Orchestrator may not be ready — check /tmp/orchestrator.log"
 echo ""
 
 # Verify Agent Cards in the registry
@@ -64,8 +43,8 @@ curl -s http://localhost:8080/apis/registry/v3/groups/a2a-agents/artifacts | jq 
 echo ""
 
 echo "--- A2A Well-Known Endpoint ---"
-curl -s http://localhost:8080/.well-known/agents | jq '.count'
-echo " agents discoverable"
+count=$(curl -s http://localhost:8080/.well-known/agents | jq '.count')
+echo "$count agents discoverable"
 echo ""
 
 echo "=== All agents running ==="

@@ -51,6 +51,20 @@ services:
       ollama:
         condition: service_healthy
 
+  translator:
+    build: agents/translator
+    ports:
+      - "10030:10030"
+    environment:
+      OLLAMA_URL: http://ollama:11434
+      REGISTRY_URL: http://apicurio-registry:8080
+      AGENT_BASE_URL: http://translator
+    depends_on:
+      apicurio-registry:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+
   orchestrator:
     build: agents/orchestrator
     ports:
