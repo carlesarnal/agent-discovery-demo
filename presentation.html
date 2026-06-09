@@ -733,37 +733,36 @@
 </div>
 
 <!-- =========== SLIDE 15: LIVE AGENT DEMO =========== -->
-<div class="slide" data-notes="This is the wow moment. Both the Summarizer and Translator agents auto-published their Agent Cards to the registry on startup. The orchestrator uses the Registry SDK to discover them and the LLM to select the best agent for each request. Send two requests: summarize → Summarizer, translate → Translator. Show the dashboard at localhost:10020 — each step logged with expandable payloads. The LLM selection step shows the prompt and response.">
+<div class="slide" data-notes="Act 2 starts here. Start the agents live on stage with 06-start-agents.sh. They self-register their Agent Cards on startup — show the Registry UI with the new cards. Then open the orchestrator dashboard and send two requests: summarize → Summarizer, translate → Translator. The orchestrator uses the LLM to select the best agent. No hardcoded URLs.">
   <div class="content">
     <h3>Step 5</h3>
-    <h2>Real agents, real discovery, <span class="accent3">live</span></h2>
-    <p style="margin-bottom: 16px;">Open <a href="http://localhost:10020" style="color:var(--accent);">http://localhost:10020</a> — Orchestrator Dashboard</p>
-    <div class="arch-diagram" style="margin: 20px 0;">
-      <div class="arch-node">
-        <div class="node-title">User Request</div>
-        <div class="node-sub">"Summarize..." or "Translate..."</div>
-      </div>
-      <div class="arch-arrow">&rarr;</div>
-      <div class="arch-node highlight2">
-        <div class="node-title">Orchestrator</div>
-        <div class="node-sub">LLM selects agent</div>
-      </div>
-      <div class="arch-arrow"><span class="flow-dot"></span> <span class="flow-dot"></span> <span class="flow-dot"></span></div>
-      <div class="arch-node highlight4">
-        <div class="node-title">Registry</div>
-        <div class="node-sub">discover + select</div>
-      </div>
-      <div class="arch-arrow"><span class="flow-dot"></span> <span class="flow-dot"></span> <span class="flow-dot"></span></div>
-      <div class="arch-node highlight3">
+    <h2>Real agents, <span class="accent3">self-registering</span>, live</h2>
+    <div class="cmd-row" style="margin-bottom: 16px;">
+      <code>./scripts/06-start-agents.sh</code>
+      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+    </div>
+    <div class="arch-diagram" style="margin: 16px 0;">
+      <div class="arch-node highlight">
         <div class="node-title">Summarizer</div>
-        <div class="node-sub">or Translator</div>
+        <div class="node-sub">self-registers on startup</div>
+      </div>
+      <div class="arch-arrow">publish &rarr;</div>
+      <div class="arch-node highlight4" style="min-width: 170px;">
+        <div class="node-title">Apicurio Registry</div>
+        <div class="node-sub">AGENT_CARD artifacts</div>
+      </div>
+      <div class="arch-arrow">&larr; publish</div>
+      <div class="arch-node highlight2">
+        <div class="node-title">Translator</div>
+        <div class="node-sub">self-registers on startup</div>
       </div>
     </div>
     <ul>
-      <li>Both agents <strong>auto-published</strong> their Agent Cards on startup</li>
-      <li>Orchestrator <strong>discovers</strong> all agents, <strong>LLM selects</strong> the best match</li>
+      <li>Agents <strong>publish their own Agent Cards</strong> on startup using the Registry SDK</li>
+      <li>Orchestrator <strong>discovers</strong> them, <strong>LLM selects</strong> the best match</li>
       <li>Task <strong>delegated</strong> via A2A Protocol — agent fetches prompt from registry</li>
     </ul>
+    <p style="margin-top: 12px;">Then open <a href="http://localhost:10020" style="color:var(--accent);">http://localhost:10020</a> — Orchestrator Dashboard</p>
     <div class="tag-row" style="margin-top: 16px;">
       <span class="badge badge-green">Quarkus</span>
       <span class="badge badge-blue">Ollama (qwen2.5:1.5b)</span>

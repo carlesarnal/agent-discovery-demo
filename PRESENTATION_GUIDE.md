@@ -32,32 +32,9 @@ cd agents/orchestrator && mvn package -DskipTests -q && cd ../..
 curl -s http://localhost:8080/apis/registry/v3/search/artifacts | jq '.count'
 # Should return 0
 
-# 6. Start the summarizer agent (publishes Agent Card on startup)
-cd agents/summarizer && java -jar target/summarizer-agent-1.0-SNAPSHOT-runner.jar &
-sleep 8
-
-# 7. Start the translator agent (publishes Agent Card on startup)
-cd agents/translator && java -jar target/translator-agent-1.0-SNAPSHOT-runner.jar &
-sleep 8
-
-# 8. Verify both Agent Cards were published
-curl -s http://localhost:8080/apis/registry/v3/groups/a2a-agents/artifacts | jq '.count'
-# Should return 2
-
-# 9. Start the orchestrator agent
-cd agents/orchestrator && java -jar target/orchestrator-agent-1.0-SNAPSHOT-runner.jar &
-sleep 6
-
-# 10. Test both delegation paths
-curl -s -X POST http://localhost:10020/orchestrate \
-  -H "Content-Type: text/plain" \
-  -d "Summarize: Kubernetes automates container orchestration"
-# Should return a summary (routed to Summarizer)
-
-curl -s -X POST http://localhost:10020/orchestrate \
-  -H "Content-Type: text/plain" \
-  -d "Translate to French: Hello, how are you?"
-# Should return French translation (routed to Translator)
+# DON'T start the agents yet — they self-register on startup,
+# and we want the registry clean for Act 1 (curl-based governance demo).
+# The agents will be started live on stage during Act 2.
 ```
 
 ### Browser tabs (pre-load)
@@ -259,32 +236,45 @@ If the live agent demo fails on stage, you can still show:
 
 ### Slide 15: Live Agent Demo
 
-**Open in browser:** `http://localhost:10020`
+**Act 2 starts here.** Everything before this was curl scripts. Now we start real agents.
 
-**What to show:**
-- The orchestrator dashboard with the scrolling event log
-- Send TWO requests to show dynamic agent selection
-- Click the Registry UI links in the log entries to show the artifacts
-- Watch each step appear in real-time with expandable payloads
+**Step A — Start the agents on stage:**
+
+```bash
+./scripts/06-start-agents.sh
+```
+
+**What to say while agents start (~30s):**
+
+- "Now let me show you the real thing. I'm going to start two Quarkus agents — a Summarizer and a Translator — each powered by Ollama. Watch what happens."
+- *Run the script. While it builds/starts:*
+- "Each agent does two things on startup: it registers itself as an A2A server, and it publishes its own Agent Card to Apicurio Registry using the Registry SDK. No manual registration — the agent describes itself."
+- *When the script shows "Agent Cards in Registry":*
+- "There — both agents self-registered. The Summarizer published its Agent Card with Text Summarization skills, and the Translator with Text Translation skills. Let me show you in the Registry UI."
+- *Switch to Registry UI (localhost:8888) → show the ai-agents group with 2 cards*
+- "These are the same kind of artifacts we registered manually with curl earlier — but now the agents did it themselves."
+
+**Step B — Open the dashboard:**
+
+- *Open http://localhost:10020 in the browser*
+- "This is the orchestrator dashboard. The orchestrator has no hardcoded knowledge of these agents. Let me send a request."
 
 **Demo 1 — Summarization:**
 
-- *Open http://localhost:10020 in the browser*
-- "I have three things running: a Summarizer Agent, a Translator Agent, and an Orchestrator. Both agents auto-published their A2A Agent Cards to the registry on startup. The orchestrator has no hardcoded knowledge of these agents."
 - *Type: "Summarize the key benefits of open standards for governing AI agents" and hit Enter*
-- "Step 1 — Discover: the orchestrator queries the registry and finds TWO agents."
-- "Step 2 — Inspect: it reads both Agent Cards — the Summarizer with Text Summarization skills, and the Translator with Text Translation skills."
-- "Step 3 — Select: here's the interesting part. The orchestrator uses the LLM to pick the best agent. It sends all agent descriptions to Ollama and asks 'which agent should handle this?' The LLM picks the Summarizer."
+- "Step 1 — Discover: the orchestrator queries the registry and finds the two self-registered agents."
+- "Step 2 — Inspect: it reads both Agent Cards — skills, capabilities, URLs."
+- "Step 3 — Select: the orchestrator uses the LLM to pick the best agent. It sends all agent descriptions to Ollama and asks 'which agent should handle this?' The LLM picks the Summarizer."
 - *Click the match entry to show the LLM prompt and response*
 - "Step 4 — Delegate: it sends the task to the Summarizer via the A2A Protocol."
-- "Step 5 — the Summarizer fetched its prompt template from the registry — the same one we registered earlier — rendered it with the user's text, and sent it to Ollama. That's the full loop: governance AND runtime from the same registry."
+- "Step 5 — the Summarizer fetched its prompt template from the registry — the same one we registered earlier — rendered it with the user's text, and sent it to Ollama. Governance AND runtime from the same registry."
 
 **Demo 2 — Translation (the switch):**
 
 - *Type: "Translate to French: Open standards improve interoperability" and hit Enter*
 - "Same orchestrator, same registry query, same two agents discovered. But watch step 3..."
-- "The LLM picks the TRANSLATOR this time. The orchestrator routes the request to a completely different agent — discovered dynamically, selected intelligently."
-- "No hardcoded URLs, no if/else routing, no config changes. The orchestrator discovered agents through the registry and used the LLM to decide who should handle the task. That's registry-backed agent discovery in action."
+- "The LLM picks the TRANSLATOR this time. A completely different agent — discovered dynamically, selected intelligently."
+- "No hardcoded URLs, no if/else routing, no config changes. The agents registered themselves, the orchestrator discovered them through the registry, and the LLM decided who should handle the task."
 
 ---
 
