@@ -30,7 +30,7 @@ echo ""
 # Wait for agents to be ready
 echo "--- Waiting for agents to start ---"
 for port in 10010 10030 10020; do
-  until curl -sf "http://localhost:$port/" > /dev/null 2>&1; do
+  until curl -s -o /dev/null -w "%{http_code}" "http://localhost:$port/" 2>/dev/null | grep -qE "200|405"; do
     sleep 2
   done
   echo "  Port $port ready"
