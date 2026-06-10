@@ -36,15 +36,29 @@ curl -s http://localhost:8080/apis/registry/v3/search/artifacts | jq '.count'
 #   ./scripts/06-start-agents.sh
 ```
 
+### Embedded terminal (required for live-typing in slides)
+
+```bash
+# Start ttyd — the terminal is embedded in the presentation slides
+cd /path/to/agent-discovery-demo
+ttyd -W -p 7681 bash &
+
+# Verify it works
+open http://localhost:7681
+```
+
+### Serve the presentation via HTTP (required for embedded terminals)
+
+```bash
+python3 -m http.server 8082 &
+# Open http://localhost:8082/presentation.html (NOT file:// — iframes won't load)
+```
+
 ### Browser tabs (pre-load)
 
-1. `http://localhost:8888` — Apicurio Registry UI
-2. `http://localhost:10020` — Orchestrator Dashboard (live agent demo)
-3. `presentation.html` — Slide deck (via `python3 -m http.server 8082`)
-
-### Terminal
-
-Have a terminal open in the `scripts/` directory, ready to run demo commands.
+1. `http://localhost:8082/presentation.html` — Slide deck (must be HTTP, not file://)
+2. `http://localhost:8888` — Apicurio Registry UI
+3. `http://localhost:10020` — Orchestrator Dashboard (for Act 2)
 
 ### Fallback plan
 

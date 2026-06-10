@@ -341,6 +341,23 @@
   table.comparison td { color: var(--text-dim); }
   table.comparison .yes { color: var(--accent3); font-weight: 600; }
   table.comparison .no { color: var(--red); font-weight: 600; }
+
+  /* Embedded terminal */
+  .terminal-container {
+    display: flex; gap: 12px; margin-top: 16px; width: 100%; height: 320px;
+  }
+  .terminal-container.tall { height: 400px; }
+  .terminal-pane {
+    flex: 1; border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; position: relative; background: #000;
+  }
+  .terminal-pane iframe { width: 100%; height: 100%; border: none; }
+  .terminal-label {
+    position: absolute; top: 8px; right: 12px;
+    font-size: 0.7rem; font-weight: 700; color: var(--text-dim);
+    background: rgba(0,0,0,0.7); padding: 2px 10px; border-radius: 8px;
+    z-index: 10; letter-spacing: 0.06em; text-transform: uppercase;
+  }
 </style>
 </head>
 <body>
@@ -591,62 +608,54 @@
 </div>
 
 <!-- =========== SLIDE 10: DEMO — REGISTER AGENTS =========== -->
-<div class="slide" data-notes="Run the agent registration script. Three Agent Cards: Summarizer (text in, text out), Translator (text in, text out), and Data Enrichment (JSON in, JSON out, supports batch). The first two have real Quarkus agents behind them; the third shows how different capability types (JSON, batch) are described in the same registry. Switch to the Registry UI and show the ai-agents group. Click into summarizer-agent to show the Agent Card JSON.">
+<div class="slide" data-notes="Type ./scripts/01-register-agents.sh in the embedded terminal. Three Agent Cards register: Summarizer, Translator, Data Enrichment. Switch to the Registry UI and show the ai-agents group.">
   <div class="content">
     <h3>Step 1</h3>
     <h2>Register A2A Agent Cards</h2>
     <div class="cmd-row">
+      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
       <code>./scripts/01-register-agents.sh</code>
       <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
     </div>
-    <div class="cols cols-3" style="margin-top: 28px;">
-      <div class="card">
-        <h3>Summarizer</h3>
-        <p style="font-size:0.95rem;"><strong>Skills:</strong> Text Summarization, PDF Summarization</p>
-        <div class="tag-row"><span class="badge badge-blue">text &rarr; text</span></div>
-      </div>
-      <div class="card">
-        <h3>Translator</h3>
-        <p style="font-size:0.95rem;"><strong>Skills:</strong> Text Translation</p>
-        <div class="tag-row"><span class="badge badge-purple">text &rarr; text</span></div>
-      </div>
-      <div class="card">
-        <h3>Data Enrichment</h3>
-        <p style="font-size:0.95rem;"><strong>Skills:</strong> Customer Enrichment, Address Validation</p>
-        <div class="tag-row"><span class="badge badge-orange">json &rarr; json</span><span class="badge badge-green">batch</span></div>
+    <div class="terminal-container">
+      <div class="terminal-pane">
+        <span class="terminal-label">Terminal</span>
+        <iframe src="http://localhost:7681"></iframe>
       </div>
     </div>
-    <p style="margin-top: 20px;">Open <strong>Registry UI &rarr; ai-agents group</strong> to inspect the Agent Cards.</p>
+    <p style="margin-top: 12px;">Open <a href="http://localhost:8888" style="color:var(--accent);">Registry UI</a> &rarr; <strong>ai-agents</strong> group to inspect the Agent Cards.</p>
   </div>
 </div>
 
 <!-- =========== SLIDE 11: DEMO — PROMPT VERSIONING =========== -->
-<div class="slide" data-notes="Run the prompt registration script. Show v1 of summarizer-system-prompt in the UI — two variables: max_sentences (integer, default 3) and input_text (string, required). Show the BACKWARD compatibility rule on the artifact. Then show that v2 was accepted — it added an optional 'tone' variable with default 'neutral'. This is a backward-compatible change because existing agents that don't know about 'tone' will still work — the default kicks in. Click version history to show both versions side by side.">
+<div class="slide" data-notes="Type ./scripts/02-register-prompts.sh in the terminal. Show v1 and v2 in the Registry UI. v2 adds an optional tone variable — backward compatible.">
   <div class="content">
     <h3>Step 2</h3>
     <h2>Prompt template governance</h2>
     <div class="cmd-row">
+      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
       <code>./scripts/02-register-prompts.sh</code>
       <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
     </div>
-    <div class="cols cols-2" style="margin-top: 28px;">
-      <div class="card">
-        <h3 style="color: var(--accent3);">Version 1</h3>
-        <pre style="font-size:0.82rem; padding: 16px 20px;"><span class="str">"variables"</span>: {
-  <span class="str">"max_sentences"</span>: { <span class="str">"default"</span>: <span class="num">3</span> },
-  <span class="str">"input_text"</span>:    { <span class="str">"required"</span>: <span class="kw">true</span> }
-}</pre>
-      </div>
-      <div class="card">
-        <h3 style="color: var(--accent3);">Version 2 <span class="badge badge-green" style="margin-left: 8px;">compatible</span></h3>
-        <pre style="font-size:0.82rem; padding: 16px 20px;"><span class="str">"variables"</span>: {
-  <span class="str">"max_sentences"</span>: { <span class="str">"default"</span>: <span class="num">3</span> },
-  <span class="str">"input_text"</span>:    { <span class="str">"required"</span>: <span class="kw">true</span> },
-  <span class="str">"tone"</span>:          { <span class="str">"default"</span>: <span class="str">"neutral"</span> }
-}</pre>
+    <div class="terminal-container" style="height: 200px;">
+      <div class="terminal-pane">
+        <span class="terminal-label">Terminal</span>
+        <iframe src="http://localhost:7681"></iframe>
       </div>
     </div>
-    <p style="margin-top: 20px;">Adding an optional variable with a default is <strong class="accent3">backward compatible</strong>.<br>Existing agents won't break — the same rule as adding an optional field to an OpenAPI schema.</p>
+    <div class="cols cols-2" style="margin-top: 12px;">
+      <div class="card" style="padding: 16px 20px;">
+        <h3 style="color: var(--accent3);">v1</h3>
+        <pre style="font-size:0.75rem; padding: 10px 14px; margin: 0;"><span class="str">"max_sentences"</span>: { <span class="str">"default"</span>: <span class="num">3</span> }
+<span class="str">"input_text"</span>:    { <span class="str">"required"</span>: <span class="kw">true</span> }</pre>
+      </div>
+      <div class="card" style="padding: 16px 20px;">
+        <h3 style="color: var(--accent3);">v2 <span class="badge badge-green" style="margin-left: 6px;">compatible</span></h3>
+        <pre style="font-size:0.75rem; padding: 10px 14px; margin: 0;"><span class="str">"max_sentences"</span>: { <span class="str">"default"</span>: <span class="num">3</span> }
+<span class="str">"input_text"</span>:    { <span class="str">"required"</span>: <span class="kw">true</span> }
+<span class="str">"tone"</span>:          { <span class="str">"default"</span>: <span class="str">"neutral"</span> }</pre>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -686,19 +695,26 @@
 </div>
 
 <!-- =========== SLIDE 13: DEMO — BREAKING CHANGE =========== -->
-<div class="slide" data-notes="This is the most dramatic demo moment. Run the breaking change script. It tries to register a v3 that removes the required input_text variable and renames it to content. The registry rejects it with HTTP 409. Show the error response. Emphasize: the registry caught this before production, not after. This is the same compatibility checking that protects your OpenAPI specs — you can't remove a required field from a response schema in a backward-compatible way. The governance pattern is identical.">
+<div class="slide" data-notes="Type ./scripts/05-breaking-change.sh in the terminal. Watch both breaking changes get rejected with HTTP 409. The dramatic demo moment.">
   <div class="content">
     <h3>Step 3</h3>
     <h2>Breaking change <span style="color: var(--red);">rejected</span></h2>
     <div class="cmd-row">
+      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
       <code>./scripts/05-breaking-change.sh</code>
       <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
     </div>
-    <div class="cols cols-2" style="margin-top: 28px;">
-      <div class="card">
+    <div class="terminal-container" style="height: 240px;">
+      <div class="terminal-pane">
+        <span class="terminal-label">Terminal</span>
+        <iframe src="http://localhost:7681"></iframe>
+      </div>
+    </div>
+    <div class="cols cols-2" style="margin-top: 12px;">
+      <div class="card" style="padding: 16px 20px;">
         <h3>What changed</h3>
-        <p style="font-size: 1rem;">Changed <code>max_sentences</code> type: integer &rarr; string</p>
-        <p style="font-size: 1rem;">Removed <code>input_text</code> from variables (still in template)</p>
+        <p style="font-size: 0.9rem;">Changed <code>max_sentences</code> type: integer &rarr; string</p>
+        <p style="font-size: 0.9rem;">Removed <code>input_text</code> from variables (still in template)</p>
       </div>
       <div class="card" style="border-color: var(--red);">
         <h3 style="color: var(--red);">Result</h3>
@@ -716,18 +732,15 @@
     <h3>Step 4</h3>
     <h2>Agent discovery in action</h2>
     <div class="cmd-row">
+      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
       <code>./scripts/04-discover-agents.sh</code>
       <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
     </div>
-    <div style="margin-top: 28px;">
-      <ul>
-        <li><strong>List all agents</strong> — query the <code>ai-agents</code> group</li>
-        <li><strong>Search by name</strong> — find the Translator agent</li>
-        <li><strong>Inspect capabilities</strong> — skills, input/output modes, streaming support</li>
-        <li><strong>Compare prompt versions</strong> — v1 has 2 variables, v2 has 3</li>
-        <li><strong>Retrieve model metadata</strong> — accuracy, framework, artifact URI</li>
-      </ul>
-      <p style="margin-top: 20px;">This is what an orchestrator agent does at runtime.<br>No hardcoded URLs — <strong class="accent">query by capability</strong>.</p>
+    <div class="terminal-container tall">
+      <div class="terminal-pane">
+        <span class="terminal-label">Terminal</span>
+        <iframe src="http://localhost:7681"></iframe>
+      </div>
     </div>
   </div>
 </div>
@@ -737,32 +750,21 @@
   <div class="content">
     <h3>Step 5</h3>
     <h2>Real agents, <span class="accent3">self-registering</span>, live</h2>
-    <div class="cmd-row" style="margin-bottom: 16px;">
+    <div class="cmd-row">
+      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
       <code>./scripts/06-start-agents.sh</code>
       <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
     </div>
-    <div class="arch-diagram" style="margin: 16px 0;">
-      <div class="arch-node highlight">
-        <div class="node-title">Summarizer</div>
-        <div class="node-sub">self-registers on startup</div>
-      </div>
-      <div class="arch-arrow">publish &rarr;</div>
-      <div class="arch-node highlight4" style="min-width: 170px;">
-        <div class="node-title">Apicurio Registry</div>
-        <div class="node-sub">AGENT_CARD artifacts</div>
-      </div>
-      <div class="arch-arrow">&larr; publish</div>
-      <div class="arch-node highlight2">
-        <div class="node-title">Translator</div>
-        <div class="node-sub">self-registers on startup</div>
+    <div class="terminal-container" style="height: 260px;">
+      <div class="terminal-pane">
+        <span class="terminal-label">Terminal</span>
+        <iframe src="http://localhost:7681"></iframe>
       </div>
     </div>
-    <ul>
+    <ul style="margin-top: 12px;">
       <li>Agents <strong>publish their own Agent Cards</strong> on startup using the Registry SDK</li>
-      <li>Orchestrator <strong>discovers</strong> them, <strong>LLM selects</strong> the best match</li>
-      <li>Task <strong>delegated</strong> via A2A Protocol — agent fetches prompt from registry</li>
+      <li>Then open <a href="http://localhost:10020" style="color:var(--accent);">Orchestrator Dashboard</a> — LLM selects the best agent for each request</li>
     </ul>
-    <p style="margin-top: 12px;">Then open <a href="http://localhost:10020" style="color:var(--accent);">http://localhost:10020</a> — Orchestrator Dashboard</p>
     <div class="tag-row" style="margin-top: 16px;">
       <span class="badge badge-green">Quarkus</span>
       <span class="badge badge-blue">Ollama (qwen2.5:1.5b)</span>
