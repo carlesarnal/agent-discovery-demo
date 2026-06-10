@@ -590,20 +590,22 @@
 </div>
 
 <!-- =========== SLIDE 9: DEMO — START REGISTRY =========== -->
-<div class="slide" data-notes="Start the registry if it's not already running. Show the clean state — zero artifacts. Open the Apicurio Registry UI in the browser tab.">
+<div class="slide" data-notes="Show the registry is running and clean. Type the curl command in the terminal to verify zero artifacts. Open the Registry UI.">
   <div class="content">
     <h3>Demo Setup</h3>
     <h2>Start Apicurio Registry</h2>
     <div class="cmd-row">
-      <code>docker compose up -d && ./scripts/wait-for-registry.sh</code>
-      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
-    </div>
-    <div class="cmd-row" style="margin-top: 16px;">
+      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
       <code>curl -s http://localhost:8080/apis/registry/v3/search/artifacts | jq '.count'</code>
       <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
     </div>
-    <p style="margin-top: 24px;">Open <a href="http://localhost:8888" style="color:var(--accent);">http://localhost:8888</a> — Apicurio Registry UI</p>
-    <p>This is the same registry you'd use for <strong>OpenAPI</strong>, <strong>AsyncAPI</strong>, and <strong>Avro</strong> schemas. Clean slate — zero artifacts.</p>
+    <div class="terminal-container">
+      <div class="terminal-pane">
+        <span class="terminal-label">Terminal</span>
+        <iframe src="http://localhost:7681"></iframe>
+      </div>
+    </div>
+    <p style="margin-top: 12px;">Open <a href="http://localhost:8888" style="color:var(--accent);">http://localhost:8888</a> — Registry UI. Same registry for <strong>OpenAPI</strong>, <strong>AsyncAPI</strong>, <strong>Avro</strong> — clean slate.</p>
   </div>
 </div>
 
