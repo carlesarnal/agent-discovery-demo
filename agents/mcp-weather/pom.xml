@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.carlesarnal.agents</groupId>
-    <artifactId>summarizer-agent</artifactId>
-    <name>Summarizer A2A Agent</name>
+    <artifactId>mcp-weather-server</artifactId>
+    <name>MCP Weather Server</name>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -14,8 +14,6 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <quarkus.platform.version>3.33.2</quarkus.platform.version>
-        <quarkus-langchain4j.version>999-SNAPSHOT</quarkus-langchain4j.version>
-        <a2a-sdk.version>0.3.0.Beta1</a2a-sdk.version>
         <surefire-plugin.version>3.5.3</surefire-plugin.version>
     </properties>
 
@@ -28,41 +26,29 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <dependency>
-                <groupId>io.quarkiverse.langchain4j</groupId>
-                <artifactId>quarkus-langchain4j-bom</artifactId>
-                <version>${quarkus-langchain4j.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
         <dependency>
-            <groupId>io.quarkiverse.langchain4j</groupId>
-            <artifactId>quarkus-langchain4j-ollama</artifactId>
-            <version>${quarkus-langchain4j.version}</version>
+            <groupId>io.quarkiverse.mcp</groupId>
+            <artifactId>quarkus-mcp-server-sse</artifactId>
+            <version>1.6.0</version>
         </dependency>
         <dependency>
-            <groupId>io.quarkiverse.langchain4j</groupId>
-            <artifactId>quarkus-langchain4j-a2a-apicurio-registry</artifactId>
-            <version>${quarkus-langchain4j.version}</version>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-java-sdk</artifactId>
+            <version>3.2.4</version>
         </dependency>
         <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-agentic</artifactId>
-            <version>1.18.0-beta28-SNAPSHOT</version>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-java-sdk-common</artifactId>
+            <version>3.2.4</version>
         </dependency>
         <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-agentic-a2a</artifactId>
-            <version>1.18.0-beta28-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.a2asdk</groupId>
-            <artifactId>a2a-java-sdk-reference-jsonrpc</artifactId>
-            <version>${a2a-sdk.version}</version>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-java-sdk-adapter-jdk</artifactId>
+            <version>3.2.4</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -71,11 +57,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest-client-jackson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -65,6 +65,17 @@ services:
       ollama:
         condition: service_healthy
 
+  mcp-weather:
+    build: agents/mcp-weather
+    ports:
+      - "10040:10040"
+    environment:
+      REGISTRY_URL: http://apicurio-registry:8080
+      MCP_SERVER_URL: http://mcp-weather:10040
+    depends_on:
+      apicurio-registry:
+        condition: service_healthy
+
   orchestrator:
     build: agents/orchestrator
     ports:

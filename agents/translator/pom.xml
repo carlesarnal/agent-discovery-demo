@@ -13,8 +13,8 @@
         <compiler-plugin.version>3.14.0</compiler-plugin.version>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <quarkus.platform.version>3.28.1</quarkus.platform.version>
-        <quarkus-langchain4j.version>1.2.0</quarkus-langchain4j.version>
+        <quarkus.platform.version>3.33.2</quarkus.platform.version>
+        <quarkus-langchain4j.version>999-SNAPSHOT</quarkus-langchain4j.version>
         <a2a-sdk.version>0.3.0.Beta1</a2a-sdk.version>
         <surefire-plugin.version>3.5.3</surefire-plugin.version>
     </properties>
@@ -42,26 +42,27 @@
         <dependency>
             <groupId>io.quarkiverse.langchain4j</groupId>
             <artifactId>quarkus-langchain4j-ollama</artifactId>
+            <version>${quarkus-langchain4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.langchain4j</groupId>
+            <artifactId>quarkus-langchain4j-a2a-apicurio-registry</artifactId>
+            <version>${quarkus-langchain4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-agentic</artifactId>
+            <version>1.18.0-beta28-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-agentic-a2a</artifactId>
+            <version>1.18.0-beta28-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.github.a2asdk</groupId>
             <artifactId>a2a-java-sdk-reference-jsonrpc</artifactId>
             <version>${a2a-sdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.apicurio</groupId>
-            <artifactId>apicurio-registry-java-sdk</artifactId>
-            <version>3.2.4</version>
-        </dependency>
-        <dependency>
-            <groupId>io.apicurio</groupId>
-            <artifactId>apicurio-registry-java-sdk-common</artifactId>
-            <version>3.2.4</version>
-        </dependency>
-        <dependency>
-            <groupId>io.apicurio</groupId>
-            <artifactId>apicurio-registry-java-sdk-adapter-jdk</artifactId>
-            <version>3.2.4</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
