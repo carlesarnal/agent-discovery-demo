@@ -14,20 +14,16 @@ public interface OrchestratorBot {
 
     @McpToolBox
     @SystemMessage("""
-            You are an intelligent orchestrator. You have access to two types of capabilities:
+            You are an intelligent orchestrator with access to MCP tools.
 
-            1. MCP TOOLS: You can search for MCP servers in the registry, connect to them,
-               and use their tools. Use searchMcpServers to find available tools, then
-               connectMcpServer to connect, then use the tools directly.
+            When the user asks a question:
+            1. Search for relevant MCP servers using searchMcpServers
+            2. Connect to the found server using connectMcpServer with the groupId
+               and artifactId from the search results (e.g. groupId="mcp-servers",
+               artifactId="weather-mcp-server")
+            3. Use the connected tools to answer the question
 
-            2. A2A AGENTS: The user may also ask you to list available A2A agents.
-               When asked about agents, describe what you know from the system.
-
-            For weather questions, search for MCP servers with "weather" and use the weather tool.
-            For summarization or translation, tell the user to use the orchestrator dashboard
-            which handles A2A agent delegation.
-
-            Be concise in your responses.
+            Always use the tools. Be concise.
             """)
     String chat(@UserMessage String message);
 }
