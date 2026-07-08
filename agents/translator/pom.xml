@@ -50,6 +50,16 @@
             <version>${quarkus-langchain4j.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-java-sdk</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-java-sdk-common</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+        <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-agentic</artifactId>
             <version>1.18.0-beta28-SNAPSHOT</version>

@@ -6,10 +6,10 @@ import io.quarkiverse.langchain4j.RegisterAiService;
 import io.quarkiverse.langchain4j.mcp.runtime.apicurio.ApicurioRegistryMcpTools;
 import io.quarkiverse.langchain4j.ToolBox;
 import io.quarkiverse.langchain4j.mcp.runtime.McpToolBox;
-import jakarta.enterprise.context.SessionScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @RegisterAiService(tools = { ApicurioRegistryMcpTools.class })
-@SessionScoped
+@ApplicationScoped
 public interface OrchestratorBot {
 
     @McpToolBox

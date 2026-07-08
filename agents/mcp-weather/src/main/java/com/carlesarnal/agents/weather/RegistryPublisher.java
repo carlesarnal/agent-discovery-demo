@@ -58,8 +58,8 @@ public class RegistryPublisher {
             content.setContentType("application/json");
 
             Labels labels = new Labels();
-            labels.getAdditionalData().put("mcp-server-url", mcpServerUrl + "/mcp/sse");
-            labels.getAdditionalData().put("mcp-transport-type", "sse");
+            labels.getAdditionalData().put("mcp-server-url", mcpServerUrl + "/mcp");
+            labels.getAdditionalData().put("mcp-transport-type", "streamable-http");
 
             CreateVersion version = new CreateVersion();
             version.setContent(content);
@@ -69,21 +69,13 @@ public class RegistryPublisher {
             createArtifact.setArtifactType("MCP_TOOL");
             createArtifact.setName("Weather MCP Server");
             createArtifact.setDescription("Provides current weather data for European cities via MCP");
+            createArtifact.setLabels(labels);
             createArtifact.setFirstVersion(version);
 
             client.groups()
                     .byGroupId(groupId)
                     .artifacts()
                     .post(createArtifact);
-
-            // Set labels on the version
-            client.groups()
-                    .byGroupId(groupId)
-                    .artifacts()
-                    .byArtifactId("weather-mcp-server")
-                    .versions()
-                    .byVersionExpression("branch=latest")
-                    .put(labels);
 
             LOG.infof("Published MCP_TOOL 'Weather MCP Server' to registry group '%s' with URL %s", groupId, mcpServerUrl);
         } catch (Exception e) {
