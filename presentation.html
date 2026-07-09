@@ -580,7 +580,38 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 8: SECTION — LIVE DEMO =========== -->
+<!-- =========== SLIDE 8: MCP PROTOCOL =========== -->
+<div class="slide" data-notes="MCP is the Model Context Protocol — it standardizes how LLMs access external tools and data sources. While A2A defines how agents discover and communicate with each other, MCP defines how an agent accesses tools internally. They're complementary: A2A for inter-agent communication, MCP for agent-to-tool communication. The registry governs both — AGENT_CARD for A2A, MCP_TOOL for MCP. One registry, two protocols, complete AI governance.">
+  <div class="content">
+    <h3>The MCP Protocol</h3>
+    <h2>A2A for agents, MCP for tools</h2>
+    <div class="cols cols-2" style="margin-top: 28px;">
+      <div class="card">
+        <h3>A2A Protocol</h3>
+        <p style="font-size:1rem;"><strong>Agent-to-Agent</strong> communication</p>
+        <ul>
+          <li>Agent Cards — capability declarations</li>
+          <li>Task delegation via JSON-RPC</li>
+          <li>Discovery via registry or well-known</li>
+        </ul>
+        <div class="tag-row"><span class="badge badge-purple">AGENT_CARD</span></div>
+      </div>
+      <div class="card" style="border-color: var(--accent4);">
+        <h3 style="color: var(--accent4);">MCP</h3>
+        <p style="font-size:1rem;"><strong>Agent-to-Tool</strong> communication</p>
+        <ul>
+          <li>Tool definitions — input/output schemas</li>
+          <li>Dynamic tool discovery and connection</li>
+          <li>Streamable HTTP transport</li>
+        </ul>
+        <div class="tag-row"><span class="badge badge-orange">MCP_TOOL</span></div>
+      </div>
+    </div>
+    <p style="margin-top: 20px;">One registry governs both. <strong>AGENT_CARD</strong> for A2A discovery, <strong>MCP_TOOL</strong> for MCP tool discovery.</p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 9: SECTION — LIVE DEMO =========== -->
 <div class="slide section-slide" data-notes="Transition to the live demo. Everything from here on is live — terminal commands against a real Apicurio Registry instance.">
   <div class="content center">
     <div class="section-num">02</div>
@@ -769,14 +800,50 @@
     </ul>
     <div class="tag-row" style="margin-top: 16px;">
       <span class="badge badge-green">Quarkus</span>
-      <span class="badge badge-blue">Ollama (qwen2.5:1.5b)</span>
+      <span class="badge badge-blue">Ollama (qwen2.5:7b)</span>
       <span class="badge badge-purple">A2A Java SDK</span>
       <span class="badge badge-orange">Apicurio Registry SDK</span>
     </div>
   </div>
 </div>
 
-<!-- =========== SLIDE 16: SECTION — DEEP DIVE =========== -->
+<!-- =========== SLIDE 16: MCP DEMO =========== -->
+<div class="slide" data-notes="MCP demo. The weather MCP server registered its MCP_TOOL artifact on startup. The orchestrator's /chat endpoint uses ApicurioRegistryMcpTools to search the registry, connect to the weather server, and call getWeather — all autonomously via the LLM. Show this in the terminal: curl -s -X POST http://localhost:10020/chat -H 'Content-Type: text/plain' -d 'What is the weather in Amsterdam?'">
+  <div class="content">
+    <h3>Step 6</h3>
+    <h2>MCP tool discovery from the registry</h2>
+    <div class="cmd-row">
+      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
+      <code>curl -s -X POST http://localhost:10020/chat -H "Content-Type: text/plain" -d "What is the weather in Amsterdam?"</code>
+      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+    </div>
+    <div class="terminal-container" style="height: 240px;">
+      <div class="terminal-pane">
+        <span class="terminal-label">Terminal</span>
+        <iframe src="http://localhost:7681"></iframe>
+      </div>
+    </div>
+    <div class="arch-diagram" style="margin: 12px 0;">
+      <div class="arch-node highlight2">
+        <div class="node-title">Orchestrator</div>
+        <div class="node-sub">LLM + tools</div>
+      </div>
+      <div class="arch-arrow"><span class="flow-dot"></span> <span class="flow-dot"></span> <span class="flow-dot"></span></div>
+      <div class="arch-node highlight4">
+        <div class="node-title">Registry</div>
+        <div class="node-sub">search MCP_TOOL</div>
+      </div>
+      <div class="arch-arrow"><span class="flow-dot"></span> <span class="flow-dot"></span> <span class="flow-dot"></span></div>
+      <div class="arch-node highlight3">
+        <div class="node-title">Weather Server</div>
+        <div class="node-sub">MCP Streamable HTTP</div>
+      </div>
+    </div>
+    <p style="font-size: 0.95rem;">LLM autonomously: <code>searchMcpServers</code> → <code>connectMcpServer</code> → <code>callMcpTool</code></p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 17: SECTION — DEEP DIVE =========== -->
 <div class="slide section-slide" data-notes="Transition to the deeper concepts. Why registry-based discovery specifically? How do compatibility rules work? How does this fit into the broader standards ecosystem?">
   <div class="content center">
     <div class="section-num">03</div>
@@ -873,7 +940,7 @@
       </div>
       <div class="takeaway-card">
         <div class="num accent4">04</div>
-        <p><strong>The tooling already exists.</strong> Apicurio Registry — one CNCF sandbox project for OpenAPI, AsyncAPI, Avro, Protobuf, and now A2A.</p>
+        <p><strong>One registry for everything.</strong> Apicurio Registry governs A2A Agent Cards, MCP Tools, Prompt Templates, and Model Schemas — alongside OpenAPI and AsyncAPI.</p>
       </div>
     </div>
   </div>

@@ -121,23 +121,76 @@
   <p class="subtitle">Registry-backed discovery and delegation via open standards
     <span class="badge badge-blue" style="font-size:0.65rem;">Apicurio Registry</span>
     <span class="badge badge-purple" style="font-size:0.65rem;">A2A Protocol</span>
-    <span class="badge badge-orange" style="font-size:0.65rem;">Ollama</span>
+    <span class="badge badge-orange" style="font-size:0.65rem;">MCP</span>
   </p>
 
-  <div class="input-area">
-    <input type="text" id="request" placeholder="e.g. Summarize the benefits of open standards for AI governance" />
-    <button id="send" onclick="run()">Orchestrate</button>
+  <!-- Tab buttons -->
+  <div style="display:flex; gap:8px; margin-bottom:16px;">
+    <button onclick="switchTab('a2a')" id="tab-a2a" style="padding:8px 20px; border-radius:8px; border:1px solid var(--border); background:var(--blue); color:white; cursor:pointer; font-weight:600; font-size:0.85rem;">A2A Agents</button>
+    <button onclick="switchTab('mcp')" id="tab-mcp" style="padding:8px 20px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--dim); cursor:pointer; font-weight:600; font-size:0.85rem;">MCP Tools</button>
   </div>
 
-  <div class="log" id="log"></div>
+  <!-- A2A tab -->
+  <div id="tab-a2a-content">
+    <div class="input-area">
+      <input type="text" id="request" placeholder="e.g. Summarize the benefits of open standards for AI governance" />
+      <button id="send" onclick="run()">Orchestrate</button>
+    </div>
+    <div class="log" id="log"></div>
+    <div class="result-box" id="result-box">
+      <h3>Agent Response</h3>
+      <p id="result-text"></p>
+    </div>
+  </div>
 
-  <div class="result-box" id="result-box">
-    <h3>Agent Response</h3>
-    <p id="result-text"></p>
+  <!-- MCP tab -->
+  <div id="tab-mcp-content" style="display:none;">
+    <div class="input-area">
+      <input type="text" id="mcp-request" placeholder="e.g. What is the weather in Amsterdam?" />
+      <button id="mcp-send" onclick="runMcp()">Chat</button>
+    </div>
+    <div class="result-box visible" id="mcp-result-box" style="display:none;">
+      <h3>MCP Response</h3>
+      <p id="mcp-result-text"></p>
+    </div>
+    <p style="font-size:0.8rem; color:var(--dim); margin-top:12px;">
+      The LLM autonomously searches the registry for MCP servers, connects via Streamable HTTP, and calls tools.<br>
+      Flow: <code>searchMcpServers</code> → <code>connectMcpServer</code> → <code>callMcpTool</code>
+    </p>
   </div>
 </div>
 
 <script>
+function switchTab(tab) {
+  document.getElementById('tab-a2a-content').style.display = tab === 'a2a' ? 'block' : 'none';
+  document.getElementById('tab-mcp-content').style.display = tab === 'mcp' ? 'block' : 'none';
+  document.getElementById('tab-a2a').style.background = tab === 'a2a' ? 'var(--blue)' : 'var(--card)';
+  document.getElementById('tab-a2a').style.color = tab === 'a2a' ? 'white' : 'var(--dim)';
+  document.getElementById('tab-mcp').style.background = tab === 'mcp' ? 'var(--orange)' : 'var(--card)';
+  document.getElementById('tab-mcp').style.color = tab === 'mcp' ? 'white' : 'var(--dim)';
+}
+
+async function runMcp() {
+  const input = document.getElementById('mcp-request');
+  const btn = document.getElementById('mcp-send');
+  const text = input.value.trim();
+  if (!text) return;
+  btn.disabled = true;
+  document.getElementById('mcp-result-box').style.display = 'none';
+  document.getElementById('mcp-result-text').textContent = 'Thinking...';
+  document.getElementById('mcp-result-box').style.display = 'block';
+  try {
+    const response = await fetch('/chat', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: text });
+    const result = await response.text();
+    document.getElementById('mcp-result-text').textContent = result;
+  } catch (e) {
+    document.getElementById('mcp-result-text').textContent = 'Error: ' + e.message;
+  }
+  btn.disabled = false;
+}
+
+document.getElementById('mcp-request').addEventListener('keydown', e => { if (e.key === 'Enter') runMcp(); });
+
 const stepConfig = {
   search:   { num: '1', title: 'Discover Agents', badge: 'Registry SDK', badgeClass: 'badge-blue',
               tip: 'Query Apicurio Registry for all AGENT_CARD artifacts in the a2a-agents group' },

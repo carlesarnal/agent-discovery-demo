@@ -1,14 +1,15 @@
 # From OpenAPI to Agent Cards — Governing AI Discovery with Open Standards
 
-A live demonstration of **AI agent discovery and governance** using [Apicurio Registry](https://www.apicur.io/registry/) (CNCF sandbox project) and the [A2A (Agent-to-Agent) Protocol](https://google.github.io/A2A/).
+A live demonstration of **AI agent discovery and governance** using [Apicurio Registry](https://www.apicur.io/registry/) (CNCF sandbox project), the [A2A (Agent-to-Agent) Protocol](https://google.github.io/A2A/), and the [MCP (Model Context Protocol)](https://modelcontextprotocol.io/).
 
-Presented at **API Days Amsterdam 2026** and **FOST Munich 2026**.
+Presented at **API Days Amsterdam 2026**, **FOST Munich 2026**, and **JavaZone Oslo 2026**.
 
 ## Overview
 
 OpenAPI standardized how we describe REST APIs. AsyncAPI did the same for event-driven architectures. Now the A2A Protocol brings that same open-standards approach to AI agents — structured capability declarations, typed interfaces, and machine-readable discovery. This project demonstrates how the same registry that governs your OpenAPI and AsyncAPI definitions now manages AI-native artifacts:
 
 - **A2A Agent Cards** — Structured capability declarations for agent discovery
+- **MCP Tool Definitions** — MCP server registration and dynamic tool discovery
 - **Prompt Templates** — Version-controlled prompts with compatibility rules
 - **Model Schemas** — JSON Schema validation for ML model metadata
 
@@ -22,6 +23,7 @@ graph LR
 
     subgraph Registry[Apicurio Registry — CNCF Sandbox]
         Cards[A2A Agent Cards]
+        MCP[MCP Tool Definitions]
         Prompts[Prompt Templates]
         Models[Model Schemas]
     end
@@ -57,10 +59,15 @@ docker compose up -d apicurio-registry apicurio-registry-ui ollama
 # Start the real agents (builds Docker images, pulls Ollama model)
 ./scripts/06-start-agents.sh
 
-# Open the orchestrator dashboard and try both:
+# Open the orchestrator dashboard for A2A flows:
 #   "Summarize the benefits of open standards" → routes to Summarizer
 #   "Translate to French: Hello world" → routes to Translator
 open http://localhost:10020
+
+# Try the MCP weather flow (via /chat endpoint):
+curl -s -X POST http://localhost:10020/chat \
+  -H "Content-Type: text/plain" \
+  -d "What is the weather in Amsterdam?"
 ```
 
 ## Demo Scripts
@@ -78,28 +85,32 @@ open http://localhost:10020
 | `scripts/wait-for-registry.sh` | Wait for Apicurio Registry to be healthy |
 | `scripts/cleanup.sh` | Tear down all containers |
 
-## Real A2A Agents
+## Real Agents
 
-Beyond the curl-based governance demo, this repo includes three Quarkus agents and an LLM-powered orchestrator:
+Beyond the curl-based governance demo, this repo includes four Quarkus services:
 
 | Agent | Path | Port | Description |
 |-------|------|------|-------------|
-| **Summarizer** | `agents/summarizer/` | 10010 | A2A server that summarizes text via Ollama. Auto-publishes its `AGENT_CARD` to the registry on startup. |
-| **Translator** | `agents/translator/` | 10030 | A2A server that translates text between languages via Ollama. Auto-publishes its `AGENT_CARD` to the registry on startup. |
-| **Orchestrator** | `agents/orchestrator/` | 10020 | Discovers all agents from the registry, uses Ollama to intelligently select the best agent for each request, and delegates via A2A JSON-RPC. Web dashboard at http://localhost:10020. |
+| **Summarizer** | `agents/summarizer/` | 10010 | A2A server that summarizes text via Ollama. Auto-publishes its `AGENT_CARD` via `@PublishToAgentRegistry`. |
+| **Translator** | `agents/translator/` | 10030 | A2A server that translates text between languages via Ollama. Auto-publishes its `AGENT_CARD` via `@PublishToAgentRegistry`. |
+| **MCP Weather** | `agents/mcp-weather/` | 10040 | MCP server providing weather data for European cities. Self-registers its `MCP_TOOL` artifact in the registry on startup. |
+| **Orchestrator** | `agents/orchestrator/` | 10020 | Unified orchestrator with two endpoints: `/orchestrate` for A2A agent delegation (with dashboard UI), `/chat` for MCP tool discovery and execution. |
 
-All agents use **Ollama** with `qwen2.5:1.5b` for fast, self-contained LLM inference.
+Agents use **Ollama** — `qwen2.5:1.5b` for summarizer/translator, `qwen2.5:7b` for the orchestrator (better tool-calling reliability).
 
-### How Agent Selection Works
+### How It Works
 
-The orchestrator doesn't hardcode which agent to use. Instead:
+**A2A flow** (`POST /orchestrate`):
+1. Queries the registry for `AGENT_CARD` artifacts via `ApicurioAgentsRegistry`
+2. LLM selects the best agent based on skills and description
+3. Delegates the task via A2A JSON-RPC protocol
 
-1. It queries the registry for all `AGENT_CARD` artifacts
-2. It reads each Agent Card (name, description, skills)
-3. It sends all agent descriptions to the LLM and asks it to pick the best `artifactId` for the user's request
-4. It delegates the task to the LLM-selected agent via A2A JSON-RPC
+**MCP flow** (`POST /chat`):
+1. LLM calls `searchMcpServers("weather")` → finds Weather MCP Server in registry
+2. LLM calls `connectMcpServer("weather-mcp-server", "mcp-servers")` → connects via Streamable HTTP
+3. LLM calls `callMcpTool("mcp-servers/weather-mcp-server", "getWeather", '{"city":"Amsterdam"}')` → returns weather data
 
-Example: "Summarize the benefits of open source" → LLM picks **Summarizer Agent**. "Translate to French: Hello" → LLM picks **Translator Agent**.
+Both flows use the same Apicurio Registry as the single source of truth for all AI capabilities.
 
 ## Schemas
 
@@ -120,6 +131,7 @@ Example: "Summarize the benefits of open source" → LLM picks **Summarizer Agen
 ### Registry UI Groups
 
 - **`ai-agents`** — A2A Agent Cards (`AGENT_CARD` type)
+- **`mcp-servers`** — MCP Tool Definitions (`MCP_TOOL` type)
 - **`prompts`** — Prompt Templates with version history (`PROMPT_TEMPLATE` type)
 - **`model-schemas`** — Model Metadata (`MODEL_SCHEMA` type)
 
@@ -166,12 +178,14 @@ The same governance patterns that protect OpenAPI specs, AsyncAPI definitions, a
 
 | Component | Technology |
 |-----------|------------|
-| Agent Registry | [Apicurio Registry 3.x](https://www.apicur.io/registry/) (CNCF sandbox) |
+| Agent Registry | [Apicurio Registry 3.3.0](https://www.apicur.io/registry/) (CNCF sandbox) |
 | Agent Protocol | [A2A Protocol](https://google.github.io/A2A/) (Agent-to-Agent) |
-| Agent Framework | [Quarkus](https://quarkus.io/) + [Quarkus LangChain4j](https://docs.quarkiverse.io/quarkus-langchain4j/dev/) + [A2A Java SDK](https://github.com/a2aproject/a2a-java-sdk) |
-| LLM Runtime | [Ollama](https://ollama.ai/) with qwen2.5:1.5b |
+| Tool Protocol | [MCP](https://modelcontextprotocol.io/) (Model Context Protocol) |
+| A2A Discovery | [quarkus-langchain4j-a2a-apicurio-registry](https://github.com/quarkiverse/quarkus-langchain4j) — `@PublishToAgentRegistry` + `ApicurioAgentsRegistry` |
+| MCP Discovery | [quarkus-langchain4j-mcp-apicurio-registry](https://github.com/quarkiverse/quarkus-langchain4j) — `searchMcpServers` + `connectMcpServer` + `callMcpTool` |
+| Agent Framework | [Quarkus](https://quarkus.io/) + [Quarkus LangChain4j](https://docs.quarkiverse.io/quarkus-langchain4j/dev/) |
+| LLM Runtime | [Ollama](https://ollama.ai/) — qwen2.5:7b (orchestrator), qwen2.5:1.5b (agents) |
 | API Standards | [OpenAPI](https://www.openapis.org/), [AsyncAPI](https://www.asyncapi.com/) (also governed by the same registry) |
-| Schema Format | JSON Schema (draft 2020-12) |
 | Container Runtime | Docker / Podman |
 
 ## License
