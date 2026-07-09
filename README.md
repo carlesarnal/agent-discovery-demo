@@ -1,8 +1,6 @@
-# From OpenAPI to Agent Cards — Governing AI Discovery with Open Standards
+# Governing AI Discovery with Open Standards
 
-A live demonstration of **AI agent discovery and governance** using [Apicurio Registry](https://www.apicur.io/registry/) (CNCF sandbox project), the [A2A (Agent-to-Agent) Protocol](https://google.github.io/A2A/), and the [MCP (Model Context Protocol)](https://modelcontextprotocol.io/).
-
-Presented at **API Days Amsterdam 2026**, **FOST Munich 2026**, and **JavaZone Oslo 2026**.
+A live demonstration of **AI agent and tool discovery** using [Apicurio Registry](https://www.apicur.io/registry/) (CNCF sandbox project), the [A2A (Agent-to-Agent) Protocol](https://google.github.io/A2A/), and the [MCP (Model Context Protocol)](https://modelcontextprotocol.io/).
 
 ## Overview
 
