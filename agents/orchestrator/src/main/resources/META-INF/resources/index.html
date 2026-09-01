@@ -196,11 +196,13 @@ const stepConfig = {
               tip: 'Query Apicurio Registry for all AGENT_CARD artifacts in the a2a-agents group' },
   inspect:  { num: '2', title: 'Inspect Agent Cards', badge: 'AGENT_CARD', badgeClass: 'badge-purple',
               tip: 'Read each Agent Card to extract name, skills, capabilities, and endpoint URL' },
-  match:    { num: '3', title: 'Select Best Agent', badge: 'LLM Router', badgeClass: 'badge-pink',
-              tip: 'Send all agent descriptions to the LLM and ask it to pick the best one for this request' },
-  delegate: { num: '4', title: 'Delegate via A2A', badge: 'JSON-RPC', badgeClass: 'badge-orange',
-              tip: 'Send the task to the selected agent using the A2A Protocol (JSON-RPC message/send)' },
-  result:   { num: '5', title: 'Result', badge: 'LLM Response', badgeClass: 'badge-green',
+  skills:   { num: '3', title: 'Search by Skill', badge: 'Client-side', badgeClass: 'badge-blue',
+              tip: 'The registry only indexes flat artifact metadata, not the nested skills array — so keywords from the request are matched against each card\'s skills client-side to narrow the candidates' },
+  match:    { num: '4', title: 'Select Best Agent', badge: 'LLM Router', badgeClass: 'badge-pink',
+              tip: 'Send the narrowed agent descriptions to the LLM and ask it to pick the best one for this request' },
+  delegate: { num: '5', title: 'Delegate via A2A', badge: 'JSON-RPC', badgeClass: 'badge-orange',
+              tip: 'Send the task to the selected agent using AgenticServices.a2aBuilder (langchain4j-agentic-a2a), the real A2A client over JSON-RPC message/send' },
+  result:   { num: '6', title: 'Result', badge: 'LLM Response', badgeClass: 'badge-green',
               tip: 'The selected agent processed the request using its prompt template from the registry + Ollama' },
   error:    { num: '!', title: 'Error', badge: 'Failed', badgeClass: 'badge-orange',
               tip: 'Something went wrong during the orchestration flow' }
@@ -236,6 +238,8 @@ function getStepLinks(step, payload) {
     links.push(`<a href="http://localhost:8080/.well-known/agents" target="_blank">.well-known/agents</a>`);
   } else if (step === 'inspect') {
     links.push(`<a href="${REGISTRY_UI}/explore?groupId=a2a-agents" target="_blank">Browse Agent Cards</a>`);
+  } else if (step === 'skills') {
+    links.push(`<a href="${REGISTRY_UI}/explore?groupId=a2a-agents" target="_blank">Registry UI</a>`);
   } else if (step === 'match') {
     links.push(`<a href="${REGISTRY_UI}/explore?groupId=a2a-agents" target="_blank">Registry UI</a>`);
   } else if (step === 'delegate') {
