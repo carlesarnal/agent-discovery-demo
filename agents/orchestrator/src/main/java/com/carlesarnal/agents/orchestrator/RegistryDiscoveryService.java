@@ -1,6 +1,5 @@
 package com.carlesarnal.agents.orchestrator;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -9,6 +8,7 @@ import dev.langchain4j.agentic.UntypedAgent;
 import io.apicurio.registry.client.RegistryClientFactory;
 import io.apicurio.registry.client.common.RegistryClientOptions;
 import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.rest.client.models.Labels;
 import io.apicurio.registry.rest.client.models.SearchedArtifact;
 import io.apicurio.registry.rest.client.models.ArtifactSearchResults;
 import io.quarkiverse.langchain4j.a2a.runtime.apicurio.ApicurioAgentsRegistry;
@@ -17,8 +17,6 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +33,10 @@ import java.util.function.Consumer;
  * {@code AgentsRegistry} SPI implementation provided by the
  * {@code quarkus-langchain4j-a2a-apicurio-registry} extension. Because that SPI only exposes
  * {@code name}/{@code description} (no skills), the raw {@link RegistryClient} is additionally
- * used to read each Agent Card's {@code skills} so the LLM can match on capability, not just name.
+ * used, reading the {@code a2a-agent-url}/{@code a2a-agent-skills} <em>labels</em> that
+ * {@code A2AAgentCardPublisher} already attaches to every {@code AGENT_CARD} artifact — these
+ * come back directly on the search response, so no per-artifact content fetch is needed just to
+ * list candidates and their skills.
  *
  * <p>Delegation to the chosen agent is done with {@link AgenticServices#a2aBuilder(String)} —
  * the A2A client from {@code langchain4j-agentic-a2a} — instead of a hand-rolled JSON-RPC call.
@@ -44,6 +45,9 @@ import java.util.function.Consumer;
 public class RegistryDiscoveryService {
 
     private static final Logger LOG = Logger.getLogger(RegistryDiscoveryService.class);
+
+    private static final String LABEL_AGENT_URL = "a2a-agent-url";
+    private static final String LABEL_AGENT_SKILLS = "a2a-agent-skills";
 
     // Words too generic to be useful as a skill-search keyword.
     private static final Set<String> STOPWORDS = Set.of(
@@ -81,7 +85,7 @@ public class RegistryDiscoveryService {
         }
     }
 
-    private record AgentCandidate(String name, String artifactId, String url, String cardJson, String skills) {}
+    private record AgentCandidate(String name, String artifactId, String url, String skills) {}
 
     public String discoverAndDelegate(String userRequest) {
         return discoverAndDelegate(userRequest, e -> {});
@@ -122,33 +126,28 @@ public class RegistryDiscoveryService {
             onStep.accept(new StepEvent("search", "done",
                     "Found " + agentNames.size() + " agents: " + String.join(", ", agentNames), agentsJson));
 
-            // Read all Agent Cards (skills aren't exposed by the AgentsRegistry SPI, so we read
-            // the artifact content directly via the Apicurio Registry SDK for LLM matching)
-            onStep.accept(new StepEvent("inspect", "running", "Reading Agent Cards from registry..."));
+            // Build candidates directly from the search results' labels — a2a-agent-url and
+            // a2a-agent-skills are already attached to every AGENT_CARD artifact by
+            // A2AAgentCardPublisher and returned inline by the search API, so there's no need
+            // to fetch each artifact's full content just to list candidates.
+            onStep.accept(new StepEvent("inspect", "running",
+                    "Reading a2a-agent-url/a2a-agent-skills labels from the search results..."));
 
             List<AgentCandidate> candidates = new ArrayList<>();
-            StringBuilder llmPrompt = new StringBuilder();
-            llmPrompt.append("User request: ").append(userRequest).append("\n\nAvailable agents:\n");
-
+            List<String> skipped = new ArrayList<>();
             for (SearchedArtifact artifact : results.getArtifacts()) {
-                InputStream content = registryClient.groups().byGroupId(groupId)
-                        .artifacts().byArtifactId(artifact.getArtifactId())
-                        .versions().byVersionExpression("branch=latest").content().get();
-                String cardJson = new String(content.readAllBytes(), StandardCharsets.UTF_8);
-                JsonNode card = mapper.readTree(cardJson);
-
-                String url = card.has("url") ? card.get("url").asText() : null;
-                String name = card.has("name") ? card.get("name").asText() : artifact.getArtifactId();
-
-                List<String> skillNames = new ArrayList<>();
-                if (card.has("skills")) {
-                    for (JsonNode s : card.get("skills")) {
-                        skillNames.add(s.get("name").asText());
-                    }
+                Labels labels = artifact.getLabels();
+                Map<String, Object> labelData = labels != null ? labels.getAdditionalData() : null;
+                String url = labelData != null && labelData.get(LABEL_AGENT_URL) != null
+                        ? labelData.get(LABEL_AGENT_URL).toString() : null;
+                if (url == null) {
+                    skipped.add(artifact.getArtifactId());
+                    continue;
                 }
-                String skills = String.join(", ", skillNames);
-
-                candidates.add(new AgentCandidate(name, artifact.getArtifactId(), url, cardJson, skills));
+                String skills = labelData.get(LABEL_AGENT_SKILLS) != null
+                        ? labelData.get(LABEL_AGENT_SKILLS).toString() : "";
+                String name = artifact.getName() != null ? artifact.getName() : artifact.getArtifactId();
+                candidates.add(new AgentCandidate(name, artifact.getArtifactId(), url, skills));
             }
 
             String allCardsJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(
@@ -159,16 +158,27 @@ public class RegistryDiscoveryService {
                         n.put("skills", c.skills);
                         return n;
                     }).toList());
-            onStep.accept(new StepEvent("inspect", "done",
-                    "Read " + candidates.size() + " Agent Cards: " +
-                    candidates.stream().map(c -> c.name).reduce((a, b) -> a + ", " + b).orElse(""),
-                    allCardsJson));
+            String inspectDetail = "Read " + candidates.size() + " Agent Cards from labels: " +
+                    candidates.stream().map(c -> c.name).reduce((a, b) -> a + ", " + b).orElse("");
+            if (!skipped.isEmpty()) {
+                inspectDetail += " (skipped " + skipped.size() + " without a2a-agent-url label: "
+                        + String.join(", ", skipped) + ")";
+            }
+            onStep.accept(new StepEvent("inspect", "done", inspectDetail, allCardsJson));
 
-            // Search by skill. Apicurio Registry's search API only indexes flat artifact
-            // metadata (name/description/labels), not the nested `skills` array inside an
-            // AGENT_CARD's content — so registry-side search can't filter on capability.
-            // We narrow the candidate set client-side instead, matching request keywords
-            // (stemmed to a short prefix) against each card's skill names/descriptions.
+            if (candidates.isEmpty()) {
+                onStep.accept(new StepEvent("search", "error", "No agents with a valid a2a-agent-url label"));
+                return "No usable agents found in the registry.";
+            }
+
+            StringBuilder llmPrompt = new StringBuilder();
+            llmPrompt.append("User request: ").append(userRequest).append("\n\nAvailable agents:\n");
+
+            // Search by skill. Apicurio Registry's search API can filter by artifact
+            // name/description/labels (an exact-match label query would work here too — see
+            // searchMcpServers on the MCP side), but a2a-agent-skills is a single flattened
+            // string per agent, so free-text requests are still matched client-side: request
+            // keywords (stemmed to a short prefix) against each card's skills label.
             onStep.accept(new StepEvent("skills", "running",
                     "Searching " + candidates.size() + " Agent Card(s) by skill for a match..."));
             List<AgentCandidate> matchedBySkill = searchCandidatesBySkill(candidates, userRequest);
@@ -221,11 +231,6 @@ public class RegistryDiscoveryService {
             onStep.accept(new StepEvent("match", "done",
                     "LLM selected: " + chosen.name + " (artifactId: " + chosen.artifactId + ") | Skills: " + chosen.skills,
                     mapper.writerWithDefaultPrettyPrinter().writeValueAsString(matchPayload)));
-
-            if (chosen.url == null) {
-                onStep.accept(new StepEvent("delegate", "error", "Selected agent has no URL"));
-                return "Agent Card has no URL.";
-            }
 
             onStep.accept(new StepEvent("delegate", "running",
                     "Delegating to " + chosen.name + " via the A2A client (langchain4j-agentic-a2a) at " + chosen.url + "..."));

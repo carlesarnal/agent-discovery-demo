@@ -194,8 +194,8 @@ document.getElementById('mcp-request').addEventListener('keydown', e => { if (e.
 const stepConfig = {
   search:   { num: '1', title: 'Discover Agents', badge: 'Registry SDK', badgeClass: 'badge-blue',
               tip: 'Query Apicurio Registry for all AGENT_CARD artifacts in the a2a-agents group' },
-  inspect:  { num: '2', title: 'Inspect Agent Cards', badge: 'AGENT_CARD', badgeClass: 'badge-purple',
-              tip: 'Read each Agent Card to extract name, skills, capabilities, and endpoint URL' },
+  inspect:  { num: '2', title: 'Read Agent Card Labels', badge: 'Labels', badgeClass: 'badge-purple',
+              tip: 'a2a-agent-url and a2a-agent-skills are published as artifact labels and returned inline by the search API — no per-artifact content fetch needed to list candidates' },
   skills:   { num: '3', title: 'Search by Skill', badge: 'Client-side', badgeClass: 'badge-blue',
               tip: 'The registry only indexes flat artifact metadata, not the nested skills array — so keywords from the request are matched against each card\'s skills client-side to narrow the candidates' },
   match:    { num: '4', title: 'Select Best Agent', badge: 'LLM Router', badgeClass: 'badge-pink',
