@@ -72,10 +72,8 @@ curl -s -X POST http://localhost:10020/chat \
 
 | Script | Purpose |
 |--------|---------|
-| `scripts/01-register-agents.sh` | Register 3 A2A Agent Cards (Summarizer, Translator, Data Enrichment) |
 | `scripts/02-register-prompts.sh` | Register prompt templates with BACKWARD compatibility versioning |
 | `scripts/03-register-model-schemas.sh` | Register model metadata JSON Schema + sample model |
-| `scripts/04-discover-agents.sh` | Query the registry for agent discovery |
 | `scripts/05-breaking-change.sh` | Demonstrate compatibility rule enforcement — variable type changes and removals are rejected (HTTP 409) |
 | `scripts/06-start-agents.sh` | Build and start real A2A agents (Summarizer + Orchestrator) with Ollama |
 | `scripts/07-live-agent-demo.sh` | Live demo: orchestrator discovers and delegates to summarizer via registry |
@@ -99,9 +97,10 @@ Agents use **Ollama** — `qwen2.5:1.5b` for summarizer/translator, `qwen2.5:7b`
 ### How It Works
 
 **A2A flow** (`POST /orchestrate`):
-1. Queries the registry for `AGENT_CARD` artifacts via `ApicurioAgentsRegistry`
-2. LLM selects the best agent based on skills and description
-3. Delegates the task via A2A JSON-RPC protocol
+1. Reads `AGENT_CARD` artifacts from the registry (via the Apicurio Registry SDK, enriched with each Agent Card's skills — not exposed by the `AgentsRegistry` SPI)
+2. Narrows candidates by matching request keywords against each card's skills client-side (the registry can't search nested skill data)
+3. LLM picks the best match from the narrowed candidates
+4. Delegates the task via `AgenticServices.a2aBuilder(...)` (`langchain4j-agentic-a2a`) — the real A2A client, no hand-rolled JSON-RPC
 
 **MCP flow** (`POST /chat`):
 1. LLM calls `searchMcpServers("weather")` → finds Weather MCP Server in registry
@@ -109,6 +108,10 @@ Agents use **Ollama** — `qwen2.5:1.5b` for summarizer/translator, `qwen2.5:7b`
 3. LLM calls `callMcpTool("mcp-servers/weather-mcp-server", "getWeather", '{"city":"Amsterdam"}')` → returns weather data
 
 Both flows use the same Apicurio Registry as the single source of truth for all AI capabilities.
+
+> **Known upstream issue:** as merged, `ApicurioAgentsRegistry#allAgents()` builds each `AgentInstance` via `AgenticServices.a2aBuilder(url).outputKey(name).build()` without calling `.inputKeys(...)`, which throws for the `UntypedAgent` case and is swallowed by the registry's own try/catch — so `allAgents()`/`getAgent()` currently return no agents even when they're reachable ([quarkiverse/quarkus-langchain4j#2796](https://github.com/quarkiverse/quarkus-langchain4j/issues/2796)). The orchestrator still injects `ApicurioAgentsRegistry` and calls `allAgents()` (logged, not relied upon), reads Agent Card artifacts directly via the registry SDK for skill matching, and calls `AgenticServices.a2aBuilder(...).inputKeys("input")...build()` itself for delegation, which works around the bug while still using the same official A2A client.
+>
+> **A2A SDK compatibility:** `AgenticServices.a2aBuilder(...)`'s client (`org.a2aproject.sdk`, spec 1.0+) only understands Agent Cards with a `supportedInterfaces` field, and has no fallback to the older `additionalInterfaces`/`preferredTransport` shape produced by A2A "0.3" servers ([a2aproject/a2a-java#1121](https://github.com/a2aproject/a2a-java/issues/1121)). The Summarizer and Translator agents were migrated from `io.github.a2asdk` (0.3.x) to `org.a2aproject.sdk` (1.0.0.Final) — same `PublicAgentCard`/`AgentExecutor` CDI producer model, package renamed from `io.a2a.*` to `org.a2aproject.sdk.*`, `TaskUpdater` replaced by `AgentEmitter` — so both sides of the demo now speak the current A2A spec end-to-end.
 
 ## Schemas
 
@@ -128,7 +131,7 @@ Both flows use the same Apicurio Registry as the single source of truth for all 
 
 ### Registry UI Groups
 
-- **`ai-agents`** — A2A Agent Cards (`AGENT_CARD` type)
+- **`a2a-agents`** — A2A Agent Cards self-registered by the live agents via `@PublishToAgentRegistry` (`AGENT_CARD` type)
 - **`mcp-servers`** — MCP Tool Definitions (`MCP_TOOL` type)
 - **`prompts`** — Prompt Templates with version history (`PROMPT_TEMPLATE` type)
 - **`model-schemas`** — Model Metadata (`MODEL_SCHEMA` type)
@@ -139,8 +142,10 @@ The dashboard at http://localhost:10020 shows each step of the orchestration flo
 
 1. **Discover Agents** — Registry SDK query results (artifact IDs, names, types)
 2. **Inspect Agent Card** — Full A2A Agent Card JSON (skills, capabilities, URL)
-3. **Delegate via A2A** — Raw JSON-RPC request and response payloads
-4. **Result** — LLM-generated response with timing data
+3. **Search by Skill** — Client-side keyword match against each card's skills (the registry only indexes flat metadata, not the nested skills array) to narrow the candidates before asking the LLM
+4. **Select Best Agent** — LLM router picks the best match from the narrowed candidates
+5. **Delegate via A2A** — Real A2A client (`AgenticServices.a2aBuilder`, `langchain4j-agentic-a2a`) request/response payloads
+6. **Result** — LLM-generated response with timing data
 
 Click any step to inspect its payload in the detail panel.
 
@@ -181,10 +186,13 @@ The same governance patterns that protect OpenAPI specs, AsyncAPI definitions, a
 | Tool Protocol | [MCP](https://modelcontextprotocol.io/) (Model Context Protocol) |
 | A2A Discovery | [quarkus-langchain4j-a2a-apicurio-registry](https://github.com/quarkiverse/quarkus-langchain4j) — `@PublishToAgentRegistry` + `ApicurioAgentsRegistry` |
 | MCP Discovery | [quarkus-langchain4j-mcp-apicurio-registry](https://github.com/quarkiverse/quarkus-langchain4j) — `searchMcpServers` + `connectMcpServer` + `callMcpTool` |
+| A2A SDK | [org.a2aproject.sdk](https://github.com/a2aproject/a2a-java) 1.0.0.Final — current A2A spec, client + reference JSON-RPC server |
 | Agent Framework | [Quarkus](https://quarkus.io/) + [Quarkus LangChain4j](https://docs.quarkiverse.io/quarkus-langchain4j/dev/) |
 | LLM Runtime | [Ollama](https://ollama.ai/) — qwen2.5:7b (orchestrator), qwen2.5:1.5b (agents) |
 | API Standards | [OpenAPI](https://www.openapis.org/), [AsyncAPI](https://www.asyncapi.com/) (also governed by the same registry) |
 | Container Runtime | Docker / Podman |
+
+> Both the A2A ([#2501](https://github.com/quarkiverse/quarkus-langchain4j/pull/2501)) and MCP ([#2338](https://github.com/quarkiverse/quarkus-langchain4j/pull/2338)) Apicurio Registry discovery extensions have been merged upstream into `quarkus-langchain4j`. This demo builds against the `999-SNAPSHOT` development version until they ship in a tagged release.
 
 ## License
 

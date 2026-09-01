@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <quarkus.platform.version>3.33.2</quarkus.platform.version>
         <quarkus-langchain4j.version>999-SNAPSHOT</quarkus-langchain4j.version>
-        <a2a-sdk.version>0.3.0.Beta1</a2a-sdk.version>
+        <a2a-sdk.version>1.0.0.Final</a2a-sdk.version>
         <surefire-plugin.version>3.5.3</surefire-plugin.version>
     </properties>
 
@@ -70,7 +70,7 @@
             <version>1.18.0-beta28-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>io.github.a2asdk</groupId>
+            <groupId>org.a2aproject.sdk</groupId>
             <artifactId>a2a-java-sdk-reference-jsonrpc</artifactId>
             <version>${a2a-sdk.version}</version>
         </dependency>

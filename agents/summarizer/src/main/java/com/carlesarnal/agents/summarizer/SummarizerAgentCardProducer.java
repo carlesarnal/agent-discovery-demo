@@ -1,9 +1,10 @@
 package com.carlesarnal.agents.summarizer;
 
-import io.a2a.server.PublicAgentCard;
-import io.a2a.spec.AgentCapabilities;
-import io.a2a.spec.AgentCard;
-import io.a2a.spec.AgentSkill;
+import org.a2aproject.sdk.server.PublicAgentCard;
+import org.a2aproject.sdk.spec.AgentCapabilities;
+import org.a2aproject.sdk.spec.AgentCard;
+import org.a2aproject.sdk.spec.AgentInterface;
+import org.a2aproject.sdk.spec.AgentSkill;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
@@ -26,22 +27,23 @@ public class SummarizerAgentCardProducer {
     @Produces
     @PublicAgentCard
     public AgentCard agentCard() {
-        return new AgentCard.Builder()
+        String url = baseUrl + ":" + httpPort;
+        return AgentCard.builder()
                 .name("Summarizer Agent")
                 .description("Summarizes long text into concise 2-3 sentence abstracts using an LLM")
-                .url(baseUrl + ":" + httpPort)
+                .url(url)
                 .version("1.0.0")
                 .capabilities(
-                        new AgentCapabilities.Builder()
+                        AgentCapabilities.builder()
                                 .streaming(false)
                                 .pushNotifications(false)
-                                .stateTransitionHistory(false)
                                 .build())
                 .defaultInputModes(Collections.singletonList("text"))
                 .defaultOutputModes(Collections.singletonList("text"))
+                .supportedInterfaces(Collections.singletonList(new AgentInterface("JSONRPC", url)))
                 .skills(
                         Collections.singletonList(
-                                new AgentSkill.Builder()
+                                AgentSkill.builder()
                                         .id("summarize-text")
                                         .name("Text Summarization")
                                         .description("Produces a concise summary of input text in 2-3 sentences")
@@ -50,7 +52,6 @@ public class SummarizerAgentCardProducer {
                                                 "Summarize this article about Kubernetes",
                                                 "Give me a brief summary of the following text"))
                                         .build()))
-                .protocolVersion("0.3.0")
                 .build();
     }
 }
