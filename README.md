@@ -74,9 +74,10 @@ curl -s -X POST http://localhost:10020/chat \
 |--------|---------|
 | `scripts/02-register-prompts.sh` | Register prompt templates with BACKWARD compatibility versioning |
 | `scripts/03-register-model-schemas.sh` | Register model metadata JSON Schema + sample model |
-| `scripts/05-breaking-change.sh` | Demonstrate compatibility rule enforcement — variable type changes and removals are rejected (HTTP 409) |
+| `scripts/05-breaking-change.sh` | Demonstrate compatibility rule enforcement on prompt templates — variable type changes and removals are rejected (HTTP 409) |
 | `scripts/06-start-agents.sh` | Build and start real A2A agents (Summarizer + Orchestrator) with Ollama |
 | `scripts/07-live-agent-demo.sh` | Live demo: orchestrator discovers and delegates to summarizer via registry |
+| `scripts/08-breaking-agent-card-change.sh` | Demonstrate compatibility rule enforcement on `AGENT_CARD` content — removing a skill an orchestrator depends on is rejected (HTTP 400); requires `06-start-agents.sh` to be running |
 | `scripts/run-demo.sh` | Run all governance demo steps end-to-end |
 | `scripts/wait-for-registry.sh` | Wait for Apicurio Registry to be healthy |
 | `scripts/cleanup.sh` | Tear down all containers |
@@ -141,8 +142,8 @@ Both flows use the same Apicurio Registry as the single source of truth for all 
 The dashboard at http://localhost:10020 shows each step of the orchestration flow in real-time:
 
 1. **Discover Agents** — Registry SDK query results (artifact IDs, names, types)
-2. **Inspect Agent Card** — Full A2A Agent Card JSON (skills, capabilities, URL)
-3. **Search by Skill** — Client-side keyword match against each card's skills (the registry only indexes flat metadata, not the nested skills array) to narrow the candidates before asking the LLM
+2. **Read Agent Card Labels** — `a2a-agent-url`/`a2a-agent-skills` labels, already attached to every `AGENT_CARD` artifact by `A2AAgentCardPublisher` and returned inline by the search response — no per-artifact content fetch needed just to list candidates
+3. **Search by Skill** — Client-side keyword match against each card's skills label (the registry's label search is exact-match only, so free-text requests are still narrowed client-side) before asking the LLM
 4. **Select Best Agent** — LLM router picks the best match from the narrowed candidates
 5. **Delegate via A2A** — Real A2A client (`AgenticServices.a2aBuilder`, `langchain4j-agentic-a2a`) request/response payloads
 6. **Result** — LLM-generated response with timing data
@@ -167,6 +168,15 @@ Apicurio Registry enforces compatibility rules on `PROMPT_TEMPLATE` versions:
 - **Adding** an optional variable (with default) → **BACKWARD compatible** ✓
 - **Changing** a variable type (integer → string) → **Breaking change** ✗ (HTTP 409)
 - **Removing** a variable still used in the template → **Breaking change** ✗ (HTTP 409)
+
+### Agent Card Compatibility
+
+The same `COMPATIBILITY` rule engine also understands `AGENT_CARD` content, with semantic (not just structural) diffing of the skills list:
+
+- **Adding** a new skill alongside existing ones → **BACKWARD compatible** ✓
+- **Removing** a skill an orchestrator may already depend on → **Breaking change** ✗ (HTTP 400, e.g. `"Skill 'summarize-text' was removed at /skills"`)
+
+See `scripts/08-breaking-agent-card-change.sh`.
 
 ### The Open Standards Arc: OpenAPI → AsyncAPI → A2A
 

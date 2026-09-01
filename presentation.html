@@ -769,10 +769,42 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 15: MCP DEMO =========== -->
-<div class="slide" data-notes="MCP demo. The weather MCP server registered its MCP_TOOL artifact on startup. The orchestrator's /chat endpoint uses ApicurioRegistryMcpTools to search the registry, connect to the weather server, and call getWeather — all autonomously via the LLM. Show this in the terminal: curl -s -X POST http://localhost:10020/chat -H 'Content-Type: text/plain' -d 'What is the weather in Amsterdam?'">
+<!-- =========== SLIDE 15: DEMO — AGENT CARD BREAKING CHANGE =========== -->
+<div class="slide" data-notes="Type ./scripts/08-breaking-agent-card-change.sh in the terminal. The same COMPATIBILITY rule engine that protects prompt templates understands AGENT_CARD content too — it semantically diffs the skills array. Removing a skill the orchestrator already selected agents by is rejected with a message naming the exact skill that was removed. Adding a new skill alongside the existing one succeeds.">
   <div class="content">
     <h3>Step 4</h3>
+    <h2>Breaking change rejected — <span class="accent3">Agent Cards too</span></h2>
+    <div class="cmd-row">
+      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
+      <code>./scripts/08-breaking-agent-card-change.sh</code>
+      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+    </div>
+    <div class="terminal-container" style="height: 240px;">
+      <div class="terminal-pane">
+        <span class="terminal-label">Terminal</span>
+        <iframe src="http://localhost:7681"></iframe>
+      </div>
+    </div>
+    <div class="cols cols-2" style="margin-top: 12px;">
+      <div class="card" style="border-color: var(--red);">
+        <h3 style="color: var(--red);">Remove a skill</h3>
+        <p style="font-size: 1rem;"><strong style="color: var(--red);">HTTP 400 &mdash; Rejected</strong></p>
+        <p style="font-size: 0.9rem;"><code>"Skill 'summarize-text' was removed at /skills"</code></p>
+      </div>
+      <div class="card" style="padding: 16px 20px;">
+        <h3>Add a skill</h3>
+        <p style="font-size: 1rem;"><strong>HTTP 200 &mdash; Accepted</strong></p>
+        <p style="font-size: 0.9rem;">New capability alongside the existing one — backward compatible</p>
+      </div>
+    </div>
+    <p style="margin-top: 16px;">Same rule engine as <code>PROMPT_TEMPLATE</code>, applied to the live Agent Card the Summarizer just self-published — with a <strong class="accent">semantic diff</strong> naming the exact skill removed, not just a generic JSON diff.</p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 16: MCP DEMO =========== -->
+<div class="slide" data-notes="MCP demo. The weather MCP server registered its MCP_TOOL artifact on startup. The orchestrator's /chat endpoint uses ApicurioRegistryMcpTools to search the registry, connect to the weather server, and call getWeather — all autonomously via the LLM. Show this in the terminal: curl -s -X POST http://localhost:10020/chat -H 'Content-Type: text/plain' -d 'What is the weather in Amsterdam?'">
+  <div class="content">
+    <h3>Step 5</h3>
     <h2>MCP tool discovery from the registry</h2>
     <div class="cmd-row">
       <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
@@ -805,7 +837,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 16: SECTION — DEEP DIVE =========== -->
+<!-- =========== SLIDE 17: SECTION — DEEP DIVE =========== -->
 <div class="slide section-slide" data-notes="Transition to the deeper concepts. Why registry-based discovery specifically? How do compatibility rules work? How does this fit into the broader standards ecosystem?">
   <div class="content center">
     <div class="section-num">03</div>
@@ -814,7 +846,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 17: DISCOVERY APPROACHES =========== -->
+<!-- =========== SLIDE 18: DISCOVERY APPROACHES =========== -->
 <div class="slide" data-notes="Compare four discovery approaches. Hardcoded URLs break when endpoints change — it's like hardcoding API base URLs instead of using a gateway. DNS and service meshes discover services, not capabilities — Istio knows 'this pod exists on port 8080' but not 'this agent can summarize PDFs'. The A2A well-known endpoint is better — it describes capabilities — but you need to know the host first, which means you're back to hardcoded URLs or DNS. Registry-backed discovery combines structured capability declarations with centralized, queryable storage. You can search by skill, by input mode, by capability — without knowing any URLs.">
   <div class="content">
     <h3>Discovery</h3>
@@ -830,24 +862,25 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 18: COMPATIBILITY RULES =========== -->
-<div class="slide" data-notes="Show the compatibility rules table. These are the same rules that protect OpenAPI schemas and Avro definitions. Adding an optional field (with a default) is backward compatible. Removing a required field is a breaking change. Renaming a field is a breaking change. Changing a type is a breaking change. The registry enforces these rules at registration time — before any data flows. This is the same pattern whether you're governing a Kafka schema, an OpenAPI response definition, or a prompt template.">
+<!-- =========== SLIDE 19: COMPATIBILITY RULES =========== -->
+<div class="slide" data-notes="Show the compatibility rules table. These are the same rules that protect OpenAPI schemas and Avro definitions. Adding an optional field (with a default) is backward compatible. Removing a required field is a breaking change. Renaming a field is a breaking change. Changing a type is a breaking change. The registry enforces these rules at registration time — before any data flows. This is the same pattern whether you're governing a Kafka schema, an OpenAPI response definition, a prompt template, or an Agent Card.">
   <div class="content">
     <h3>Compatibility</h3>
     <h2>Same rules as OpenAPI schema evolution</h2>
     <table class="comparison" style="margin-top: 24px;">
-      <tr><th>Change</th><th>OpenAPI schema</th><th>Prompt template</th></tr>
-      <tr><td>Add optional field (with default)</td><td class="yes">Compatible</td><td class="yes">Compatible</td></tr>
-      <tr><td>Remove required field</td><td class="no">Breaking</td><td class="no">Breaking</td></tr>
-      <tr><td>Remove variable used in template</td><td class="no">Breaking</td><td class="no">Breaking</td></tr>
-      <tr><td>Change field type</td><td class="no">Breaking</td><td class="no">Breaking</td></tr>
-      <tr><td>Add new endpoint / skill</td><td class="yes">Compatible</td><td class="yes">Compatible</td></tr>
+      <tr><th>Change</th><th>OpenAPI schema</th><th>Prompt template</th><th>Agent Card</th></tr>
+      <tr><td>Add optional field (with default)</td><td class="yes">Compatible</td><td class="yes">Compatible</td><td class="yes">Compatible</td></tr>
+      <tr><td>Remove required field</td><td class="no">Breaking</td><td class="no">Breaking</td><td class="no">Breaking</td></tr>
+      <tr><td>Remove variable used in template</td><td class="no">Breaking</td><td class="no">Breaking</td><td>—</td></tr>
+      <tr><td>Change field type</td><td class="no">Breaking</td><td class="no">Breaking</td><td class="no">Breaking</td></tr>
+      <tr><td>Add new endpoint / skill</td><td class="yes">Compatible</td><td class="yes">Compatible</td><td class="yes">Compatible</td></tr>
+      <tr><td>Remove a skill</td><td>—</td><td>—</td><td class="no">Breaking</td></tr>
     </table>
-    <p style="margin-top: 16px;">The governance pattern is <strong>identical</strong>. Same registry, same rules, new artifact types.</p>
+    <p style="margin-top: 16px;">The governance pattern is <strong>identical</strong>. Same registry, same rules, new artifact types — and for Agent Cards, a <strong class="accent3">semantic</strong> diff of the skills list, not just structural JSON diffing.</p>
   </div>
 </div>
 
-<!-- =========== SLIDE 19: SECTION — PRODUCTION =========== -->
+<!-- =========== SLIDE 20: SECTION — PRODUCTION =========== -->
 <div class="slide section-slide" data-notes="Transition to production considerations. The demo showed the pattern — now let's talk about what you'd add for a real deployment.">
   <div class="content center">
     <div class="section-num">04</div>
@@ -856,7 +889,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 20: PRODUCTION CONSIDERATIONS =========== -->
+<!-- =========== SLIDE 21: PRODUCTION CONSIDERATIONS =========== -->
 <div class="slide" data-notes="Four things you'd add for production. First, automated registration — agents register on startup via sidecar or init container, not manual scripts. Second, health-aware discovery — combine with Kubernetes health checks so the registry only returns healthy agents. Third, schema evolution strategy — define compatibility modes per artifact group and enforce them in CI/CD. Fourth, multi-tenancy — use registry groups to isolate agent namespaces across teams, same as you'd separate OpenAPI specs per team.">
   <div class="content">
     <h3>Production Hardening</h3>
@@ -882,7 +915,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 21: KEY TAKEAWAYS =========== -->
+<!-- =========== SLIDE 22: KEY TAKEAWAYS =========== -->
 <div class="slide" data-notes="Four takeaways. One: the open standards arc continues — OpenAPI, AsyncAPI, A2A. The pattern is proven. Two: Agent Cards are OpenAPI for agents — structured, versioned, discoverable. Three: prompt templates need the same governance as API specs — versioning and compatibility rules are not optional. Four: the tooling already exists — Apicurio Registry governs the full spectrum from REST APIs to AI agents in one CNCF sandbox project.">
   <div class="content">
     <h3>Takeaways</h3>
@@ -908,7 +941,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 22: THANK YOU =========== -->
+<!-- =========== SLIDE 23: THANK YOU =========== -->
 <div class="slide title-slide" data-notes="Thank the audience. Share the demo repo link. Mention that the entire demo — scripts, schemas, this presentation — is in the repo. Happy to take questions.">
   <div class="content center">
     <h1>Thank You</h1>
