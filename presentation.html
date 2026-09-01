@@ -619,7 +619,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 9: DEMO — START REGISTRY =========== -->
+<!-- =========== SLIDE 10: DEMO — START REGISTRY =========== -->
 <div class="slide" data-notes="Show the registry is running and clean. Type the curl command in the terminal to verify zero artifacts. Open the Registry UI.">
   <div class="content">
     <h3>Demo Setup</h3>
@@ -639,30 +639,10 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 10: DEMO — REGISTER AGENTS =========== -->
-<div class="slide" data-notes="Type ./scripts/01-register-agents.sh in the embedded terminal. Three Agent Cards register: Summarizer, Translator, Data Enrichment. Switch to the Registry UI and show the ai-agents group.">
-  <div class="content">
-    <h3>Step 1</h3>
-    <h2>Register A2A Agent Cards</h2>
-    <div class="cmd-row">
-      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
-      <code>./scripts/01-register-agents.sh</code>
-      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
-    </div>
-    <div class="terminal-container">
-      <div class="terminal-pane">
-        <span class="terminal-label">Terminal</span>
-        <iframe src="http://localhost:7681"></iframe>
-      </div>
-    </div>
-    <p style="margin-top: 12px;">Open <a href="http://localhost:8888" style="color:var(--accent);">Registry UI</a> &rarr; <strong>ai-agents</strong> group to inspect the Agent Cards.</p>
-  </div>
-</div>
-
 <!-- =========== SLIDE 11: DEMO — PROMPT VERSIONING =========== -->
 <div class="slide" data-notes="Type ./scripts/02-register-prompts.sh in the terminal. Show v1 and v2 in the Registry UI. v2 adds an optional tone variable — backward compatible.">
   <div class="content">
-    <h3>Step 2</h3>
+    <h3>Step 1</h3>
     <h2>Prompt template governance</h2>
     <div class="cmd-row">
       <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
@@ -729,7 +709,7 @@
 <!-- =========== SLIDE 13: DEMO — BREAKING CHANGE =========== -->
 <div class="slide" data-notes="Type ./scripts/05-breaking-change.sh in the terminal. Watch both breaking changes get rejected with HTTP 409. The dramatic demo moment.">
   <div class="content">
-    <h3>Step 3</h3>
+    <h3>Step 2</h3>
     <h2>Breaking change <span style="color: var(--red);">rejected</span></h2>
     <div class="cmd-row">
       <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
@@ -758,29 +738,10 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 14: DEMO — AGENT DISCOVERY =========== -->
-<div class="slide" data-notes="Run the discovery script. Show five capabilities: list all agents, search by name, inspect a specific agent's capabilities, compare prompt versions, retrieve model metadata. This is what an orchestrator agent does at runtime — query the registry to find the right agent for the job, check its input/output modes, verify it supports streaming. No hardcoded URLs, no config files, no service mesh tricks.">
+<!-- =========== SLIDE 14: LIVE AGENT DEMO =========== -->
+<div class="slide" data-notes="Act 2 starts here. Start the agents live on stage with 06-start-agents.sh. They self-register their Agent Cards on startup via @PublishToAgentRegistry — show the Registry UI with the new cards in the a2a-agents group. Then open the orchestrator dashboard and send two requests: summarize → Summarizer, translate → Translator. The orchestrator discovers both agents at runtime via the ApicurioAgentsRegistry SDK (no hardcoded URLs) and the LLM selects the best one for each request.">
   <div class="content">
-    <h3>Step 4</h3>
-    <h2>Agent discovery in action</h2>
-    <div class="cmd-row">
-      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
-      <code>./scripts/04-discover-agents.sh</code>
-      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
-    </div>
-    <div class="terminal-container tall">
-      <div class="terminal-pane">
-        <span class="terminal-label">Terminal</span>
-        <iframe src="http://localhost:7681"></iframe>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- =========== SLIDE 15: LIVE AGENT DEMO =========== -->
-<div class="slide" data-notes="Act 2 starts here. Start the agents live on stage with 06-start-agents.sh. They self-register their Agent Cards on startup — show the Registry UI with the new cards. Then open the orchestrator dashboard and send two requests: summarize → Summarizer, translate → Translator. The orchestrator uses the LLM to select the best agent. No hardcoded URLs.">
-  <div class="content">
-    <h3>Step 5</h3>
+    <h3>Step 3</h3>
     <h2>Real agents, <span class="accent3">self-registering</span>, live</h2>
     <div class="cmd-row">
       <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
@@ -794,22 +755,24 @@
       </div>
     </div>
     <ul style="margin-top: 12px;">
-      <li>Agents <strong>publish their own Agent Cards</strong> on startup using the Registry SDK</li>
+      <li>Agents <strong>publish their own Agent Cards</strong> on startup via <code>@PublishToAgentRegistry</code> — check the <strong>a2a-agents</strong> group in the Registry UI</li>
+      <li>The orchestrator <strong>discovers</strong> them at runtime through <code>ApicurioAgentsRegistry</code> — no hardcoded URLs, no config files</li>
+      <li>It <strong>narrows candidates by skill</strong> before the LLM picks — the registry doesn't index nested skill data, so matching happens client-side</li>
       <li>Then open <a href="http://localhost:10020" style="color:var(--accent);">Orchestrator Dashboard</a> — LLM selects the best agent for each request</li>
     </ul>
     <div class="tag-row" style="margin-top: 16px;">
       <span class="badge badge-green">Quarkus</span>
       <span class="badge badge-blue">Ollama (qwen2.5:7b)</span>
-      <span class="badge badge-purple">A2A Java SDK</span>
+      <span class="badge badge-purple">quarkus-langchain4j-a2a-apicurio-registry</span>
       <span class="badge badge-orange">Apicurio Registry SDK</span>
     </div>
   </div>
 </div>
 
-<!-- =========== SLIDE 16: MCP DEMO =========== -->
+<!-- =========== SLIDE 15: MCP DEMO =========== -->
 <div class="slide" data-notes="MCP demo. The weather MCP server registered its MCP_TOOL artifact on startup. The orchestrator's /chat endpoint uses ApicurioRegistryMcpTools to search the registry, connect to the weather server, and call getWeather — all autonomously via the LLM. Show this in the terminal: curl -s -X POST http://localhost:10020/chat -H 'Content-Type: text/plain' -d 'What is the weather in Amsterdam?'">
   <div class="content">
-    <h3>Step 6</h3>
+    <h3>Step 4</h3>
     <h2>MCP tool discovery from the registry</h2>
     <div class="cmd-row">
       <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
@@ -842,7 +805,7 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 17: SECTION — DEEP DIVE =========== -->
+<!-- =========== SLIDE 16: SECTION — DEEP DIVE =========== -->
 <div class="slide section-slide" data-notes="Transition to the deeper concepts. Why registry-based discovery specifically? How do compatibility rules work? How does this fit into the broader standards ecosystem?">
   <div class="content center">
     <div class="section-num">03</div>
