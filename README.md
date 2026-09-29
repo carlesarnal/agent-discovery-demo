@@ -38,7 +38,8 @@
 > ### Known limitations (say them on stage)
 > - **No capability negotiation.** Selection is keyword narrowing + an LLM choice among registry entries.
 > - **Agent Cards are not updated on restart.** `A2AAgentCardPublisher` (quarkus-langchain4j 1.14.0) only
->   creates the artifact; if it already exists, publishing fails and the registry keeps the **old** card.
+>   creates the artifact; if it already exists, publishing fails and the registry keeps the **old** card
+>   ([quarkiverse/quarkus-langchain4j#2896](https://github.com/quarkiverse/quarkus-langchain4j/issues/2896)).
 > - **Consumers don't pin card versions.** Compatibility rules protect the registry contract; nothing forces
 >   a consumer to check which version it depends on.
 > - Deprecation only affects consumers that check the version state, like this orchestrator.
