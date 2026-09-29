@@ -11,6 +11,8 @@ import io.apicurio.registry.rest.client.RegistryClient;
 import io.apicurio.registry.rest.client.models.Labels;
 import io.apicurio.registry.rest.client.models.SearchedArtifact;
 import io.apicurio.registry.rest.client.models.ArtifactSearchResults;
+import io.apicurio.registry.rest.client.models.VersionMetaData;
+import io.apicurio.registry.rest.client.models.VersionState;
 import io.quarkiverse.langchain4j.a2a.runtime.apicurio.ApicurioAgentsRegistry;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -87,6 +89,8 @@ public class RegistryDiscoveryService {
 
     private record AgentCandidate(String name, String artifactId, String url, String skills) {}
 
+
+
     public String discoverAndDelegate(String userRequest) {
         return discoverAndDelegate(userRequest, e -> {});
     }
@@ -135,6 +139,8 @@ public class RegistryDiscoveryService {
 
             List<AgentCandidate> candidates = new ArrayList<>();
             List<String> skipped = new ArrayList<>();
+            List<String> deprecated = new ArrayList<>();
+            List<AgentCandidate> deprecatedCandidates = new ArrayList<>();
             for (SearchedArtifact artifact : results.getArtifacts()) {
                 Labels labels = artifact.getLabels();
                 Map<String, Object> labelData = labels != null ? labels.getAdditionalData() : null;
@@ -147,6 +153,13 @@ public class RegistryDiscoveryService {
                 String skills = labelData.get(LABEL_AGENT_SKILLS) != null
                         ? labelData.get(LABEL_AGENT_SKILLS).toString() : "";
                 String name = artifact.getName() != null ? artifact.getName() : artifact.getArtifactId();
+                // Lifecycle governance: an agent whose latest Agent Card version is DEPRECATED
+                // is no longer offered to new requests, even though its card is still readable.
+                if (isLatestVersionDeprecated(artifact.getArtifactId())) {
+                    deprecated.add(name);
+                    deprecatedCandidates.add(new AgentCandidate(name, artifact.getArtifactId(), url, skills));
+                    continue;
+                }
                 candidates.add(new AgentCandidate(name, artifact.getArtifactId(), url, skills));
             }
 
@@ -164,10 +177,24 @@ public class RegistryDiscoveryService {
                 inspectDetail += " (skipped " + skipped.size() + " without a2a-agent-url label: "
                         + String.join(", ", skipped) + ")";
             }
+            if (!deprecated.isEmpty()) {
+                inspectDetail += " (excluded " + deprecated.size() + " DEPRECATED: "
+                        + String.join(", ", deprecated) + ")";
+            }
             onStep.accept(new StepEvent("inspect", "done", inspectDetail, allCardsJson));
 
+            // If the only agents offering the requested skill are DEPRECATED, say so explicitly
+            // instead of widening the search to unrelated agents.
+            List<AgentCandidate> deprecatedMatches = strictSkillMatches(deprecatedCandidates, userRequest);
+            if (!deprecatedMatches.isEmpty() && strictSkillMatches(candidates, userRequest).isEmpty()) {
+                String names = deprecatedMatches.stream().map(AgentCandidate::name).reduce((a, b) -> a + ", " + b).orElse("");
+                String msg = "No active agent offers this capability. Matching agent(s) are DEPRECATED in the registry: " + names;
+                onStep.accept(new StepEvent("skills", "error", msg));
+                return msg;
+            }
+
             if (candidates.isEmpty()) {
-                onStep.accept(new StepEvent("search", "error", "No agents with a valid a2a-agent-url label"));
+                onStep.accept(new StepEvent("search", "error", "No usable (non-deprecated) agents in the registry"));
                 return "No usable agents found in the registry.";
             }
 
@@ -212,7 +239,12 @@ public class RegistryDiscoveryService {
             AgentCandidate chosen = matchedBySkill.stream()
                     .filter(c -> selectedId.contains(c.artifactId))
                     .findFirst()
-                    .orElse(matchedBySkill.get(0));
+                    .orElse(null);
+            if (chosen == null) {
+                String msg = "No suitable agent found for this request (LLM selected: '" + selectedId + "').";
+                onStep.accept(new StepEvent("match", "error", msg));
+                return msg;
+            }
 
             ObjectNode matchPayload = mapper.createObjectNode();
             matchPayload.put("llmInput", llmPrompt.toString());
@@ -253,33 +285,51 @@ public class RegistryDiscoveryService {
     }
 
     /**
-     * Narrows the candidate agents down to those whose skills (or name) look relevant to the
-     * user's request, using simple stemmed-keyword matching. Apicurio Registry's search API can
-     * filter by artifact name/description (see {@code searchMcpServers} on the MCP side), but it
-     * doesn't index the nested {@code skills} array inside an AGENT_CARD's content, so this
-     * capability-based "search" has to happen client-side once the cards have been read.
-     *
-     * <p>Falls back to returning every candidate if no keyword matches anything, so the LLM
-     * router always has at least the full candidate set to choose from.
+     * Returns true when the latest version of an Agent Card is in the DEPRECATED state.
+     * Registry errors are treated as "not deprecated" so a lookup failure never hides an agent.
      */
-    private static List<AgentCandidate> searchCandidatesBySkill(List<AgentCandidate> candidates, String userRequest) {
-        List<String> stems = Arrays.stream(userRequest.toLowerCase(Locale.ROOT).split("[^a-z0-9]+"))
+    private boolean isLatestVersionDeprecated(String artifactId) {
+        try {
+            VersionMetaData latest = registryClient.groups().byGroupId(groupId).artifacts()
+                    .byArtifactId(artifactId).versions().byVersionExpression("branch=latest").get();
+            return latest != null && latest.getState() == VersionState.DEPRECATED;
+        } catch (Exception e) {
+            LOG.warnf("Could not read version state for %s: %s", artifactId, e.getMessage());
+            return false;
+        }
+    }
+
+    /** Request keywords, stemmed to a short prefix, with stopwords removed. */
+    private static List<String> requestStems(String userRequest) {
+        return Arrays.stream(userRequest.toLowerCase(Locale.ROOT).split("[^a-z0-9]+"))
                 .filter(w -> w.length() >= 4 && !STOPWORDS.contains(w))
                 .map(w -> w.substring(0, Math.min(STEM_PREFIX_LEN, w.length())))
                 .distinct()
                 .toList();
+    }
 
-        if (stems.isEmpty()) {
-            return candidates;
-        }
-
-        List<AgentCandidate> matches = candidates.stream()
+    /** Candidates whose name or skills contain a request keyword; empty if none match. */
+    private static List<AgentCandidate> strictSkillMatches(List<AgentCandidate> candidates, String userRequest) {
+        List<String> stems = requestStems(userRequest);
+        return candidates.stream()
                 .filter(c -> {
                     String haystack = (c.name() + " " + c.skills()).toLowerCase(Locale.ROOT);
                     return stems.stream().anyMatch(haystack::contains);
                 })
                 .toList();
+    }
 
+    /**
+     * Narrows the candidate agents down to those whose skills (or name) look relevant to the
+     * user's request, using simple stemmed-keyword matching. Apicurio Registry's search API
+     * doesn't index the nested {@code skills} array inside an AGENT_CARD's content, so this
+     * capability-based "search" happens client-side once the cards have been read.
+     *
+     * <p>Falls back to every candidate if no keyword matches, so general requests still reach
+     * the LLM router; the router may then answer that no agent is suitable.
+     */
+    private static List<AgentCandidate> searchCandidatesBySkill(List<AgentCandidate> candidates, String userRequest) {
+        List<AgentCandidate> matches = strictSkillMatches(candidates, userRequest);
         return matches.isEmpty() ? candidates : matches;
     }
 
