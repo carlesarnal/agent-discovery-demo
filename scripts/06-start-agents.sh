@@ -5,6 +5,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
+# HOST_OLLAMA=1 uses a native Ollama on the host (e.g. GPU on macOS) instead of the ollama container
+COMPOSE=(docker compose -f "$PROJECT_DIR/docker-compose.yaml")
+if [ "${HOST_OLLAMA:-0}" = "1" ]; then
+  COMPOSE+=(-f "$PROJECT_DIR/compose.host-ollama.yaml")
+fi
+
 echo "=== Starting Agents ==="
 echo ""
 
@@ -28,16 +34,22 @@ echo ""
 
 # Start all agents via docker compose
 echo "--- Starting agents (building if needed) ---"
-docker compose -f "$PROJECT_DIR/docker-compose.yaml" up -d --build summarizer translator mcp-weather orchestrator
+"${COMPOSE[@]}" up -d --build summarizer translator mcp-weather orchestrator
 echo ""
 
 # Wait for agents to be ready
 echo "--- Waiting for agents to start ---"
-for port in 10010 10030 10040 10020; do
-  until curl -s -o /dev/null -w "%{http_code}" "http://localhost:$port/" 2>/dev/null | grep -qE "200|400|405"; do
-    sleep 2
+# The MCP server has no root page (404 on "/"), so probe its /mcp endpoint instead.
+for url in http://localhost:10010/ http://localhost:10030/ http://localhost:10040/mcp http://localhost:10020/; do
+  waited=0
+  until curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null | grep -qE "200|400|405"; do
+    sleep 2; waited=$((waited + 2))
+    if [ "$waited" -ge 300 ]; then
+      echo "  Timed out waiting for $url" >&2
+      exit 1
+    fi
   done
-  echo "  Port $port ready"
+  echo "  $url ready"
 done
 echo ""
 

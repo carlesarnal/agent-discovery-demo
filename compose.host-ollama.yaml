@@ -1,0 +1,17 @@
+# Optional: use a native Ollama already running on the host (GPU on macOS) instead of the ollama container.
+# Usage: docker compose -f docker-compose.yaml -f compose.host-ollama.yaml up -d ...
+x-host-ollama: &host
+  OLLAMA_URL: http://host.containers.internal:11434
+services:
+  summarizer:
+    environment: *host
+    depends_on: !override
+      apicurio-registry: {condition: service_healthy}
+  translator:
+    environment: *host
+    depends_on: !override
+      apicurio-registry: {condition: service_healthy}
+  orchestrator:
+    environment: *host
+    depends_on: !override
+      apicurio-registry: {condition: service_healthy}

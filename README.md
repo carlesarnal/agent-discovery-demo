@@ -1,5 +1,47 @@
 # Governing AI Discovery with Open Standards
 
+> ## Branch `cloud-native-paris-2026`
+> Demo for **"Agent Sprawl Is the New Microservice Sprawl: Discovery and Governance for
+> Multi-Agent AI"** — Cloud Native AI Summit Europe, Paris, December 2-3, 2026 (25 min).
+>
+> ```bash
+> ./scripts/paris-2026-demo.sh                 # ollama in a container
+> HOST_OLLAMA=1 ./scripts/paris-2026-demo.sh   # native Ollama on the host (GPU on macOS)
+> ```
+>
+> Talk flow, verified end to end from a clean start on September 29, 2026:
+> 1. Agents start and **publish their own Agent Cards** (and the MCP server its tool) to Apicurio Registry.
+> 2. **Discovery + delegation**: the orchestrator reads the cards, narrows by skill, lets the LLM pick,
+>    and delegates over A2A. The MCP weather tool is discovered through the same registry.
+> 3. **Contract protection**: removing a skill from an Agent Card is rejected (HTTP 400); adding one is accepted.
+> 4. **Lifecycle**: marking the Translator's card `DEPRECATED` stops routing to it
+>    ("No active agent offers this capability ... DEPRECATED"); re-enabling restores it.
+>
+> ### Changes on this branch
+> - Builds from **released artifacts only** (main depended on local `999-SNAPSHOT` /
+>   `1.18.0-beta28-SNAPSHOT` builds): quarkus-langchain4j 1.14.0, langchain4j-agentic 1.20.1-beta30,
+>   Quarkus 3.33.3.1. The A2A SDK is pinned to 1.3.1.Final via its BOM, imported **after** the Quarkus
+>   BOMs (quarkus-langchain4j 1.14.0 pulls A2A 1.0.0.Final while langchain4j-agentic-a2a pulls 1.3.1.Final;
+>   the mix fails at runtime with `NoClassDefFoundError: HtmlEscapeUtils`).
+> - `a2a.authorization.required=false` on the A2A servers. A2A SDK 1.3.x denies every task operation
+>   (reported as "Task not found") unless a `TaskAuthorizationProvider` is configured. **Demo only.**
+> - Orchestrator: skips agents whose latest Agent Card version is `DEPRECATED`; reports explicitly when
+>   the only matching agents are deprecated; no longer silently falls back to the first candidate when the
+>   LLM selects no agent.
+> - `scripts/09-deprecate-agent.sh`, `scripts/paris-2026-demo.sh`, optional `compose.host-ollama.yaml`.
+> - `06-start-agents.sh`: probes the MCP server on `/mcp` (it returns 404 on `/`, which made the script
+>   wait forever) and times out after 5 minutes instead of hanging.
+>
+> ### Known limitations (say them on stage)
+> - **No capability negotiation.** Selection is keyword narrowing + an LLM choice among registry entries.
+> - **Agent Cards are not updated on restart.** `A2AAgentCardPublisher` (quarkus-langchain4j 1.14.0) only
+>   creates the artifact; if it already exists, publishing fails and the registry keeps the **old** card.
+> - **Consumers don't pin card versions.** Compatibility rules protect the registry contract; nothing forces
+>   a consumer to check which version it depends on.
+> - Deprecation only affects consumers that check the version state, like this orchestrator.
+> - Prompt templates return HTTP **400** (not 409) on incompatible changes.
+
+
 A live demonstration of **AI agent and tool discovery** using [Apicurio Registry](https://www.apicur.io/registry/) (CNCF sandbox project), the [A2A (Agent-to-Agent) Protocol](https://google.github.io/A2A/), and the [MCP (Model Context Protocol)](https://modelcontextprotocol.io/).
 
 ## Overview
