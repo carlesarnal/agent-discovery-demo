@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Governing AI Discovery with Open Standards</title>
+<title>Agent Sprawl Is the New Microservice Sprawl — Cloud Native AI Summit Paris 2026</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -367,19 +367,20 @@
 <div class="deck" id="deck">
 
 <!-- =========== SLIDE 0: TITLE =========== -->
-<div class="slide title-slide active" data-notes="Introduce yourself. Frame the narrative: the industry has solved API governance with open standards like OpenAPI and AsyncAPI. AI agents need the same treatment. This talk shows how.">
+<div class="slide title-slide active" data-notes="25-minute slot. Frame: five teams, twenty agents, three frameworks — nobody knows which agent talks to which. That is microservice sprawl again. The fix is the same one that worked for APIs: describe, register, version, discover — plus lifecycle.">
   <div class="content center">
-    <h1>Governing AI Discovery<br>with Open Standards</h1>
-    <p class="subtitle">A2A Agents, MCP Tools, and Prompt Templates — one registry</p>
+    <h1>Agent Sprawl Is the New<br>Microservice Sprawl</h1>
+    <p class="subtitle">Discovery and Governance for Multi-Agent AI</p>
     <div class="title-meta">
       <span><strong>Carles Arnal</strong></span>
-      <span>Principal Software Engineer</span>
+      <span>Principal Software Engineer, IBM</span>
+      <span>Cloud Native AI Summit &middot; Paris &middot; December 2026</span>
     </div>
   </div>
 </div>
 
 <!-- =========== SLIDE 1: ABOUT ME =========== -->
-<div class="slide" data-notes="Brief intro. Apicurio Registry is a CNCF sandbox project for schema and API governance — OpenAPI, AsyncAPI, Avro, Protobuf. I've been contributing to open source for over a decade, and today I'll show how we extended the registry to govern AI agents.">
+<div class="slide" data-notes="Brief intro, 30 seconds. Apicurio Registry is a CNCF sandbox project for schema and API governance. I maintain it; today: how the same registry governs AI agents.">
   <div class="content">
     <h3>About Me</h3>
     <h2>Carles Arnal</h2>
@@ -387,9 +388,10 @@
     <div class="cols cols-2" style="margin-top: 20px;">
       <div>
         <ul>
-          <li><strong>Apicurio Registry</strong> — core contributor</li>
-          <li><strong>10+ years</strong> in open source</li>
-          <li>Schema governance, API lifecycle, event-driven architectures</li>
+          <li><strong>Apicurio Registry</strong> — core maintainer (CNCF sandbox)</li>
+          <li><strong>Quarkus</strong> committer; contributor to Kroxylicious and Quarkus LangChain4j</li>
+          <li>Associate professor, BarcelonaTech (UPC)</li>
+          <li>Event-driven architectures, data pipelines, AI-ready platforms</li>
         </ul>
         <div class="tag-row" style="margin-top: 20px;">
           <span class="badge badge-green">CNCF Sandbox</span>
@@ -435,10 +437,10 @@
 </div>
 
 <!-- =========== SLIDE 3: THE PROBLEM =========== -->
-<div class="slide" data-notes="Frame the problem with a concrete scenario. Team A changes a prompt template — renames a variable, removes a field. Team B's agent was using that variable. It silently degrades. No error, no alert — just wrong outputs. This happened to APIs 10 years ago. OpenAPI solved it. It happened to Kafka schemas. Avro + Schema Registry solved it. Now it's happening to AI agents.">
+<div class="slide" data-notes="Concrete scenario: five teams, twenty agents, three frameworks. One team drops a skill from its agent in a 'minor update'; four orchestrators that routed to it start failing quietly. Nobody knew who depended on whom. That is microservice sprawl — it happened to APIs, OpenAPI plus registries fixed it; it happened to Kafka schemas, Avro plus schema registry fixed it.">
   <div class="content">
     <h3>The Problem</h3>
-    <h2>AI agents face the same governance crisis<br>that APIs hit years ago</h2>
+    <h2>Five teams. Twenty agents. Three frameworks.<br>Who talks to whom?</h2>
     <div class="cols cols-3" style="margin-top: 36px;">
       <div class="card">
         <p style="font-size:1.8rem; margin-bottom:12px;" class="accent">?</p>
@@ -448,15 +450,15 @@
       <div class="card">
         <p style="font-size:1.8rem; margin-bottom:12px;" class="accent2">v</p>
         <p><strong>Versioning</strong></p>
-        <p style="font-size:1rem;">Which version of the prompt is Agent C using?</p>
+        <p style="font-size:1rem;">Which version of Agent C's card is live — and who depends on it?</p>
       </div>
       <div class="card">
         <p style="font-size:1.8rem; margin-bottom:12px;" class="accent4">!</p>
         <p><strong>Compatibility</strong></p>
-        <p style="font-size:1rem;">Will Agent D break if we rename a field?</p>
+        <p style="font-size:1rem;">Will removing a skill from Agent D break its callers?</p>
       </div>
     </div>
-    <p style="margin-top: 28px;">OpenAPI solved this for REST. AsyncAPI solved it for event-driven.<br>AI agents are hitting the same wall.</p>
+    <p style="margin-top: 28px;">Microservices hit this wall. APIs hit it. Kafka schemas hit it.<br>Agents evolve faster and fail more quietly.</p>
   </div>
 </div>
 
@@ -504,7 +506,7 @@
 </div>
 
 <!-- =========== SLIDE 6: ARCHITECTURE =========== -->
-<div class="slide" data-notes="Show the architecture. Agents register their A2A Agent Cards in the registry. Other agents query the registry to discover peers by capability. The registry enforces compatibility rules — if someone pushes a breaking change to a prompt template, the registry rejects it before it reaches production. This is the same pattern as registering an OpenAPI spec in the registry and letting consumers discover APIs programmatically.">
+<div class="slide" data-notes="Show the architecture. Agents register their A2A Agent Cards in the registry. Other agents query the registry to discover peers by capability. The registry enforces compatibility rules — if someone removes a skill from an Agent Card, the registry rejects it before it reaches production. This is the same pattern as registering an OpenAPI spec in the registry and letting consumers discover APIs programmatically.">
   <div class="content center">
     <h3>Architecture</h3>
     <h2>Registry-backed agent discovery</h2>
@@ -639,110 +641,11 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 11: DEMO — PROMPT VERSIONING =========== -->
-<div class="slide" data-notes="Type ./scripts/02-register-prompts.sh in the terminal. Show v1 and v2 in the Registry UI. v2 adds an optional tone variable — backward compatible.">
+<!-- =========== SLIDE 14: LIVE AGENT DEMO =========== -->
+<div class="slide" data-notes="Start the agents (06-start-agents.sh; pre-start them before the talk if the network is slow). They publish their own Agent Cards on startup via @PublishToAgentRegistry — show the a2a-agents group in the Registry UI. Then run 07-live-agent-demo.sh or use the dashboard: summarize goes to the Summarizer, translate to the Translator. Be precise: this is discovery plus selection — the orchestrator reads the cards from the registry, narrows by skill keywords, and the LLM picks. There is no capability negotiation protocol.">
   <div class="content">
     <h3>Step 1</h3>
-    <h2>Prompt template governance</h2>
-    <div class="cmd-row">
-      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
-      <code>./scripts/02-register-prompts.sh</code>
-      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
-    </div>
-    <div class="terminal-container" style="height: 200px;">
-      <div class="terminal-pane">
-        <span class="terminal-label">Terminal</span>
-        <iframe src="http://localhost:7681"></iframe>
-      </div>
-    </div>
-    <div class="cols cols-2" style="margin-top: 12px;">
-      <div class="card" style="padding: 16px 20px;">
-        <h3 style="color: var(--accent3);">v1</h3>
-        <pre style="font-size:0.75rem; padding: 10px 14px; margin: 0;"><span class="str">"max_sentences"</span>: { <span class="str">"default"</span>: <span class="num">3</span> }
-<span class="str">"input_text"</span>:    { <span class="str">"required"</span>: <span class="kw">true</span> }</pre>
-      </div>
-      <div class="card" style="padding: 16px 20px;">
-        <h3 style="color: var(--accent3);">v2 <span class="badge badge-green" style="margin-left: 6px;">compatible</span></h3>
-        <pre style="font-size:0.75rem; padding: 10px 14px; margin: 0;"><span class="str">"max_sentences"</span>: { <span class="str">"default"</span>: <span class="num">3</span> }
-<span class="str">"input_text"</span>:    { <span class="str">"required"</span>: <span class="kw">true</span> }
-<span class="str">"tone"</span>:          { <span class="str">"default"</span>: <span class="str">"neutral"</span> }</pre>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- =========== SLIDE 12: PROMPTS AT RUNTIME =========== -->
-<div class="slide" data-notes="This is a key point — the prompt templates aren't just governed artifacts, they're used at runtime. The Summarizer Agent calls the registry's render API on every request: it passes the user's text as input_text, the registry renders the mustache template, and the agent sends the rendered prompt to Ollama. This means updating a prompt template in the registry — say, adding the tone variable in v2 — takes effect immediately. No redeployment. The registry is both the governance layer AND the runtime prompt store.">
-  <div class="content">
-    <h3>Not just governance</h3>
-    <h2>Agents fetch prompts from the registry <span class="accent3">at runtime</span></h2>
-    <div class="arch-diagram" style="margin: 28px 0;">
-      <div class="arch-node highlight">
-        <div class="node-title">User Request</div>
-        <div class="node-sub">"Summarize this..."</div>
-      </div>
-      <div class="arch-arrow">&rarr;</div>
-      <div class="arch-node highlight2">
-        <div class="node-title">Summarizer Agent</div>
-        <div class="node-sub">needs a prompt</div>
-      </div>
-      <div class="arch-arrow"><span class="flow-dot"></span> <span class="flow-dot"></span> <span class="flow-dot"></span></div>
-      <div class="arch-node highlight4" style="min-width: 180px;">
-        <div class="node-title">Registry /render</div>
-        <div class="node-sub">renders template + variables</div>
-      </div>
-      <div class="arch-arrow">&rarr;</div>
-      <div class="arch-node highlight3">
-        <div class="node-title">Ollama</div>
-        <div class="node-sub">LLM inference</div>
-      </div>
-    </div>
-    <ul>
-      <li><strong>Agent calls</strong> the registry's render API with <code>input_text</code>, <code>max_sentences</code>, <code>tone</code></li>
-      <li><strong>Registry renders</strong> the mustache template and returns the full prompt</li>
-      <li><strong>Update a template</strong> in the registry &rarr; takes effect <strong class="accent3">immediately</strong>, no redeployment</li>
-    </ul>
-    <p style="margin-top: 16px;">The registry is both the <strong>governance layer</strong> and the <strong>runtime prompt store</strong>.</p>
-  </div>
-</div>
-
-<!-- =========== SLIDE 13: DEMO — BREAKING CHANGE =========== -->
-<div class="slide" data-notes="Type ./scripts/05-breaking-change.sh in the terminal. Watch both breaking changes get rejected with HTTP 409. The dramatic demo moment.">
-  <div class="content">
-    <h3>Step 2</h3>
-    <h2>Breaking change <span style="color: var(--red);">rejected</span></h2>
-    <div class="cmd-row">
-      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
-      <code>./scripts/05-breaking-change.sh</code>
-      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
-    </div>
-    <div class="terminal-container" style="height: 240px;">
-      <div class="terminal-pane">
-        <span class="terminal-label">Terminal</span>
-        <iframe src="http://localhost:7681"></iframe>
-      </div>
-    </div>
-    <div class="cols cols-2" style="margin-top: 12px;">
-      <div class="card" style="padding: 16px 20px;">
-        <h3>What changed</h3>
-        <p style="font-size: 0.9rem;">Changed <code>max_sentences</code> type: integer &rarr; string</p>
-        <p style="font-size: 0.9rem;">Removed <code>input_text</code> from variables (still in template)</p>
-      </div>
-      <div class="card" style="border-color: var(--red);">
-        <h3 style="color: var(--red);">Result</h3>
-        <p style="font-size: 1rem;"><strong style="color: var(--red);">HTTP 409 &mdash; Rejected</strong></p>
-        <p style="font-size: 1rem;">BACKWARD compatibility violation</p>
-      </div>
-    </div>
-    <p style="margin-top: 20px;">The registry catches this <strong class="accent">before production</strong>, not after.<br>Same rule as OpenAPI — you can't remove a required field from a backward-compatible schema.</p>
-  </div>
-</div>
-
-<!-- =========== SLIDE 14: LIVE AGENT DEMO =========== -->
-<div class="slide" data-notes="Act 2 starts here. Start the agents live on stage with 06-start-agents.sh. They self-register their Agent Cards on startup via @PublishToAgentRegistry — show the Registry UI with the new cards in the a2a-agents group. Then open the orchestrator dashboard and send two requests: summarize → Summarizer, translate → Translator. The orchestrator discovers both agents at runtime via the ApicurioAgentsRegistry SDK (no hardcoded URLs) and the LLM selects the best one for each request.">
-  <div class="content">
-    <h3>Step 3</h3>
-    <h2>Real agents, <span class="accent3">self-registering</span>, live</h2>
+    <h2>Real agents, <span class="accent3">self-registering</span>, discovered live</h2>
     <div class="cmd-row">
       <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
       <code>./scripts/06-start-agents.sh</code>
@@ -756,9 +659,9 @@
     </div>
     <ul style="margin-top: 12px;">
       <li>Agents <strong>publish their own Agent Cards</strong> on startup via <code>@PublishToAgentRegistry</code> — check the <strong>a2a-agents</strong> group in the Registry UI</li>
-      <li>The orchestrator <strong>discovers</strong> them at runtime through <code>ApicurioAgentsRegistry</code> — no hardcoded URLs, no config files</li>
+      <li>The orchestrator <strong>discovers</strong> them at runtime from the registry — no hardcoded URLs, no config files — then delegates over <strong>A2A</strong> (<code>./scripts/07-live-agent-demo.sh</code>)</li>
       <li>It <strong>narrows candidates by skill</strong> before the LLM picks — the registry doesn't index nested skill data, so matching happens client-side</li>
-      <li>Then open <a href="http://localhost:10020" style="color:var(--accent);">Orchestrator Dashboard</a> — LLM selects the best agent for each request</li>
+      <li><strong>Discovery + selection, not negotiation:</strong> the LLM picks among registry entries — see the <a href="http://localhost:10020" style="color:var(--accent);">dashboard</a> steps</li>
     </ul>
     <div class="tag-row" style="margin-top: 16px;">
       <span class="badge badge-green">Quarkus</span>
@@ -769,42 +672,10 @@
   </div>
 </div>
 
-<!-- =========== SLIDE 15: DEMO — AGENT CARD BREAKING CHANGE =========== -->
-<div class="slide" data-notes="Type ./scripts/08-breaking-agent-card-change.sh in the terminal. The same COMPATIBILITY rule engine that protects prompt templates understands AGENT_CARD content too — it semantically diffs the skills array. Removing a skill the orchestrator already selected agents by is rejected with a message naming the exact skill that was removed. Adding a new skill alongside the existing one succeeds.">
-  <div class="content">
-    <h3>Step 4</h3>
-    <h2>Breaking change rejected — <span class="accent3">Agent Cards too</span></h2>
-    <div class="cmd-row">
-      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
-      <code>./scripts/08-breaking-agent-card-change.sh</code>
-      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
-    </div>
-    <div class="terminal-container" style="height: 240px;">
-      <div class="terminal-pane">
-        <span class="terminal-label">Terminal</span>
-        <iframe src="http://localhost:7681"></iframe>
-      </div>
-    </div>
-    <div class="cols cols-2" style="margin-top: 12px;">
-      <div class="card" style="border-color: var(--red);">
-        <h3 style="color: var(--red);">Remove a skill</h3>
-        <p style="font-size: 1rem;"><strong style="color: var(--red);">HTTP 400 &mdash; Rejected</strong></p>
-        <p style="font-size: 0.9rem;"><code>"Skill 'summarize-text' was removed at /skills"</code></p>
-      </div>
-      <div class="card" style="padding: 16px 20px;">
-        <h3>Add a skill</h3>
-        <p style="font-size: 1rem;"><strong>HTTP 200 &mdash; Accepted</strong></p>
-        <p style="font-size: 0.9rem;">New capability alongside the existing one — backward compatible</p>
-      </div>
-    </div>
-    <p style="margin-top: 16px;">Same rule engine as <code>PROMPT_TEMPLATE</code>, applied to the live Agent Card the Summarizer just self-published — with a <strong class="accent">semantic diff</strong> naming the exact skill removed, not just a generic JSON diff.</p>
-  </div>
-</div>
-
 <!-- =========== SLIDE 16: MCP DEMO =========== -->
 <div class="slide" data-notes="MCP demo. The weather MCP server registered its MCP_TOOL artifact on startup. The orchestrator's /chat endpoint uses ApicurioRegistryMcpTools to search the registry, connect to the weather server, and call getWeather — all autonomously via the LLM. Show this in the terminal: curl -s -X POST http://localhost:10020/chat -H 'Content-Type: text/plain' -d 'What is the weather in Amsterdam?'">
   <div class="content">
-    <h3>Step 5</h3>
+    <h3>Step 2</h3>
     <h2>MCP tool discovery from the registry</h2>
     <div class="cmd-row">
       <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
@@ -834,6 +705,68 @@
       </div>
     </div>
     <p style="font-size: 0.95rem;">LLM autonomously: <code>searchMcpServers</code> → <code>connectMcpServer</code> → <code>callMcpTool</code></p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 15: DEMO — AGENT CARD BREAKING CHANGE =========== -->
+<div class="slide" data-notes="Type ./scripts/08-breaking-agent-card-change.sh in the terminal. The same COMPATIBILITY rule engine that protects prompt templates understands AGENT_CARD content too — it semantically diffs the skills array. Removing a skill the orchestrator already selected agents by is rejected with a message naming the exact skill that was removed. Adding a new skill alongside the existing one succeeds.">
+  <div class="content">
+    <h3>Step 3</h3>
+    <h2>Breaking change rejected — <span class="accent3">Agent Cards too</span></h2>
+    <div class="cmd-row">
+      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
+      <code>./scripts/08-breaking-agent-card-change.sh</code>
+      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+    </div>
+    <div class="terminal-container" style="height: 240px;">
+      <div class="terminal-pane">
+        <span class="terminal-label">Terminal</span>
+        <iframe src="http://localhost:7681"></iframe>
+      </div>
+    </div>
+    <div class="cols cols-2" style="margin-top: 12px;">
+      <div class="card" style="border-color: var(--red);">
+        <h3 style="color: var(--red);">Remove a skill</h3>
+        <p style="font-size: 1rem;"><strong style="color: var(--red);">HTTP 400 &mdash; Rejected</strong></p>
+        <p style="font-size: 0.9rem;"><code>"Skill 'summarize-text' was removed at /skills"</code></p>
+      </div>
+      <div class="card" style="padding: 16px 20px;">
+        <h3>Add a skill</h3>
+        <p style="font-size: 1rem;"><strong>HTTP 200 &mdash; Accepted</strong></p>
+        <p style="font-size: 0.9rem;">New capability alongside the existing one — backward compatible</p>
+      </div>
+    </div>
+    <p style="margin-top: 16px;">The registry's compatibility rules, applied to the live Agent Card the Summarizer just self-published — with a <strong class="accent">semantic diff</strong> naming the exact skill removed, not just a generic JSON diff.</p>
+  </div>
+</div>
+
+<!-- =========== SLIDE 16: DEMO — DEPRECATION =========== -->
+<div class="slide" data-notes="Type ./scripts/09-deprecate-agent.sh. First the translate request works. Then the Translator's latest Agent Card version is set to DEPRECATED in the registry — one API call, no redeploy. The same request now gets an explicit answer: no active agent offers this capability, the matching agent is deprecated. Restore to ENABLED and routing resumes. Point out: the card is still readable; deprecation only works for consumers that check the version state, like this orchestrator.">
+  <div class="content">
+    <h3>Step 4</h3>
+    <h2>Lifecycle: <span class="accent4">deprecate</span> an agent, routing stops</h2>
+    <div class="cmd-row">
+      <span style="font-size:0.8rem; color:var(--dim);">Type in terminal:</span>
+      <code>./scripts/09-deprecate-agent.sh</code>
+      <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+    </div>
+    <div class="terminal-container" style="height: 240px;">
+      <div class="terminal-pane">
+        <span class="terminal-label">Terminal</span>
+        <iframe src="http://localhost:7681"></iframe>
+      </div>
+    </div>
+    <div class="cols cols-2" style="margin-top: 12px;">
+      <div class="card" style="border-color: var(--accent4);">
+        <h3 style="color: var(--accent4);">Card version &rarr; DEPRECATED</h3>
+        <p style="font-size: 0.9rem;"><code>"No active agent offers this capability. Matching agent(s) are DEPRECATED in the registry: Translator Agent"</code></p>
+      </div>
+      <div class="card" style="padding: 16px 20px;">
+        <h3>Back to ENABLED</h3>
+        <p style="font-size: 0.9rem;">Routing resumes — a registry state change, not a redeploy</p>
+      </div>
+    </div>
+    <p style="margin-top: 16px;">Deprecation is only as strong as the consumers that <strong>check it</strong>.</p>
   </div>
 </div>
 
@@ -880,6 +813,32 @@
   </div>
 </div>
 
+<!-- =========== SLIDE 19b: WHAT THE DEMO DOESN'T DO =========== -->
+<div class="slide" data-notes="Be upfront — this builds credibility. No negotiation protocol: selection is keywords plus an LLM choice. The released card publisher only creates the artifact; restart an agent with changed skills and the registry keeps the old card. The orchestrator doesn't pin card versions, so compatibility rules protect the registry contract, not every consumer. Deprecation only works for consumers that check. And the demo agents run with A2A task authorization disabled.">
+  <div class="content">
+    <h3>Honest limits</h3>
+    <h2>What this demo does <span style="color: var(--red);">not</span> solve</h2>
+    <div class="cols cols-2" style="margin-top: 28px;">
+      <div class="card">
+        <h3>No negotiation</h3>
+        <p style="font-size:1rem;">Selection is skill keywords + an LLM choice among registry entries. No capability negotiation protocol.</p>
+      </div>
+      <div class="card">
+        <h3>Stale cards on restart</h3>
+        <p style="font-size:1rem;">The released publisher only <em>creates</em> the card. If it exists, the registry keeps the old one — even if skills changed.</p>
+      </div>
+      <div class="card">
+        <h3>Consumers don't pin versions</h3>
+        <p style="font-size:1rem;">Rules protect the registry contract. Nothing forces a consumer to declare which card version it depends on.</p>
+      </div>
+      <div class="card">
+        <h3>Authorization is off</h3>
+        <p style="font-size:1rem;">A2A SDK 1.3 denies every task without an authorization provider. The demo disables it — production must not.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- =========== SLIDE 20: SECTION — PRODUCTION =========== -->
 <div class="slide section-slide" data-notes="Transition to production considerations. The demo showed the pattern — now let's talk about what you'd add for a real deployment.">
   <div class="content center">
@@ -890,14 +849,14 @@
 </div>
 
 <!-- =========== SLIDE 21: PRODUCTION CONSIDERATIONS =========== -->
-<div class="slide" data-notes="Four things you'd add for production. First, automated registration — agents register on startup via sidecar or init container, not manual scripts. Second, health-aware discovery — combine with Kubernetes health checks so the registry only returns healthy agents. Third, schema evolution strategy — define compatibility modes per artifact group and enforce them in CI/CD. Fourth, multi-tenancy — use registry groups to isolate agent namespaces across teams, same as you'd separate OpenAPI specs per team.">
+<div class="slide" data-notes="Four things you'd add for production. First, card updates — agents already publish on startup, but new versions on change and deprecation on retirement are missing. Second, health-aware discovery — combine with Kubernetes health checks so the registry only returns healthy agents. Third, schema evolution strategy — define compatibility modes per artifact group and enforce them in CI/CD. Fourth, multi-tenancy — use registry groups to isolate agent namespaces across teams, same as you'd separate OpenAPI specs per team.">
   <div class="content">
     <h3>Production Hardening</h3>
     <h2>From demo to deployment</h2>
     <div class="cols cols-2" style="margin-top: 28px;">
       <div class="card">
-        <h3>Automated registration</h3>
-        <p style="font-size:1rem;">Agents register on startup via sidecar or init container. Deregister on shutdown. No manual scripts.</p>
+        <h3>Update and retire cards</h3>
+        <p style="font-size:1rem;">Registration on startup exists (<code>@PublishToAgentRegistry</code>). Add: publish new versions on change, deprecate on retirement.</p>
       </div>
       <div class="card">
         <h3>Health-aware discovery</h3>
@@ -916,14 +875,14 @@
 </div>
 
 <!-- =========== SLIDE 22: KEY TAKEAWAYS =========== -->
-<div class="slide" data-notes="Four takeaways. One: the open standards arc continues — OpenAPI, AsyncAPI, A2A. The pattern is proven. Two: Agent Cards are OpenAPI for agents — structured, versioned, discoverable. Three: prompt templates need the same governance as API specs — versioning and compatibility rules are not optional. Four: the tooling already exists — Apicurio Registry governs the full spectrum from REST APIs to AI agents in one CNCF sandbox project.">
+<div class="slide" data-notes="Four takeaways. One: agent sprawl is microservice sprawl — same cure. Two: Agent Cards are OpenAPI for agents. Three: lifecycle matters — rules catch breaking changes, deprecation retires agents, consumers must honour both. Four: one registry for agents and tools, with honest limits.">
   <div class="content">
     <h3>Takeaways</h3>
     <h2>Four things to remember</h2>
     <div class="takeaway-grid" style="margin-top: 28px;">
       <div class="takeaway-card">
         <div class="num accent">01</div>
-        <p><strong>The open standards arc continues.</strong> OpenAPI &rarr; AsyncAPI &rarr; A2A. Each generation standardized interface descriptions for its domain.</p>
+        <p><strong>Agent sprawl is microservice sprawl.</strong> Same symptoms — unknown dependencies, silent breakage — same cure: describe, register, version, discover.</p>
       </div>
       <div class="takeaway-card">
         <div class="num accent2">02</div>
@@ -931,11 +890,11 @@
       </div>
       <div class="takeaway-card">
         <div class="num accent3">03</div>
-        <p><strong>Prompt templates need governance.</strong> The same version control and compatibility rules you apply to API specs — not optional for AI.</p>
+        <p><strong>Lifecycle is part of the contract.</strong> Compatibility rules catch breaking changes; deprecation retires agents — if consumers honour it.</p>
       </div>
       <div class="takeaway-card">
         <div class="num accent4">04</div>
-        <p><strong>One registry for everything.</strong> Apicurio Registry governs A2A Agent Cards, MCP Tools, Prompt Templates, and Model Schemas — alongside OpenAPI and AsyncAPI.</p>
+        <p><strong>One registry for agents and tools.</strong> A2A Agent Cards and MCP tools in Apicurio Registry, alongside OpenAPI, AsyncAPI and Avro — know its limits.</p>
       </div>
     </div>
   </div>
@@ -947,10 +906,10 @@
     <h1>Thank You</h1>
     <p class="subtitle" style="margin-bottom: 32px;">Questions?</p>
     <div class="title-meta" style="flex-direction: column; gap: 12px;">
-      <span><strong>Carles Arnal</strong> &mdash; Principal Software Engineer</span>
+      <span><strong>Carles Arnal</strong> &mdash; Principal Software Engineer, IBM</span>
     </div>
     <div class="tech-row" style="margin-top: 32px;">
-      <div class="tech-item">github.com/carlesarnal/agent-discovery-demo</div>
+      <div class="tech-item">github.com/carlesarnal/agent-discovery-demo<br><small>branch cloud-native-paris-2026</small></div>
       <div class="tech-item">apicur.io/registry</div>
       <div class="tech-item">google.github.io/A2A</div>
     </div>

@@ -9,6 +9,9 @@
 > HOST_OLLAMA=1 ./scripts/paris-2026-demo.sh   # native Ollama on the host (GPU on macOS)
 > ```
 >
+> **Slides:** `presentation.html` (24 slides, 25-minute cut; open in a browser, speaker notes in `data-notes`).
+> Demo slides embed a terminal at `http://localhost:7681` (e.g. `ttyd -W zsh`).
+>
 > Talk flow, verified end to end from a clean start on September 29, 2026:
 > 1. Agents start and **publish their own Agent Cards** (and the MCP server its tool) to Apicurio Registry.
 > 2. **Discovery + delegation**: the orchestrator reads the cards, narrows by skill, lets the LLM pick,
@@ -116,10 +119,12 @@ curl -s -X POST http://localhost:10020/chat \
 |--------|---------|
 | `scripts/02-register-prompts.sh` | Register prompt templates with BACKWARD compatibility versioning |
 | `scripts/03-register-model-schemas.sh` | Register model metadata JSON Schema + sample model |
-| `scripts/05-breaking-change.sh` | Demonstrate compatibility rule enforcement on prompt templates — variable type changes and removals are rejected (HTTP 409) |
+| `scripts/05-breaking-change.sh` | Demonstrate compatibility rule enforcement on prompt templates — variable type changes and removals are rejected (HTTP 400) |
 | `scripts/06-start-agents.sh` | Build and start real A2A agents (Summarizer + Orchestrator) with Ollama |
 | `scripts/07-live-agent-demo.sh` | Live demo: orchestrator discovers and delegates to summarizer via registry |
 | `scripts/08-breaking-agent-card-change.sh` | Demonstrate compatibility rule enforcement on `AGENT_CARD` content — removing a skill an orchestrator depends on is rejected (HTTP 400); requires `06-start-agents.sh` to be running |
+| `scripts/09-deprecate-agent.sh` | Mark the Translator's Agent Card `DEPRECATED`: the orchestrator stops routing to it and says so; restore to `ENABLED` |
+| `scripts/paris-2026-demo.sh` | Cloud Native AI Summit Paris 2026 talk flow: start, discover/delegate (A2A + MCP), breaking change, deprecation |
 | `scripts/run-demo.sh` | Run all governance demo steps end-to-end |
 | `scripts/wait-for-registry.sh` | Wait for Apicurio Registry to be healthy |
 | `scripts/cleanup.sh` | Tear down all containers |
