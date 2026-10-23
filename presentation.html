@@ -1,65 +1,453 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Agent Sprawl — Connected Discovery and Contract Governance</title>
-<style>
-body { margin:0; background:#111827; color:#f3f4f6; font:clamp(18px,2.2vw,32px)/1.5 system-ui,sans-serif; }
-section { display:none; max-width:1100px; margin:auto; padding:5vh 6vw 12vh; }
-section.active { display:block; } h1,h2 { line-height:1.15; color:#93c5fd; }
-h1 { font-size:2em; } li { margin:.5em 0; } pre { white-space:pre-wrap; overflow-wrap:anywhere; background:#1f2937; padding:1em; font-size:.65em; }
-a { color:#93c5fd; } small,aside { font-size:.65em; color:#cbd5e1; } aside { display:none; border-top:1px solid #64748b; padding-top:1em; }
-body.notes aside { display:block; } nav { position:fixed; bottom:0; padding:12px; background:#111827; width:100%; box-sizing:border-box; display:flex; gap:16px; align-items:center; }
-button { font:inherit; font-size:16px; padding:8px 16px; cursor:pointer; } #count { font-size:16px; }
-@media print { section { display:block; break-after:page; padding:1cm; } nav,aside,body.notes aside { display:none; } body { background:white; color:black; font-size:20px; } }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Agent Sprawl — Carles Arnal</title>
+  <style>
+    :root {
+      --paper: #f4f2eb;
+      --ink: #202b2b;
+      --muted: #5e6b68;
+      --line: #ccd2c9;
+      --orange: #a53d16;
+      --teal: #00675e;
+      --mint: #8de0bc;
+      --coral: #ffa47c;
+      --sans: "Avenir Next", "Segoe UI", Arial, sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --scale: 1;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; }
+    body { background: #111a1a; font-family: var(--sans); color: var(--ink); overflow: hidden; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font-family: inherit; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #ef925f; outline-offset: 5px; }
+    .viewport { position: absolute; inset: 0 0 58px; overflow: hidden; }
+    .frame { position: absolute; left:50%; top:50%; width: 1600px; height: 900px; transform: translate(-50%, -50%) scale(var(--scale)); transform-origin: center; }
+    .slide { display: none; position: absolute; inset: 0; padding: 52px 88px 78px; background: var(--paper); overflow: hidden; }
+    .slide.active { display: block; }
+    .slide.dark { --ink: #f4f2eb; --muted: #b7c8c1; --line: #465652; --orange: var(--coral); --teal: var(--mint); background: #182625; color: var(--ink); }
+    .slide.dark a { color: var(--mint); }
+    .eyebrow { display: flex; align-items: center; gap: 15px; font: 600 17px/1.4 var(--mono); text-transform: uppercase; letter-spacing: 2px; margin: 0 0 30px; color: var(--muted); }
+    .eyebrow::before { content: ""; display: inline-block; width: 11px; height: 11px; background: var(--orange); }
+    h1, h2, h3, p { margin: 0; }
+    h2 { font-size: 65px; line-height: 1.12; letter-spacing: -2.7px; font-weight: 650; max-width: 1360px; }
+    h3 { font-size: 31px; line-height: 1.2; font-weight: 650; letter-spacing: -.7px; }
+    p { font-size: 28px; line-height: 1.45; }
+    .lede { margin-top: 22px; max-width: 1140px; color: var(--muted); font-size: 27px; }
+    .accent { color: var(--orange); }
+    .teal { color: var(--teal); }
+    .mono { font-family: var(--mono); }
+    .label { font: 600 17px/1.5 var(--mono); text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); }
+    .small { font-size: 22px; line-height: 1.45; }
+    .slide-footer { position: absolute; bottom: 30px; left: 88px; right: 88px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); padding-top: 17px; color: var(--muted); font: 500 15px/1.4 var(--mono); letter-spacing: .5px; }
+    .slide-number { color: var(--ink); }
+    aside { display: none; }
+    a { color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 5px; }
+    .rule { margin-top: 30px; border-top: 2px solid var(--ink); padding-top: 21px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 42px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .pill { display: inline-flex; align-items: center; gap: 9px; font: 600 16px/1.3 var(--mono); padding: 9px 14px; border: 1px solid var(--line); border-radius: 30px; }
+    .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .hint { position: absolute; left: 88px; right: 88px; bottom: 103px; color: var(--muted); font-size: 22px; line-height: 1.45; }
+
+    /* Opening: typographic cover with a small versioned-contract motif. */
+    .cover h1 { margin-top: 61px; font-size: 100px; font-weight: 650; letter-spacing: -5.5px; line-height: 1.02; width: 1110px; }
+    .cover h1 span { display: block; }
+    .cover .subtitle { margin-top: 33px; font-size: 29px; color: var(--muted); }
+    .cover .byline { margin-top: 58px; font-size: 29px; }
+    .cover .byline small { display: block; font-size: 21px; color: var(--muted); margin-top: 9px; }
+    .cover-mark { position: absolute; right: 90px; top: 224px; width: 170px; height: 345px; border-left: 2px solid var(--line); padding-left: 30px; }
+    .cover-mark .tile { width: 125px; height: 84px; display: flex; align-items: center; justify-content: space-between; padding: 18px; margin-bottom: 28px; border: 1px solid var(--line); background: #e8ece4; font: 500 22px var(--mono); }
+    .cover-mark .tile:nth-child(2) { background: #d8e6de; transform: translateX(14px); }
+    .cover-mark .tile:nth-child(3) { border-color: var(--orange); color: var(--orange); }
+
+    /* Decision and ownership slides. */
+    .decision-grid { margin-top: 56px; }
+    .decision-card { border-top: 5px solid var(--ink); padding: 29px 32px; background: #eaece5; height: 331px; }
+    .decision-card.focus { border-color: var(--teal); background: #dce9df; }
+    .decision-card h3 { margin: 19px 0 18px; font-size: 38px; }
+    .decision-card p { color: var(--muted); font-size: 27px; }
+    .decision-card .conclusion { margin-top: 26px; font-weight: 650; color: var(--ink); }
+    .benefits { margin-top: 62px; }
+    .benefit { border-top: 1px solid var(--line); padding-top: 25px; }
+    .benefit .big-index { display: block; color: var(--teal); font: 400 61px/1 var(--mono); margin-bottom: 40px; }
+    .benefit h3 { margin-bottom: 18px; }
+    .benefit p { font-size: 26px; max-width: 390px; color: var(--muted); }
+
+    /* The diagram is native SVG so it remains crisp and works offline. */
+    .architecture { display: block; width: 100%; height: 447px; margin-top: 28px; }
+    .diagram-legend { display: flex; gap: 40px; font: 500 18px var(--mono); color: var(--muted); margin-top: 12px; }
+    .diagram-legend span { display: flex; align-items: center; gap: 12px; }
+    .legend-line { width: 42px; height: 0; border-top: 3px solid var(--teal); }
+    .legend-line.dashed { border-top: 3px dashed var(--orange); }
+    .replay { margin-left: auto; border: 1px solid var(--line); border-radius: 30px; background: transparent; color: var(--ink); padding: 7px 16px; font: 500 17px var(--mono); cursor: pointer; }
+    .flow-path { stroke-dasharray: 1100; stroke-dashoffset: 0; }
+    .slide.animating .flow-path { animation: draw-flow .9s ease-out both; animation-delay: var(--delay, 0s); }
+    .slide.animating .flow-label { animation: reveal-flow .4s ease-out both; animation-delay: var(--delay, 0s); }
+    .slide.animating .handoff { animation: reveal-flow .6s ease-out both; animation-delay: var(--delay, 0s); }
+    .slide.animating .proof { animation: reveal-flow .5s ease-out both; animation-delay: var(--delay, 0s); }
+    .slide.animating .verdict { animation: reveal-flow .5s ease-out both; animation-delay: 1s; }
+    @keyframes draw-flow { from { stroke-dashoffset: 1100; opacity: .25; } to { stroke-dashoffset: 0; opacity: 1; } }
+    @keyframes reveal-flow { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Three actual stages, rather than a generic pipeline arrow. */
+    .handoff-grid { margin-top: 57px; gap: 32px; }
+    .handoff { padding: 25px 28px; border: 1px solid var(--line); height: 330px; position: relative; }
+    .handoff:not(:last-child)::after { content: "→"; position: absolute; right: -30px; top: 130px; font-size: 29px; color: var(--teal); }
+    .handoff h3 { margin: 22px 0 20px; }
+    .handoff .example { border-top: 1px solid var(--line); padding-top: 20px; font-size: 25px; line-height: 1.45; }
+    .handoff .example strong { display: block; margin-bottom: 10px; color: var(--teal); font-size: 19px; }
+
+    /* Live demo: command on one side, observation guide on the other. */
+    .live-grid { margin-top: 52px; display: grid; grid-template-columns: 1.13fr .87fr; gap: 58px; }
+    .terminal { background: #0c1918; border: 1px solid #435752; border-radius: 10px; overflow: hidden; }
+    .terminal-bar { display: flex; align-items: center; gap: 7px; padding: 17px 22px; border-bottom: 1px solid #354944; color: #9fb3aa; font: 15px var(--mono); }
+    .terminal-dot { width: 7px; height: 7px; background: #729086; border-radius: 50%; }
+    .terminal-name { margin-left: 15px; }
+    pre { font: 23px/1.65 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+    .terminal pre { padding: 30px; color: #d1e8da; }
+    .prompt { color: var(--mint); }
+    .terminal .command-link { display: block; margin: 0 30px 30px; font: 22px/1.5 var(--mono); }
+    .observe-row { display: grid; grid-template-columns: 38px 1fr; gap: 16px; padding: 21px 0; border-bottom: 1px solid var(--line); }
+    .observe-row .n { font: 22px var(--mono); color: var(--teal); padding-top: 5px; }
+    .observe-row p { font-size: 26px; }
+    .observe-row:first-of-type { margin-top: 16px; }
+
+    /* Publication before / candidate / acceptance. */
+    .diff-grid { margin-top: 44px; gap: 28px; }
+    .code-card { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .code-card .code-header { padding: 19px 25px; background: #e7eae2; border-bottom: 1px solid var(--line); font: 600 18px var(--mono); display: flex; justify-content: space-between; }
+    .code-card pre { padding: 24px; background: #fbfaf6; font-size: 25px; }
+    .removed { display: block; background: #f9e0d5; color: #903419; margin: 0 -24px; padding: 0 24px; }
+    .added { display: block; background: #dcebdc; color: #14583e; margin: 0 -24px; padding: 0 24px; }
+    .verdict { display: flex; align-items: center; gap: 23px; margin-top: 29px; padding: 21px 26px; background: #f0dfd3; border-left: 5px solid var(--orange); }
+    .verdict code { font: 21px var(--mono); }
+    .verdict strong { font-size: 25px; white-space: nowrap; }
+    .positive { background: #dce9df; border-color: var(--teal); }
+    .proof-list { margin-top: 15px; }
+    .proof { padding: 24px 0; border-bottom: 1px solid var(--line); display: flex; gap: 18px; align-items: baseline; font-size: 27px; }
+    .proof b { font: 18px var(--mono); color: var(--mint); white-space: nowrap; flex-shrink: 0; }
+    .version-flow { margin-top: 46px; display: grid; grid-template-columns: 1fr 80px 1fr; align-items: center; }
+    .version-flow .arrow { text-align: center; font-size: 45px; color: var(--teal); }
+    .version-box { padding: 29px; background: #e7ece4; border: 1px solid var(--line); }
+    .version-box.new { background: #dce9df; border-color: #8daf9a; }
+    .version-box pre { margin-top: 22px; font-size: 24px; }
+
+    /* Integration lesson and responsibility matrix. */
+    .lesson-grid { margin-top: 48px; }
+    .lesson { padding: 28px; background: #e9e9e2; border-top: 4px solid var(--orange); height: 365px; }
+    .lesson.resolved { background: #dde9e0; border-color: var(--teal); }
+    .lesson h3 { margin: 19px 0; }
+    .lesson p { font-size: 25px; }
+    .lesson pre { font-size: 22px; line-height: 1.7; margin: 23px 0; }
+    .ownership { margin-top: 40px; border-top: 2px solid var(--ink); }
+    .ownership-row { display: grid; grid-template-columns: 56px 1fr 1fr; align-items: center; gap: 20px; padding: 23px 0; border-bottom: 1px solid var(--line); }
+    .ownership-row .index { font: 19px var(--mono); color: var(--muted); }
+    .ownership-row .what { font-size: 26px; }
+    .ownership-row .who { font-size: 26px; color: var(--teal); font-weight: 600; }
+    .ownership-row:last-child .who { color: var(--orange); }
+    .takeaway-row { display: grid; grid-template-columns: 75px 1fr; gap: 25px; padding: 28px 0; border-bottom: 1px solid var(--line); }
+    .takeaway-row .index { color: var(--teal); font: 36px/1.3 var(--mono); }
+    .takeaway-row h3 { font-size: 35px; margin-bottom: 10px; }
+    .takeaway-row p { font-size: 25px; color: var(--muted); }
+    .close h2 { font-size: 105px; letter-spacing: -4px; margin-top: 100px; }
+    .close .repo { display: block; font: 26px/1.65 var(--mono); margin-top: 36px; }
+    .close .closing-bottom { margin-top: 50px; display: flex; justify-content: space-between; align-items: end; }
+
+    /* Controls live outside the presentation canvas. */
+    .toolbar { position: fixed; bottom: 0; left: 0; right: 0; height: 58px; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; color: #b4c3bf; background: #111a1a; }
+    .toolbar-group { display: flex; align-items: center; gap: 10px; }
+    .toolbar button { border: 1px solid #3e514c; background: transparent; color: #dce8e2; border-radius: 5px; font-size: 13px; padding: 7px 12px; }
+    .toolbar button:hover:not(:disabled) { background: #2c403a; }
+    .toolbar button:disabled { opacity: .35; cursor: default; }
+    #count { font: 13px var(--mono); min-width: 68px; text-align: center; }
+    .toolbar-caption { font: 11px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+    .progress { height: 2px; background: #293d36; position: fixed; bottom: 58px; left: 0; right: 0; }
+    .progress span { display: block; height: 100%; background: #df875b; transition: width .18s; }
+    .notes-panel { position: fixed; right: 24px; bottom: 78px; width: min(640px,calc(100vw - 48px)); max-height: 55vh; overflow: auto; background: #fffdf4; color: #25332e; border-radius: 8px; padding: 26px; box-shadow: 0 12px 50px #0008; border: 1px solid #a7b6a9; }
+    .notes-panel[hidden] { display: none; }
+    .notes-panel h2 { font-size: 17px; letter-spacing: 0; margin-bottom: 12px; }
+    .notes-panel p { font-size: 17px; line-height: 1.6; }
+    @media (max-width:650px) { .toolbar-caption { display: none; } .toolbar { padding: 0 10px; } .toolbar button { padding: 7px 9px; } }
+    @media (prefers-reduced-motion:reduce) { .progress span { transition:none; } .slide.animating * { animation:none !important; } }
+    @page { size: 16.6667in 9.375in; margin: 0; }
+    @media print {
+      html, body { width: auto; height: auto; overflow: visible; background: white; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .viewport { position: static; display: block; }
+      .frame { position:static; width: 1600px; height: auto; transform: none; }
+      .slide { display: block; position: relative; width: 1600px; height: 900px; break-after: page; }
+      .slide:last-child { break-after: auto; }
+      .toolbar, .progress, .notes-panel { display: none !important; }
+      .slide * { animation: none !important; opacity: 1 !important; }
+    }
+  </style>
 </head>
 <body>
-<main>
-<section class="active"><h1>Agent Sprawl Is the New Microservice Sprawl</h1><p>Discovery and contract governance for multi-agent AI</p><p>Carles Arnal · Principal Software Engineer, IBM</p><small>Cloud Native AI Summit Europe · Paris · December 2–3, 2026<br>Apicurio Registry core maintainer · Quarkus committer · BarcelonaTech</small><aside>25–30 minutes. Start with the integration problem, not a claim of a large production deployment.</aside></section>
-<section><h2>One request, three dependencies</h2><pre>Weather tool → summarization agent → translation agent</pre><ul><li>Where are they running?</li><li>Which contract has been registered?</li><li>What happens when a declared skill is removed?</li></ul><aside>Use the fictional multilingual briefing as a small, concrete illustration.</aside></section>
-<section><h2>Three separate responsibilities</h2><ul><li><strong>Registry:</strong> published definitions and endpoint discovery.</li><li><strong>Application:</strong> required roles and handoff order.</li><li><strong>Runtime:</strong> execution and actual behavior.</li></ul><aside>None automatically guarantees the other two.</aside></section>
-<section><h2>A2A and MCP in the same workflow</h2><pre>MCP getWeather(city)
-  → A2A summarize(weather + context)
-  → A2A translate(summary)</pre><p>Fixed sequence. Discovered endpoints. Actual outputs passed forward.</p><small>Not autonomous planning or capability negotiation.</small></section>
-<section><h2>Use the registry extensions</h2><ul><li>Text agents publish through the A2A extension's programmatic publisher.</li><li>The runner registers the Weather MCP artifact and connection labels.</li><li><code>ApicurioAgentsRegistry</code> supplies callable agents.</li><li>The MCP extension searches, connects and invokes the tool.</li></ul><aside>Application code fixes the handoff order. Distinguish explicit MCP registration from automatic ingestion.</aside></section>
-<section><h2>Live: create a briefing</h2><pre>bash scripts/paris-2026-demo.sh
+  <main class="viewport" aria-label="Presentation">
+    <div class="frame">
+      <section class="slide cover active" aria-label="Title">
+        <div class="eyebrow">Cloud Native AI Summit Europe · Paris 2026</div>
+        <h1><span>Agent sprawl is the new</span><span class="accent">microservice sprawl.</span></h1>
+        <p class="subtitle">Discovery and contract governance for multi-agent AI</p>
+        <div class="byline">Carles Arnal<small>Principal Software Engineer, IBM<br>Apicurio Registry core maintainer · Quarkus committer · BarcelonaTech</small></div>
+        <div class="cover-mark" aria-hidden="true"><div class="tile">MCP <span>01</span></div><div class="tile">A2A <span>02</span></div><div class="tile">A2A <span>03</span></div></div>
+        <footer class="slide-footer"><span>DECEMBER 2–3, 2026</span><span class="slide-number">01 / 13</span></footer>
+        <aside>25-minute slot. The promise is a small, tested integration example and its publication contract. Do not claim fleet-scale results. Introduce yourself briefly, then move to why a registry might be useful.</aside>
+      </section>
 
-http://localhost:11020/</pre><p><a href="http://localhost:11020/" target="_blank" rel="noopener">Open briefing dashboard</a> · Choose a city, enter context, inspect each handoff.</p><aside>Prepare dependencies beforehand. Show the actual weather output in the next input and the actual summary passed to translation. Weather is fictional.</aside></section>
-<section><h2>Versions are observations</h2><p>The dashboard reports registered version IDs before execution.</p><ul><li>Not a deployment pin.</li><li>Not a transactional snapshot across services.</li><li>Not proof that runtime code matches the card.</li></ul><aside>Do not call the displayed metadata an enforcement gate.</aside></section>
-<section><h2>Live: remove a required skill</h2><pre>python3 scripts/workflow.py governance</pre><ul><li>Attempt to remove the translator skill while retaining another skill.</li><li>Check HTTP 400 and the exact compatibility violation.</li><li>Verify the rejected version is absent.</li></ul><aside>Keeping another skill separates compatibility rejection from a generic empty-card validity failure.</aside></section>
-<section><h2>Check what stayed unchanged</h2><ul><li>Accepted card content.</li><li>Latest registered version and globalId.</li><li>A complete briefing still runs.</li></ul><p>Then publish an additive change and observe the new registration.</p><aside>Adding a metadata skill does not implement it in the running agent. Explain exactly what this test proves.</aside></section>
-<section><h2>What the tests establish</h2><ul><li>MCP output reaches the summarizer; its output reaches the translator.</li><li>Missing required agents stop the workflow.</li><li>Incompatible publication preserves the accepted registration.</li></ul><p>They do not evaluate all generated language or prevent runtime drift.</p><aside>Unit tests use mocks; the separate smoke runner makes real calls. Keep the two forms of evidence distinct.</aside></section>
-<section><h2>What remains application work</h2><ul><li>Deployment checks and behavioral evaluation.</li><li>Authentication, authorization and tenant isolation.</li><li>Version pinning and consumer lifecycle policy.</li></ul><small>This sample has no deprecation gate. Local-only, unauthenticated demo.</small></section>
-<section><h2>Takeaways</h2><ul><li>Discover endpoints without hardcoding network locations.</li><li>Make agent/tool handoffs explicit and testable.</li><li>Verify what a rejected contract update preserves.</li><li>Keep metadata compatibility separate from runtime correctness.</li></ul></section>
-<section><h2>Code and questions</h2><p><a href="https://github.com/quarkiverse/quarkus-langchain4j/pull/2932">Quarkus LangChain4j #2932</a></p><p><a href="https://github.com/carlesarnal/agent-discovery-demo/tree/cloud-native-paris-2026">Demo branch: cloud-native-paris-2026</a></p><small>Sample pinned to 682928b714574e1ca8f0405c4319b36cd244dc0e · PR open when checked.</small></section>
-</main>
-<nav><button id="previous" type="button">Previous</button><span id="count" aria-live="polite"></span><button id="next" type="button">Next</button><button id="notes" type="button">Notes (N)</button></nav>
-<script>
-const slides = [...document.querySelectorAll('section')];
-let current = 0;
-function show(index) {
-  current = Math.max(0, Math.min(slides.length - 1, index));
-  slides.forEach((slide, i) => slide.classList.toggle('active', i === current));
-  document.getElementById('count').textContent = `${current + 1} / ${slides.length}`;
-  document.getElementById('previous').disabled = current === 0;
-  document.getElementById('next').disabled = current === slides.length - 1;
-  window.scrollTo(0, 0);
-}
-document.getElementById('previous').onclick = () => show(current - 1);
-document.getElementById('next').onclick = () => show(current + 1);
-document.getElementById('notes').onclick = () => document.body.classList.toggle('notes');
-document.addEventListener('keydown', event => {
-  if (event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
-  if (event.key === ' ' && event.target.closest('button,a')) return;
-  if (['ArrowRight','PageDown',' '].includes(event.key)) { event.preventDefault(); show(current + 1); }
-  if (['ArrowLeft','PageUp'].includes(event.key)) { event.preventDefault(); show(current - 1); }
-  if (event.key === 'Home') { event.preventDefault(); show(0); }
-  if (event.key === 'End') { event.preventDefault(); show(slides.length - 1); }
-  if (event.key.toLowerCase() === 'n') document.body.classList.toggle('notes');
-});
-show(0);
-</script>
+      <section class="slide" aria-label="When a registry helps">
+        <div class="eyebrow">01 / The decision</div>
+        <h2>Three URLs are fine.<br><span class="accent">Until ownership changes.</span></h2>
+        <div class="two-col decision-grid">
+          <div class="decision-card"><div class="label">One team · one release</div><h3>Configuration may be enough.</h3><p>The same team coordinates endpoints,<br>interfaces and callers.</p><p class="conclusion">Keep it simple.</p></div>
+          <div class="decision-card focus"><div class="label">Independent publishers</div><h3>The contract needs a home.</h3><p>Callers need to find endpoints and<br>inspect changes to declared capabilities.</p><p class="conclusion">Make publication explicit.</p></div>
+        </div>
+        <footer class="slide-footer"><span>AGENT SPRAWL / CARLES ARNAL</span><span class="slide-number">02 / 13</span></footer>
+        <aside>0–3 minutes. Explain this as a motivating scenario, not evidence that we operate twenty agents in production. A registry is another dependency with availability and access-control costs. For one team, static configuration may be the right choice.</aside>
+      </section>
+
+      <section class="slide" aria-label="Registry contribution">
+        <div class="eyebrow">01 / The decision</div>
+        <h2>A shared contract.<br>Three useful jobs.</h2>
+        <div class="three-col benefits">
+          <div class="benefit"><span class="big-index">01</span><h3>Locate</h3><p>Publish definitions and resolve endpoints.</p></div>
+          <div class="benefit"><span class="big-index">02</span><h3>Review</h3><p>Keep a version history of declared capabilities.</p></div>
+          <div class="benefit"><span class="big-index">03</span><h3>Check</h3><p>Reject a card update that removes a required skill.</p></div>
+        </div>
+        <p class="hint">The application still owns the roles and the execution order.</p>
+        <footer class="slide-footer"><span>DISCOVERY ≠ ORCHESTRATION</span><span class="slide-number">03 / 13</span></footer>
+        <aside>Frame the particular rule used by this demo: preserve the declared translation skill under BACKWARD compatibility. These are publication and discovery functions, not an automatic dependency graph or workflow planner.</aside>
+      </section>
+
+      <section class="slide" aria-label="Architecture">
+        <div class="eyebrow">02 / The architecture</div>
+        <h2>Discover through the registry.<br><span class="teal">Call the services directly.</span></h2>
+        <svg class="architecture" viewBox="0 0 1424 450" role="img" aria-labelledby="architecture-title architecture-desc">
+          <title id="architecture-title">Registry metadata and direct execution</title>
+          <desc id="architecture-desc">The orchestrator queries Apicurio Registry using registry extensions. The summarizer and translator publish Agent Cards; the runner registers MCP metadata. Separate invocation arrows connect the orchestrator directly to each service in sequence.</desc>
+          <defs>
+            <marker id="metadata-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#a53d16"/></marker>
+            <marker id="execution-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#00675e"/></marker>
+          </defs>
+          <rect x="428" y="14" width="570" height="86" rx="8" fill="#eee0d1" stroke="#c9a182" stroke-width="2"/>
+          <text x="713" y="51" text-anchor="middle" font-size="28" font-weight="600" fill="#202b2b">Apicurio Registry</text>
+          <text x="713" y="79" text-anchor="middle" font-size="18" fill="#5e6b68">published cards · connection metadata · version history</text>
+          <rect x="12" y="170" width="310" height="224" rx="8" fill="#202f2c"/>
+          <text x="167" y="222" text-anchor="middle" font-size="30" fill="#f4f2eb" font-weight="600">Orchestrator</text>
+          <text x="167" y="264" text-anchor="middle" font-size="21" fill="#c4d4c9">fixed roles + sequence</text>
+          <line x1="48" y1="294" x2="286" y2="294" stroke="#71887b"/>
+          <text x="167" y="331" text-anchor="middle" font-size="20" fill="#c4d4c9">Quarkus LangChain4j</text>
+          <text x="167" y="360" text-anchor="middle" font-size="20" fill="#c4d4c9">registry extensions</text>
+          <g fill="#e0ebe2" stroke="#96b3a0" stroke-width="2"><rect x="1050" y="154" width="345" height="73" rx="8"/><rect x="1050" y="252" width="345" height="73" rx="8"/><rect x="1050" y="350" width="345" height="73" rx="8"/></g>
+          <g fill="#202b2b" font-size="26" text-anchor="middle" font-weight="600"><text x="1222" y="199">Weather · MCP</text><text x="1222" y="297">Summarizer · A2A</text><text x="1222" y="395">Translator · A2A</text></g>
+          <g fill="none" stroke="#a53d16" stroke-width="2.5" marker-end="url(#metadata-arrow)"><path class="flow-path" style="--delay:.8s" d="M166 170V58H428"/><path class="flow-path" d="M1395 288H1410V56H998"/></g>
+          <path class="flow-path" d="M1395 386H1410V288" fill="none" stroke="#a53d16" stroke-width="2.5"/>
+          <text class="flow-label" style="--delay:.8s" x="187" y="139" fill="#a53d16" font-size="19">discover endpoints</text><text class="flow-label" x="1060" y="40" fill="#a53d16" font-size="19">publish Agent Cards</text>
+          <g fill="none" stroke="#00675e" stroke-width="3" marker-end="url(#execution-arrow)"><path class="flow-path" style="--delay:1.7s" d="M322 205H1015V190H1050"/><path class="flow-path" style="--delay:2.7s" d="M322 288H1050"/><path class="flow-path" style="--delay:3.7s" d="M322 371H1015V386H1050"/></g>
+          <g fill="#00675e" font-size="23"><text class="flow-label" style="--delay:1.7s" x="385" y="185">1. getWeather(city)</text><text class="flow-label" style="--delay:2.7s" x="385" y="268">2. summarize(weather + context)</text><text class="flow-label" style="--delay:3.7s" x="385" y="351">3. translate(actual summary)</text></g>
+        </svg>
+        <div class="diagram-legend"><span><i class="legend-line" style="border-color:var(--orange)"></i>Publication / discovery</span><span><i class="legend-line"></i>Invocation</span><button class="replay" type="button">Replay flow ↻</button></div>
+        <footer class="slide-footer"><span>THE REGISTRY IS NOT AN INVOCATION PROXY</span><span class="slide-number">04 / 13</span></footer>
+        <aside>3–6 minutes. All invocations originate in the orchestrator; outputs are passed to the next call by application code. A2A agents use the extension's programmatic publisher. The runner explicitly registers the MCP artifact. Orange paths show publication/discovery; teal paths show direct invocation. The animation illustrates order, not measured timing or live traffic. Press R or Replay flow to repeat it.</aside>
+      </section>
+
+      <section class="slide" aria-label="Actual handoffs">
+        <div class="eyebrow">02 / The architecture</div>
+        <h2>Follow the data.<br>Not just the final answer.</h2>
+        <div class="three-col handoff-grid">
+          <div class="handoff"><span class="label">01 · MCP tool</span><h3>Weather</h3><div class="example"><strong>FIXTURE OUTPUT</strong>Amsterdam: 16 C,<br>light rain.</div></div>
+          <div class="handoff" style="--delay:.7s"><span class="label">02 · A2A agent</span><h3>Summarize</h3><div class="example"><strong>INPUT</strong>Weather result<br>+ visitor context.</div></div>
+          <div class="handoff" style="--delay:1.4s"><span class="label">03 · A2A agent</span><h3>Translate</h3><div class="example"><strong>INPUT</strong>The actual summary,<br>passed unchanged.</div></div>
+        </div>
+        <p class="hint">Weather is fictional. Generated text varies. The handoffs are inspectable.</p>
+        <footer class="slide-footer"><span>ONE REQUEST / THREE REAL CALLS</span><span class="slide-number">05 / 13</span></footer>
+        <aside>The connected briefing is a fixed application workflow, not a model planning arbitrary steps. The displayed weather is the sample fixture. Do not prescribe an exact summary or translation. Point to returned handoff inputs and outputs to demonstrate actual invocation.</aside>
+      </section>
+
+      <section class="slide dark" aria-label="Live briefing">
+        <div class="eyebrow">03 / Live demo <span class="pill">01 · Briefing</span></div>
+        <h2>One briefing.<br><span class="teal">Every handoff visible.</span></h2>
+        <div class="live-grid">
+          <div class="terminal"><div class="terminal-bar"><i class="terminal-dot"></i><i class="terminal-dot"></i><i class="terminal-dot"></i><span class="terminal-name">terminal · repository root</span></div><pre><span class="prompt">$</span> bash scripts/paris-2026-demo.sh
+
+# Build and warm the model beforehand.</pre><a class="command-link" href="http://localhost:11020/" target="_blank" rel="noopener">Open localhost:11020 ↗</a></div>
+          <div><div class="label">Watch for</div><div class="observe-row"><span class="n">01</span><p>Weather output in the summary input.</p></div><div class="observe-row"><span class="n">02</span><p>Summary output in the translation input.</p></div><div class="observe-row"><span class="n">03</span><p>Registered versions observed before execution.</p></div></div>
+        </div>
+        <footer class="slide-footer"><span>DEMO / MCP → A2A → A2A</span><span class="slide-number">06 / 13</span></footer>
+        <aside>6–11 minutes. Have the application running before the talk. Open the dashboard, choose a city and enter context. Show actual results rather than reading JSON line by line. The registered versions are observations, not pins to the running services.</aside>
+      </section>
+
+      <section class="slide" aria-label="Breaking card change">
+        <div class="eyebrow">04 / The contract</div>
+        <h2>A small metadata change.<br><span class="accent">A broken promise.</span></h2>
+        <div class="two-col diff-grid">
+          <div class="code-card"><div class="code-header"><span>ACCEPTED</span><span>Agent Card</span></div><pre>skills:
+  - id: translator</pre></div>
+          <div class="code-card"><div class="code-header"><span>CANDIDATE</span><span>Agent Card</span></div><pre>skills:
+<span class="removed">−   id: translator</span><span class="added">+   id: unrelated-…</span></pre></div>
+        </div>
+        <div class="verdict"><strong>BACKWARD → HTTP 400</strong><code>Skill 'translator' was removed</code></div>
+        <p class="hint">Skill-ID excerpt. The candidate remains non-empty: this tests compatibility.</p>
+        <footer class="slide-footer"><span>PUBLICATION CHECK / NOT A CODE DEPLOYMENT</span><span class="slide-number">07 / 13</span></footer>
+        <aside>11–16 minutes. This is an abbreviated diff, not the complete JSON payload. Explain the invariant before the command: preserve the declared translator skill. Keeping another skill rules out an empty-card validity failure. The actual error contains the /skills cause.</aside>
+      </section>
+
+      <section class="slide dark" aria-label="Live governance checks">
+        <div class="eyebrow">04 / Live demo <span class="pill">02 · Governance</span></div>
+        <h2>Don’t just show the error.<br><span class="teal">Check what survived.</span></h2>
+        <div class="live-grid">
+          <div class="terminal"><div class="terminal-bar"><i class="terminal-dot"></i><i class="terminal-dot"></i><i class="terminal-dot"></i><span class="terminal-name">second terminal · repository root</span></div><pre><span class="prompt">$</span> python3 scripts/workflow.py governance
+
+# Baseline → rejected update → rerun
+# Then: compatible addition → rerun</pre></div>
+          <div class="proof-list"><div class="proof"><b>CHECK 01</b><span>Rejected version is absent.</span></div><div class="proof" style="--delay:.6s"><b>CHECK 02</b><span>Accepted content and version are unchanged.</span></div><div class="proof" style="--delay:1.2s"><b>CHECK 03</b><span>The complete briefing still runs.</span></div></div>
+        </div>
+        <p class="hint">The running agents stay unchanged throughout this experiment.</p>
+        <footer class="slide-footer"><span>DEMO / ASSERTIONS, NOT JUST OUTPUT</span><span class="slide-number">08 / 13</span></footer>
+        <aside>The governance script checks the specific RuleViolationException and removed-skill cause, 404 for the rejected version, and unchanged accepted content/version/globalId. The globalId identifies the stored registration, not the deployed binary. Show the PASS statements and actual rerun.</aside>
+      </section>
+
+      <section class="slide" aria-label="Compatible addition">
+        <div class="eyebrow">04 / The contract</div>
+        <h2>Keep the promise.<br><span class="teal">Publish the addition.</span></h2>
+        <div class="version-flow">
+          <div class="version-box"><div class="label">Previous registration</div><pre>skills:
+  - translator</pre></div>
+          <div class="arrow" aria-hidden="true">→</div>
+          <div class="version-box new"><div class="label">New registration</div><pre>skills:
+  - translator
+  - additional-translation-…</pre></div>
+        </div>
+        <div class="verdict positive"><strong>Accepted</strong><span class="small">The next briefing reports the new registered version.</span></div>
+        <p class="hint">New metadata ≠ a newly implemented skill. The running translator is unchanged.</p>
+        <footer class="slide-footer"><span>PUBLICATION AND OBSERVATION</span><span class="slide-number">09 / 13</span></footer>
+        <aside>16–19 minutes. Explain only what is tested: an additive metadata version is persisted and observed by a subsequent successful workflow. No implementation was deployed. If inference is slow, explain the already-verified rerun instead of waiting for repeated generation.</aside>
+      </section>
+
+      <section class="slide" aria-label="Typed MCP wrapper lesson">
+        <div class="eyebrow">05 / An integration lesson</div>
+        <h2>Let the model choose the city.<br>Let code shape the call.</h2>
+        <div class="two-col lesson-grid">
+          <div class="lesson"><div class="label">Generic tool calls</div><h3>More room for shape errors.</h3><p>In sample testing, the model sometimes sent an object instead of a JSON string—or omitted the connection key.</p></div>
+          <div class="lesson resolved"><div class="label">Typed application boundary</div><h3>One input. Explicit sequencing.</h3><pre>weatherForCity(String city)
+  search → connect → invoke
+  Jackson encodes the JSON</pre><p>The application owns argument encoding.</p></div>
+        </div>
+        <p class="hint">The weather assistant uses this as a tool; the fixed briefing calls it directly.</p>
+        <footer class="slide-footer"><span>REDUCE ACCIDENTAL COMPLEXITY AT THE BOUNDARY</span><span class="slide-number">10 / 13</span></footer>
+        <aside>This observation is documented in the pinned sample's verification record. It is not a quantified benchmark. The separate /workflow/weather endpoint demonstrates model-driven tool use; the briefing does not rely on the model to plan the sequence. A typed wrapper reduces shape errors, not every bad input or authorization risk.</aside>
+      </section>
+
+      <section class="slide" aria-label="Responsibility matrix">
+        <div class="eyebrow">06 / The design rule</div>
+        <h2>Put each guarantee<br>in the right place.</h2>
+        <div class="ownership" role="table" aria-label="Responsibility ownership">
+          <div class="ownership-row" role="row"><span class="index" role="cell">01</span><span class="what" role="cell">Locate registered endpoints</span><span class="who" role="cell">Registry extensions</span></div>
+          <div class="ownership-row" role="row"><span class="index" role="cell">02</span><span class="what" role="cell">Choose roles, order and argument encoding</span><span class="who" role="cell">Application code</span></div>
+          <div class="ownership-row" role="row"><span class="index" role="cell">03</span><span class="what" role="cell">Check a candidate card</span><span class="who" role="cell">Registry publication rules</span></div>
+          <div class="ownership-row" role="row"><span class="index" role="cell">04</span><span class="what" role="cell">Verify deployed behavior</span><span class="who" role="cell">Tests + deployment process</span></div>
+        </div>
+        <p class="hint">Observed metadata is not deployment pinning. Lifecycle and authorization need their own policy.</p>
+        <footer class="slide-footer"><span>CONTRACT COMPATIBILITY ≠ RUNTIME CORRECTNESS</span><span class="slide-number">11 / 13</span></footer>
+        <aside>19–22 minutes. This is the single boundary summary. The example is loopback-only and unauthenticated, has no deprecation gate, and does not pin remote deployments. Registered metadata reads are not a transactional snapshot across services. Separate publication proof from behavioral testing.</aside>
+      </section>
+
+      <section class="slide" aria-label="Takeaways">
+        <div class="eyebrow">06 / Take it back to your team</div>
+        <h2>Discover. Connect. Verify.</h2>
+        <div style="margin-top: 36px;">
+          <div class="takeaway-row"><span class="index">01</span><div><h3>Use a registry when ownership warrants it.</h3><p>Share published contracts, not hardcoded network locations.</p></div></div>
+          <div class="takeaway-row"><span class="index">02</span><div><h3>Make every handoff explicit.</h3><p>Check actual inputs and outputs—not just a plausible final answer.</p></div></div>
+          <div class="takeaway-row"><span class="index">03</span><div><h3>Test what a rejected change preserves.</h3><p>Then verify running implementations separately.</p></div></div>
+        </div>
+        <footer class="slide-footer"><span>A RUNNABLE EXAMPLE / A REUSABLE BOUNDARY</span><span class="slide-number">12 / 13</span></footer>
+        <aside>Close by restating the three useful behaviors rather than enumerating all missing production features. We located endpoints, executed a connected request and verified publication compatibility. Invite questions about the deployment boundary.</aside>
+      </section>
+
+      <section class="slide dark close" aria-label="Code and questions">
+        <div class="eyebrow">Code / questions</div>
+        <h2>Try the workflow.<br><span class="teal">Inspect the contract.</span></h2>
+        <a class="repo" href="https://github.com/carlesarnal/agent-discovery-demo/tree/cloud-native-paris-2026">github.com/carlesarnal/agent-discovery-demo ↗</a>
+        <div class="closing-bottom"><div><p>Carles Arnal</p><p class="small" style="color:var(--muted)">Principal Software Engineer, IBM</p></div><div><a class="small" href="https://github.com/quarkiverse/quarkus-langchain4j/pull/2932">Quarkus LangChain4j · PR #2932 ↗</a><p class="small" style="margin-top:12px;color:var(--muted)">Branch: cloud-native-paris-2026</p></div></div>
+        <footer class="slide-footer"><span>PINNED SAMPLE: 682928B7 / PR OPEN WHEN CHECKED</span><span class="slide-number">13 / 13</span></footer>
+        <aside>22–25 minutes: questions and buffer. The upstream sample is pinned; do not call it a released sample while its PR remains open. Point to the repository's exact setup commands and verification record.</aside>
+      </section>
+    </div>
+  </main>
+
+  <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+  <nav class="toolbar" aria-label="Slide navigation">
+    <div class="toolbar-group"><button id="previous" type="button" aria-label="Previous slide">←</button><span id="count" aria-live="polite"></span><button id="next" type="button" aria-label="Next slide">→</button></div>
+    <span class="toolbar-caption">Agent sprawl / Paris 2026</span>
+    <div class="toolbar-group"><button id="notes" type="button" aria-expanded="false" aria-controls="speaker-notes">Notes · N</button><button id="fullscreen" type="button">Fullscreen · F</button></div>
+  </nav>
+  <div class="notes-panel" id="speaker-notes" hidden><h2>Speaker notes</h2><p id="notes-content"></p></div>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    let current = 0;
+    function fit() {
+      document.documentElement.style.setProperty('--scale', Math.min(innerWidth / 1600, Math.max(1, innerHeight - 58) / 900));
+    }
+    function show(index, updateHash = true) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('active', i === current);
+        slide.setAttribute('aria-hidden', String(i !== current));
+      });
+      document.getElementById('count').textContent = `${current + 1} / ${slides.length}`;
+      document.getElementById('progress').style.width = `${(current + 1) / slides.length * 100}%`;
+      document.getElementById('previous').disabled = current === 0;
+      document.getElementById('next').disabled = current === slides.length - 1;
+      document.getElementById('notes-content').textContent = slides[current].querySelector('aside')?.textContent || 'No notes for this slide.';
+      if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+      replay();
+    }
+    function fromHash() {
+      const match = location.hash.match(/^#slide-(\d+)$/);
+      show(match ? Number(match[1]) - 1 : 0, false);
+    }
+    function toggleNotes() {
+      const panel = document.getElementById('speaker-notes');
+      panel.hidden = !panel.hidden;
+      document.getElementById('notes').setAttribute('aria-expanded', String(!panel.hidden));
+    }
+    function replay() {
+      const slide = slides[current];
+      slide.classList.remove('animating');
+      void slide.offsetWidth;
+      slide.classList.add('animating');
+    }
+    document.querySelectorAll('.replay').forEach(button => button.onclick = replay);
+    async function toggleFullscreen() {
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else await document.documentElement.requestFullscreen();
+      } catch (error) { console.warn('Fullscreen is unavailable:', error.message); }
+    }
+    document.getElementById('previous').onclick = () => show(current - 1);
+    document.getElementById('next').onclick = () => show(current + 1);
+    document.getElementById('notes').onclick = toggleNotes;
+    document.getElementById('fullscreen').onclick = toggleFullscreen;
+    document.addEventListener('keydown', event => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+      if (event.key === ' ' && event.target.closest('button,a')) return;
+      if (['ArrowRight', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); show(current + 1); }
+      if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); show(current - 1); }
+      if (event.key === 'Home') { event.preventDefault(); show(0); }
+      if (event.key === 'End') { event.preventDefault(); show(slides.length - 1); }
+      if (event.key.toLowerCase() === 'n') toggleNotes();
+      if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFullscreen(); }
+      if (event.key.toLowerCase() === 'r') replay();
+      if (event.key === 'Escape' && !document.getElementById('speaker-notes').hidden) toggleNotes();
+    });
+    addEventListener('resize', fit);
+    addEventListener('hashchange', fromHash);
+    fit(); fromHash();
+  </script>
 </body>
 </html>

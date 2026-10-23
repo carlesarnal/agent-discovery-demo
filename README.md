@@ -72,7 +72,18 @@ calls. `OLLAMA_URL` and `OLLAMA_MODEL` are supported by the upstream runner.
 
 Open `presentation.html`. It follows the connected workflow and publication checks
 in a 25–30-minute slot. Speaker notes and rehearsal steps: `docs/paris-runbook.md`.
+The 13-slide narrative explains when a registry helps, separates metadata and
+execution paths visually, shows the rejected card change, and finishes with the
+typed MCP wrapper lesson and a responsibility matrix.
 Do builds/model downloads before the session. Record a backup before presenting.
+
+Slides use a self-contained 16:9 layout with no external font or asset downloads.
+Arrow keys / Page Up / Page Down navigate; N toggles speaker notes, F toggles
+fullscreen, and R replays the current slide's animation. The architecture flow
+has a replay button. Animations illustrate sequencing, not live calls or measured
+latency. Reduced-motion preferences disable them; print output shows complete
+static slides without controls or speaker notes. URLs such as `#slide-4` open a
+particular slide directly.
 
 ## Repository layout
 

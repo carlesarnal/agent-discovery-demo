@@ -2,16 +2,19 @@
 
 ## Timing (25 minutes; add discussion for a 30-minute slot)
 
-1. **0–3:** A caller needs a tool and two agents. Who owns discovery, sequencing and contracts?
-2. **3–6:** Architecture: programmatic Agent Card publication, explicit MCP registration,
-   endpoint discovery through extensions, fixed application roles.
-3. **6–12:** Submit one briefing. Inspect weather output in summarizer input, then the
+1. **0–3:** Why not three configured URLs? Contrast one-team ownership with independent
+   publishers. The small demo illustrates a design choice, not measured fleet scale.
+2. **3–6:** Diagram: separate registration/discovery paths from direct execution calls.
+   Introduce programmatic A2A publication, explicit MCP registration and fixed roles.
+3. **6–11:** Submit one briefing. Inspect weather output in summarizer input, then the
    exact summary in translator input. Show the observed contract versions.
-4. **12–18:** Run `python3 scripts/workflow.py governance`. Show the precise removed-skill
-   rejection, unchanged accepted registration, successful rerun and compatible addition.
-5. **18–22:** Explain metadata versus deployments, observation versus version pinning,
-   and what would require behavioral tests or a lifecycle policy.
-6. **22–25:** Questions.
+4. **11–16:** Show the minimal card diff, then run `python3 scripts/workflow.py governance`.
+   Show the precise removed-skill rejection, unchanged registration and successful rerun.
+5. **16–19:** Compatible publication, then the typed MCP wrapper integration lesson.
+   Distinguish model-driven /workflow/weather from the fixed-sequence briefing.
+6. **19–22:** Responsibility matrix and takeaways: discovery, sequencing, publication
+   checks and deployment verification each have an owner.
+7. **22–25:** Questions/buffer.
 
 ## Preflight
 
@@ -19,7 +22,13 @@
 - Run the smoke check with the intended hardware/model and inspect the outputs.
 - Start the interactive runner and open http://localhost:11020/.
 - Open slides separately; no embedded terminal server is required.
+- Slides: arrows navigate; N toggles notes; F toggles fullscreen; R replays
+  animation. Slide 4 reveals publication, discovery and invocation in sequence.
+  These are illustrative animations, not live telemetry. Keep the real dashboard
+  in a separate tab for the actual workflow execution.
 - Record a backup of the same revision. Do not describe a recording as live execution.
+- Rehearse to 22 minutes. If behind at minute 16, explain the compatible-addition
+  result already observed in smoke tests instead of waiting for another generation.
 - Model quality is a human evaluation; smoke assertions verify handoffs and execution,
   not the truth of every generated sentence.
 
@@ -56,3 +65,13 @@ October 23, 2026, this worktree, Java 25.0.2 and host Ollama qwen2.5:7b:
   print visibility and absence of JavaScript errors checked.
 - Removed the unused agents, legacy Compose files, schemas, ADRs and numbered
   scripts. The pinned upstream sample is the sole execution path.
+
+Visual redesign checked October 23:
+- All 13 redesigned slides inspected as Chrome screenshots.
+- Fixed 1600×900 canvas scales into desktop/projector and narrow viewports;
+  checked at 1920×1080, 1280×720, 1024×768 and 390×844.
+- Tested sequential flow animations, replay, reduced motion, hash navigation,
+  keyboard/buttons, notes visibility and print rendering; no JavaScript errors.
+- Print/PDF rendering disables animations so the full flow is visible.
+- No new runtime behavior was introduced by the slide redesign; earlier sample
+  verification remains the evidence for the actual demo.
