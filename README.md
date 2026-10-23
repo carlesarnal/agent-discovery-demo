@@ -70,6 +70,10 @@ calls. `OLLAMA_URL` and `OLLAMA_MODEL` are supported by the upstream runner.
 
 ## Presentation
 
+Start with [PRESENTATION_GUIDE.md](PRESENTATION_GUIDE.md): preflight commands,
+slide-by-slide speaking notes, live-demo cues, expected results, troubleshooting
+and likely questions, paced for 25 minutes.
+
 Open `presentation.html`. It follows the connected workflow and publication checks
 in a 25–30-minute slot. Speaker notes and rehearsal steps: `docs/paris-runbook.md`.
 The 13-slide narrative explains when a registry helps, separates metadata and

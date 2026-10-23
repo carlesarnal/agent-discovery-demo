@@ -1,5 +1,9 @@
 # Connected workflow — rehearsal notes
 
+For the full speaking script, setup checklist, demo commands and Q&A, use
+[PRESENTATION_GUIDE.md](../PRESENTATION_GUIDE.md). This file is the short runbook
+and verification record.
+
 ## Timing (25 minutes; add discussion for a 30-minute slot)
 
 1. **0–3:** Why not three configured URLs? Contrast one-team ownership with independent
