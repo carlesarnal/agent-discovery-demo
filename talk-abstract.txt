@@ -1,0 +1,12 @@
+Title: Agent Sprawl Is the New Microservice Sprawl: Discovery and Governance for Multi-Agent AI
+
+A translator publishes a new Agent Card with its translation skill removed. Can callers catch that change before adopting the new contract? A shared registry can check the publication, but it cannot prove that the running translator still behaves as advertised. That boundary matters when agents and tools evolve independently.
+
+This session follows a tested Quarkus workflow: an MCP weather tool feeds an A2A summarizer, whose output feeds an A2A translator. Apicurio Registry supplies endpoint metadata; application code owns the roles and sequence. We remove the declared translation skill and inspect the rejected publication, the unchanged accepted registration and a successful workflow rerun. An additive change demonstrates the accepted path. The weather data is fictional; the protocol calls and handoffs execute end to end.
+
+My merged Quarkus LangChain4j fix supplies a second lesson: restarting an agent with a changed card must update its registration even when the declared agent version stays the same. We examine the regression test alongside the workflow's publication checks. Together they establish a responsibility matrix for fresh metadata, application-owned sequencing and runtime verification, including when static endpoints are simpler.
+
+Attendees will leave with:
+- Criteria for choosing registry-backed discovery over static endpoint configuration
+- A runnable MCP-to-A2A workflow with tests for actual handoffs and contract publication
+- A responsibility matrix for registry checks, application orchestration and deployment testing
