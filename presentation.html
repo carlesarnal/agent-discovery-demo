@@ -12,21 +12,21 @@ h1 { font-size:2em; } li { margin:.5em 0; } pre { white-space:pre-wrap; overflow
 a { color:#93c5fd; } small,aside { font-size:.65em; color:#cbd5e1; } aside { display:none; border-top:1px solid #64748b; padding-top:1em; }
 body.notes aside { display:block; } nav { position:fixed; bottom:0; padding:12px; background:#111827; width:100%; box-sizing:border-box; display:flex; gap:16px; align-items:center; }
 button { font:inherit; font-size:16px; padding:8px 16px; cursor:pointer; } #count { font-size:16px; }
-@media print { section { display:block; break-after:page; padding:1cm; } nav,aside { display:none; } body { background:white; color:black; font-size:20px; } }
+@media print { section { display:block; break-after:page; padding:1cm; } nav,aside,body.notes aside { display:none; } body { background:white; color:black; font-size:20px; } }
 </style>
 </head>
 <body>
 <main>
-<section class="active"><h1>Agent Sprawl Is the New Microservice Sprawl</h1><p>Discovery and contract governance for multi-agent AI</p><p>Carles Arnal · Principal Software Engineer, IBM</p><small>Apicurio Registry core maintainer · Quarkus committer · BarcelonaTech</small><aside>25–30 minutes. Start with the integration problem, not a claim of a large production deployment.</aside></section>
+<section class="active"><h1>Agent Sprawl Is the New Microservice Sprawl</h1><p>Discovery and contract governance for multi-agent AI</p><p>Carles Arnal · Principal Software Engineer, IBM</p><small>Cloud Native AI Summit Europe · Paris · December 2–3, 2026<br>Apicurio Registry core maintainer · Quarkus committer · BarcelonaTech</small><aside>25–30 minutes. Start with the integration problem, not a claim of a large production deployment.</aside></section>
 <section><h2>One request, three dependencies</h2><pre>Weather tool → summarization agent → translation agent</pre><ul><li>Where are they running?</li><li>Which contract has been registered?</li><li>What happens when a declared skill is removed?</li></ul><aside>Use the fictional multilingual briefing as a small, concrete illustration.</aside></section>
 <section><h2>Three separate responsibilities</h2><ul><li><strong>Registry:</strong> published definitions and endpoint discovery.</li><li><strong>Application:</strong> required roles and handoff order.</li><li><strong>Runtime:</strong> execution and actual behavior.</li></ul><aside>None automatically guarantees the other two.</aside></section>
 <section><h2>A2A and MCP in the same workflow</h2><pre>MCP getWeather(city)
   → A2A summarize(weather + context)
   → A2A translate(summary)</pre><p>Fixed sequence. Discovered endpoints. Actual outputs passed forward.</p><small>Not autonomous planning or capability negotiation.</small></section>
-<section><h2>Use the registry extensions</h2><ul><li>Text agents publish through the A2A extension's programmatic publisher.</li><li>The runner registers the Weather MCP artifact and connection labels.</li><li><code>ApicurioAgentsRegistry</code> supplies callable agents.</li><li>The MCP extension searches, connects and invokes the tool.</li></ul><aside>No custom label-based LLM router from the old Paris demo. Distinguish explicit MCP registration from automatic ingestion.</aside></section>
+<section><h2>Use the registry extensions</h2><ul><li>Text agents publish through the A2A extension's programmatic publisher.</li><li>The runner registers the Weather MCP artifact and connection labels.</li><li><code>ApicurioAgentsRegistry</code> supplies callable agents.</li><li>The MCP extension searches, connects and invokes the tool.</li></ul><aside>Application code fixes the handoff order. Distinguish explicit MCP registration from automatic ingestion.</aside></section>
 <section><h2>Live: create a briefing</h2><pre>bash scripts/paris-2026-demo.sh
 
-http://localhost:11020/</pre><p>Choose a city, enter context, inspect each handoff.</p><aside>Prepare dependencies beforehand. Show the actual weather output in the next input and the actual summary passed to translation. Weather is fictional.</aside></section>
+http://localhost:11020/</pre><p><a href="http://localhost:11020/" target="_blank" rel="noopener">Open briefing dashboard</a> · Choose a city, enter context, inspect each handoff.</p><aside>Prepare dependencies beforehand. Show the actual weather output in the next input and the actual summary passed to translation. Weather is fictional.</aside></section>
 <section><h2>Versions are observations</h2><p>The dashboard reports registered version IDs before execution.</p><ul><li>Not a deployment pin.</li><li>Not a transactional snapshot across services.</li><li>Not proof that runtime code matches the card.</li></ul><aside>Do not call the displayed metadata an enforcement gate.</aside></section>
 <section><h2>Live: remove a required skill</h2><pre>python3 scripts/workflow.py governance</pre><ul><li>Attempt to remove the translator skill while retaining another skill.</li><li>Check HTTP 400 and the exact compatibility violation.</li><li>Verify the rejected version is absent.</li></ul><aside>Keeping another skill separates compatibility rejection from a generic empty-card validity failure.</aside></section>
 <section><h2>Check what stayed unchanged</h2><ul><li>Accepted card content.</li><li>Latest registered version and globalId.</li><li>A complete briefing still runs.</li></ul><p>Then publish an additive change and observe the new registration.</p><aside>Adding a metadata skill does not implement it in the running agent. Explain exactly what this test proves.</aside></section>
@@ -45,16 +45,18 @@ function show(index) {
   document.getElementById('count').textContent = `${current + 1} / ${slides.length}`;
   document.getElementById('previous').disabled = current === 0;
   document.getElementById('next').disabled = current === slides.length - 1;
+  window.scrollTo(0, 0);
 }
 document.getElementById('previous').onclick = () => show(current - 1);
 document.getElementById('next').onclick = () => show(current + 1);
 document.getElementById('notes').onclick = () => document.body.classList.toggle('notes');
 document.addEventListener('keydown', event => {
-  if (event.target.closest('button,a,input,textarea')) return;
+  if (event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+  if (event.key === ' ' && event.target.closest('button,a')) return;
   if (['ArrowRight','PageDown',' '].includes(event.key)) { event.preventDefault(); show(current + 1); }
   if (['ArrowLeft','PageUp'].includes(event.key)) { event.preventDefault(); show(current - 1); }
-  if (event.key === 'Home') show(0);
-  if (event.key === 'End') show(slides.length - 1);
+  if (event.key === 'Home') { event.preventDefault(); show(0); }
+  if (event.key === 'End') { event.preventDefault(); show(slides.length - 1); }
   if (event.key.toLowerCase() === 'n') document.body.classList.toggle('notes');
 });
 show(0);

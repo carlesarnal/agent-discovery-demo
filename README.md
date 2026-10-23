@@ -74,13 +74,16 @@ Open `presentation.html`. It follows the connected workflow and publication chec
 in a 25–30-minute slot. Speaker notes and rehearsal steps: `docs/paris-runbook.md`.
 Do builds/model downloads before the session. Record a backup before presenting.
 
-## Earlier demo
+## Repository layout
 
-The existing `agents/`, `docker-compose.yaml`, `compose.host-ollama.yaml`, schemas
-and numbered scripts are legacy material from the previous independent-request demo.
-They are not used by the new entry point. In particular, `09-deprecate-agent.sh`
-belongs to the old consumer-gate experiment; do not mix it with this sample.
-Historical prompt/model-schema walkthroughs remain available through the old scripts.
+- `scripts/workflow.py`: pinned source checkout, build, tests and demo commands.
+- `scripts/paris-2026-demo.sh`: starts the interactive demo.
+- `presentation.html`: slides for this workflow.
+- `docs/paris-runbook.md`: rehearsal plan and verification record.
+- `target/` (ignored): upstream source, application builds and isolated Maven cache.
+
+The actual Java services, dashboard, Compose file and tests live in the pinned
+upstream sample fetched by `prepare`. This branch keeps one implementation path.
 
 ## Verification provenance
 
@@ -88,3 +91,8 @@ The pinned PR includes nine automated tests and an October 7 live verification r
 [VERIFICATION.md](https://github.com/carlesarnal/quarkus-langchain4j/blob/682928b714574e1ca8f0405c4319b36cd244dc0e/samples/agent-registry-workflow/VERIFICATION.md).
 That is the upstream author's record, not proof of a fresh run of this wrapper.
 See `docs/paris-runbook.md` for current local check results.
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE). The fetched upstream repository
+retains its own license and notices.

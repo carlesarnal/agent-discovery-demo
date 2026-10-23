@@ -50,4 +50,9 @@ October 23, 2026, this worktree, Java 25.0.2 and host Ollama qwen2.5:7b:
   Compatible publication created a new registration observed by another briefing.
 - The runner stopped its processes and removed its Registry/container network.
 - Upstream split-package and optional gRPC indexing warnings remain.
-- Slides have not been visually reviewed in a browser; do that before presenting.
+- Slides checked in headless Chrome at 1920×1080, 1280×720 and 1024×768:
+  all 13 slides fit above navigation with no horizontal overflow. Title and
+  demo-slide screenshots inspected. Keyboard/button navigation, notes toggle,
+  print visibility and absence of JavaScript errors checked.
+- Removed the unused agents, legacy Compose files, schemas, ADRs and numbered
+  scripts. The pinned upstream sample is the sole execution path.
