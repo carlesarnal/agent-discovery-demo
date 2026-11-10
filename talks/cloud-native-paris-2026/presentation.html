@@ -216,7 +216,7 @@
         <div class="three-col benefits">
           <div class="benefit"><span class="big-index">01</span><h3>Locate</h3><p>Publish definitions and resolve endpoints.</p></div>
           <div class="benefit"><span class="big-index">02</span><h3>Review</h3><p>Keep a version history of declared capabilities.</p></div>
-          <div class="benefit"><span class="big-index">03</span><h3>Check</h3><p>Reject a card update that removes a required skill.</p></div>
+          <div class="benefit"><span class="big-index">03</span><h3>Check</h3><p>Reject a card or tool change that would break its callers.</p></div>
         </div>
         <p class="hint">The application still owns the roles and the execution order.</p>
         <footer class="slide-footer"><span>DISCOVERY ≠ ORCHESTRATION</span><span class="slide-number">03 / 13</span></footer>
@@ -291,9 +291,9 @@
 <span class="removed">−   id: translator</span><span class="added">+   id: unrelated-…</span></pre></div>
         </div>
         <div class="verdict"><strong>BACKWARD → HTTP 400</strong><code>Skill 'translator' was removed</code></div>
-        <p class="hint">Skill-ID excerpt. The candidate remains non-empty: this tests compatibility.</p>
-        <footer class="slide-footer"><span>PUBLICATION CHECK / NOT A CODE DEPLOYMENT</span><span class="slide-number">07 / 13</span></footer>
-        <aside>11–16 minutes. This is an abbreviated diff, not the complete JSON payload. Explain the invariant before the command: preserve the declared translator skill. Keeping another skill rules out an empty-card validity failure. The actual error contains the /skills cause.</aside>
+        <p class="hint">Skill-ID excerpt.</p>
+        <footer class="slide-footer"><span>A PUBLICATION CHECK</span><span class="slide-number">07 / 13</span></footer>
+        <aside>11–16 minutes. This is an abbreviated diff, not the complete JSON payload. Explain the invariant before the command: preserve the declared translator skill. Keeping another skill rules out an empty-card validity failure. The actual error contains the /skills cause. This checks the published card, not the deployed code: say it once here, the full boundary is slide 11.</aside>
       </section>
 
       <section class="slide dark" aria-label="Live governance checks">
@@ -306,9 +306,9 @@
 # Then: compatible addition → rerun</pre></div>
           <div class="proof-list"><div class="proof"><b>CHECK 01</b><span>Rejected version is absent.</span></div><div class="proof" style="--delay:.6s"><b>CHECK 02</b><span>Accepted content and version are unchanged.</span></div><div class="proof" style="--delay:1.2s"><b>CHECK 03</b><span>The complete briefing still runs.</span></div></div>
         </div>
-        <p class="hint">The running agents stay unchanged throughout this experiment.</p>
+        <p class="hint">Then the Registry console: <a href="http://localhost:8888/explore/default/translator" target="_blank" rel="noopener">translator versions ↗</a> — the rejected version never appears.</p>
         <footer class="slide-footer"><span>DEMO / ASSERTIONS, NOT JUST OUTPUT</span><span class="slide-number">08 / 13</span></footer>
-        <aside>The governance script checks the specific RuleViolationException and removed-skill cause, 404 for the rejected version, and unchanged accepted content/version/globalId. The globalId identifies the stored registration, not the deployed binary. Show the PASS statements and actual rerun.</aside>
+        <aside>The governance script checks the specific RuleViolationException and removed-skill cause, 404 for the rejected version, and unchanged accepted content/version/globalId. The globalId identifies the stored registration, not the deployed binary. Show the PASS statements and actual rerun, then the console's version list for the translator: the accepted versions only. The running agents are not changed by any of this.</aside>
       </section>
 
       <section class="slide" aria-label="Compatible addition">
@@ -323,23 +323,23 @@
   - additional-translation-…</pre></div>
         </div>
         <div class="verdict positive"><strong>Accepted</strong><span class="small">The next briefing reports the new registered version.</span></div>
-        <p class="hint">New metadata ≠ a newly implemented skill. The running translator is unchanged.</p>
-        <footer class="slide-footer"><span>PUBLICATION AND OBSERVATION</span><span class="slide-number">09 / 13</span></footer>
-        <aside>16–19 minutes. Explain only what is tested: an additive metadata version is persisted and observed by a subsequent successful workflow. No implementation was deployed. If inference is slow, explain the already-verified rerun instead of waiting for repeated generation.</aside>
+                <footer class="slide-footer"><span>PUBLICATION AND OBSERVATION</span><span class="slide-number">09 / 13</span></footer>
+        <aside>16–17 minutes. New metadata is not a newly implemented skill; the running translator is unchanged. Explain only what is tested: an additive metadata version is persisted and observed by a subsequent successful workflow. No implementation was deployed. If inference is slow, explain the already-verified rerun instead of waiting for repeated generation.</aside>
       </section>
 
-      <section class="slide" aria-label="Typed MCP wrapper lesson">
-        <div class="eyebrow">05 / An integration lesson</div>
-        <h2>Let the model choose the city.<br>Let code shape the call.</h2>
-        <div class="two-col lesson-grid">
-          <div class="lesson"><div class="label">Generic tool calls</div><h3>More room for shape errors.</h3><p>In sample testing, the model sometimes sent an object instead of a JSON string—or omitted the connection key.</p></div>
-          <div class="lesson resolved"><div class="label">Typed application boundary</div><h3>One input. Explicit sequencing.</h3><pre>weatherForCity(String city)
-  search → connect → invoke
-  Jackson encodes the JSON</pre><p>The application owns argument encoding.</p></div>
+      <section class="slide dark" aria-label="Live tool governance">
+        <div class="eyebrow">05 / Live demo <span class="pill">03 · Tools</span></div>
+        <h2>Same promise.<br><span class="teal">For tools.</span></h2>
+        <div class="live-grid">
+          <div class="terminal"><div class="terminal-bar"><i class="terminal-dot"></i><i class="terminal-dot"></i><i class="terminal-dot"></i><span class="terminal-name">second terminal · repository root</span></div><pre><span class="prompt">$</span> python3 scripts/workflow.py tools
+
+# Import tools from the running server
+# Then: breaking schema change → rejected</pre></div>
+          <div class="proof-list"><div class="proof"><b>STEP 01</b><span>The Registry asks the weather server for its tools.</span></div><div class="proof" style="--delay:.6s"><b>STEP 02</b><span>Every caller must now send <code>units</code>: HTTP 400.</span></div><div class="proof" style="--delay:1.2s"><b>STEP 03</b><span>Importing again changes nothing.</span></div></div>
         </div>
-        <p class="hint">The weather assistant uses this as a tool; the fixed briefing calls it directly.</p>
-        <footer class="slide-footer"><span>REDUCE ACCIDENTAL COMPLEXITY AT THE BOUNDARY</span><span class="slide-number">10 / 13</span></footer>
-        <aside>This observation is documented in the sample's verification record. It is not a quantified benchmark. The separate /workflow/weather endpoint demonstrates model-driven tool use; the briefing does not rely on the model to plan the sequence. A typed wrapper reduces shape errors, not every bad input or authorization risk.</aside>
+        <p class="hint">Then the console: <a href="http://localhost:8888/explore/weather-tools/weather-server.getWeather" target="_blank" rel="noopener">the imported tool ↗</a></p>
+        <footer class="slide-footer"><span>DEMO / MCP TOOL IMPORT · APICURIO REGISTRY 3.4</span><span class="slide-number">10 / 13</span></footer>
+        <aside>17–19 minutes. No hand-written tool definition: the Registry calls tools/list on the running weather server and stores getWeather as an MCP tool, with a server version that references it. The breaking change adds a required input, so existing callers would fail; Registry rejects it with two causes (properties narrowed, property made required). Re-import reports UNCHANGED. This uses Registry 3.4 features from the latest-snapshot image; say so if asked. The briefing still discovers the weather server the way the sample does.</aside>
       </section>
 
       <section class="slide" aria-label="Responsibility matrix">
@@ -348,7 +348,7 @@
         <div class="ownership" role="table" aria-label="Responsibility ownership">
           <div class="ownership-row" role="row"><span class="index" role="cell">01</span><span class="what" role="cell">Locate registered endpoints</span><span class="who" role="cell">Registry extensions</span></div>
           <div class="ownership-row" role="row"><span class="index" role="cell">02</span><span class="what" role="cell">Choose roles, order and argument encoding</span><span class="who" role="cell">Application code</span></div>
-          <div class="ownership-row" role="row"><span class="index" role="cell">03</span><span class="what" role="cell">Check a candidate card</span><span class="who" role="cell">Registry publication rules</span></div>
+          <div class="ownership-row" role="row"><span class="index" role="cell">03</span><span class="what" role="cell">Check a candidate card or tool</span><span class="who" role="cell">Registry publication rules</span></div>
           <div class="ownership-row" role="row"><span class="index" role="cell">04</span><span class="what" role="cell">Verify deployed behavior</span><span class="who" role="cell">Tests + deployment process</span></div>
         </div>
         <p class="hint">Observed metadata is not deployment pinning. Lifecycle and authorization need their own policy.</p>

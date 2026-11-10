@@ -22,8 +22,13 @@ Requires Git, Java 17+, Docker (or Podman) with Compose v2, Python 3.9+ and
 ollama pull qwen2.5:7b
 python3 scripts/workflow.py prepare     # fetch the Quarkus LangChain4j 1.15.0 sample, build, run its tests
 python3 scripts/workflow.py run         # start it; open http://localhost:11020/
-python3 scripts/workflow.py governance  # in a second terminal: the compatibility checks
+python3 scripts/workflow.py governance  # in a second terminal: Agent Card compatibility checks
+python3 scripts/workflow.py tools       # in a second terminal: import tools from the running MCP server, then reject a breaking change
 ```
+
+The talk runs the sample with Apicurio Registry `latest-snapshot` (set `REGISTRY_IMAGE` to pin
+one) and the Registry console at <http://localhost:8888>. The `tools` step needs Docker Desktop
+or Podman on macOS.
 
 `python3 scripts/workflow.py smoke` runs the whole flow with assertions, then stops. Ctrl+C stops
 `run`, including its temporary Registry. The sample is fetched into `target/` (ignored).

@@ -80,11 +80,13 @@ Expected checks:
 - The connected briefing works after rejection and after a compatible addition.
 - The runner removes its processes and Registry container/network on completion.
 
+The smoke test doesn't cover the tools step (slide 10). Rehearse it with `run`, then `governance` and `tools` from a second terminal.
+
 These checks validate invocation, handoffs and publication behavior. Read the generated text yourself: a passing smoke run does not prove translation accuracy or factual correctness in general.
 
 ### Record a backup
 
-Record the dashboard briefing and the governance command on the same sample release and model. Save the video locally and verify playback without network access. Record actual execution; don't fabricate successful output.
+Record the dashboard briefing, the governance and tools commands, and the console views on the same sample release, Registry image and model. Save the video locally and verify playback without network access. Record actual execution; don't fabricate successful output.
 
 The governance command makes **three complete briefings**: baseline, after rejection and after compatible publication. That means several model calls. Time it on the presentation laptop; correctness tests do not establish its stage duration.
 
@@ -104,7 +106,7 @@ Wait for:
 Ready: http://localhost:11020/workflow/agents
 ```
 
-The runner starts a dedicated ephemeral Registry in Docker and four local Java processes. It registers the weather tool and installs the translator's BACKWARD compatibility rule. **Leave Terminal A running.** Ctrl+C stops the demo and removes its Registry data.
+The runner starts an ephemeral Registry (the `latest-snapshot` image, for MCP tool import), the Registry console and a small proxy in Docker, and four local Java processes. It registers the weather tool and installs the translator's BACKWARD compatibility rule. **Leave Terminal A running.** Ctrl+C stops the demo and removes its Registry data.
 
 ### Terminal B: checks and on-stage commands
 
@@ -121,18 +123,20 @@ You should see the two roles `summarizer` and `translator`. Descriptions may var
 | Briefing dashboard | http://localhost:11020/ |
 | Orchestrator API | http://localhost:11020/workflow |
 | Registry API | http://localhost:8180/apis/registry/v3 |
+| Registry console | http://localhost:8888/ |
 | Summarizer | http://localhost:11010 |
 | Translator | http://localhost:11030 |
 | Weather MCP endpoint | http://localhost:11040/mcp |
 | Host Ollama | http://localhost:11434 |
 
-There is **no Registry UI deployed by this sample**, no embedded terminal and no need for ttyd or Kubernetes port-forwarding.
+There is no embedded terminal and no need for ttyd or Kubernetes port-forwarding. The tools step needs Docker Desktop or Podman on macOS: they route `host.docker.internal` to the laptop's localhost, where the weather server listens.
 
 ### Open the browser
 
 ```bash
 open talks/cloud-native-paris-2026/presentation.html
 open http://localhost:11020/
+open http://localhost:8888/explore/default/translator
 ```
 
 The slides work from a local file and have no external font/assets dependency. If a browser restricts local-file functionality, serve this repository on loopback:
@@ -199,7 +203,7 @@ Point to the two columns. Don't claim independent teams or a production fleet we
 ### Slide 3 — A shared contract. Three useful jobs.
 **2:00–3:00 · Locate, review, check.**
 
-> “Locate: publish definitions and resolve endpoints. Review: keep versions so a changed declaration can be inspected. Check: apply a publication rule—in our case, a new card must preserve the translation skill.”
+> “Locate: publish definitions and resolve endpoints. Review: keep versions so a changed declaration can be inspected. Check: apply a publication rule—a new card must keep the translation skill, and a new tool version must still accept the old calls.”
 >
 > “What isn't on this list is deciding the workflow. That remains application code.”
 
@@ -316,9 +320,15 @@ Suggested words:
 
 > “We checked the exact cause, checked that the rejected version does not exist, and checked that the accepted content and version stayed the same.”
 >
-> “The same running workflow still works after that failed publication. We have not deployed changed agent code, and this result doesn't claim to stop someone doing so independently.”
+> “The same running workflow still works after that failed publication.”
 
 Keep Terminal B's output visible while it completes. The checks happen inside the script; don't manually repeat all the requests on stage.
+
+Then switch to the console tab (http://localhost:8888/explore/default/translator):
+
+> “Here's the translator's history in the Registry. The accepted version is there; the rejected one never was.”
+
+After the compatible addition (slide 9), the same page shows the new version too.
 
 **Transition:** “Now the positive path: a change that keeps the existing promise.”
 
@@ -333,44 +343,47 @@ PASS: Registry accepted additive translator version; connected briefing reports 
 
 > “The translator skill remains, and an additional skill declaration is accepted. The next briefing reports the new registered version.”
 >
-> “That does not implement a new skill in the running translator. This experiment changes metadata only. It demonstrates publication and observation, not a code rollout.”
+Say once, briefly: this changes metadata only; the running translator is the same.
 
 If useful, run another briefing in the dashboard to show the new version—but only if comfortably ahead of schedule. Don't launch a second governance command just to show the addition again.
 
-**Transition:** “There was also a very practical integration lesson while building this.”
+**Transition:** “That was an agent. Tools need the same promise.”
 
-### Slide 10 — Let the model choose the city. Let code shape the call.
-**17:00–19:00 · Show one engineering decision, not a second full demo.**
-
-> “The generic MCP tools exposed search, connection and invocation details. During sample testing, the model sometimes supplied an object where an API expected a JSON string, or omitted the connection key.”
->
-> “We wrapped that sequence in one typed application tool: `weatherForCity(String city)`. Code performs search, connection and invocation, and Jackson encodes the arguments.”
->
-> “The separate weather assistant lets the model call that tool. Our connected briefing calls the same wrapper directly—its sequence is fixed.”
-
-Only if asked or ahead of time, inspect:
-
-```text
-target/quarkus-langchain4j/samples/agent-registry-workflow/
-  orchestrator/src/main/java/io/quarkiverse/langchain4j/sample/registry/orchestrator/
-    DiscoveredWeather.java
-    WorkflowResource.java
-```
-
-Or run the separate model-driven endpoint:
+### Slide 10 — Same promise. For tools.
+**17:00–19:00 · Run the tools command in Terminal B.**
 
 ```bash
-curl -fsS --max-time 120 http://localhost:11020/workflow/weather \
-  -H 'Content-Type: text/plain' \
-  --data 'What is the weather in Amsterdam?'
+python3 scripts/workflow.py tools
 ```
 
-This is optional. Don't let it consume the closing explanation.
+What it does, in order:
+
+1. Registers the weather server as an MCP server and asks the Registry to import its tools. The Registry calls `tools/list` on the running server.
+2. Puts a BACKWARD rule on the imported tool, then submits a version where every caller must also send `units`.
+3. Imports again from the unchanged server.
+
+Expected output:
+
+```text
+Imported from the running weather server: [('getWeather', 'weather-server.getWeather', 'CREATED')]
+PASS: tools imported from the running MCP server, no hand-written definitions
+Registry rejected the tool change (HTTP 400): [("The 'properties' constraints were narrowed ...", '/inputSchema/properties'), ("A property was made 'required'.", '/inputSchema/required/1')]
+PASS: breaking tool change rejected; the registered tool is unchanged
+PASS: importing again from the unchanged server changes nothing
+```
+
+On a second run the import line says `UNCHANGED` instead of `CREATED`; the checks are the same.
+
+> “Nobody wrote this tool definition: the Registry read it from the running server. A change that adds a required input would break every existing caller, and it's rejected, with the reason. Importing again from the same server changes nothing.”
+
+Then show the tool in the console: http://localhost:8888/explore/weather-tools/weather-server.getWeather
+
+If asked: importing tools is in Apicurio Registry 3.4. The demo runs the `latest-snapshot` image until it's released. The briefing still finds the weather server the way the upstream sample does, so this step is independent of it.
 
 ### Slide 11 — Put each guarantee in the right place.
 **19:00–20:30 · Use the table as the answer to “what does this solve?”**
 
-> “Registry extensions locate endpoints. Application code chooses roles, order and argument encoding. Registry rules check proposed card versions. Tests and deployment controls have to verify actual behavior.”
+> “Registry extensions locate endpoints. Application code chooses roles, order and argument encoding. Registry rules check proposed card and tool versions. Tests and deployment controls have to verify actual behavior.”
 >
 > “The failure is expecting one of these layers to guarantee all the others.”
 
@@ -378,6 +391,7 @@ Mention once:
 - Observed metadata isn't a deployment pin or a transactional snapshot.
 - This sample doesn't implement a deprecation-routing gate.
 - It is local and unauthenticated; authorization is additional work for a shared deployment.
+- A rejected card or tool checks the published contract, not deployed code: say it here, once.
 
 **Transition:** “Three things to take back.”
 
@@ -404,7 +418,7 @@ Mention once:
 | Finish architecture | 6:00 | Skip implementation class names; retain the two traffic paths |
 | Finish first briefing | 11:00 | Show handoff fields, not whole paragraphs |
 | Explain rejected publication | 16:00 | Use the local backup if the live command is still waiting |
-| Finish compatible path and wrapper lesson | 19:00 | Explain the verified compatible result without another dashboard request |
+| Finish compatible path and tools | 19:00 | Skip the console views; if `tools` is slow, narrate the expected output above |
 | Start questions | 22:00 | Keep the ownership table and three takeaways; omit optional code inspection |
 
 The governance runner executes all phases together. “Skip the last rerun” means **stop waiting on stage and continue explaining**, not that the current command has an interactive skip feature.
@@ -523,9 +537,9 @@ The second command removes this sample's ephemeral Registry data. It does not st
 
 “The live smoke test checks the returned fixture and a server-side invocation log. The connected workflow also checks that the actual tool result appears in the summary input. Unit tests separately check sequencing and handoffs using mocks.”
 
-### “Does the typed wrapper eliminate tool errors?”
+### “Why does the briefing call the weather tool through your own code?”
 
-“It moves connection sequencing and JSON encoding into ordinary application code. The model supplies a city rather than constructing generic invocation arguments. It doesn't eliminate unsupported cities, transport failures, model mistakes or the need for authorization.”
+“The orchestrator wraps search, connect and invoke in one typed method, `weatherForCity(String city)`. In testing, the model sometimes built the generic tool arguments wrong. The wrapper moves connection sequencing and JSON encoding into ordinary application code. The model supplies a city rather than constructing generic invocation arguments. It doesn't eliminate unsupported cities, transport failures, model mistakes or the need for authorization.”
 
 ### “What if Registry is down?”
 
@@ -533,7 +547,11 @@ The second command removes this sample's ephemeral Registry data. It does not st
 
 ### “Is this secure for multiple teams?”
 
-“This demo is loopback-only and unauthenticated. A shared deployment needs authenticated publication and calls, authorization, tenant boundaries, credential management and operational policies. I haven't demonstrated those guarantees here.”
+“This demo is loopback-only and unauthenticated, on purpose. The Registry itself already supports authentication with OIDC, roles, and access rules per group, including which agents each user can discover. What isn't released yet is the client side: the Quarkus extensions authenticating to the Registry and to the agents they call. Those changes are in review upstream. A shared deployment also needs tenant boundaries, credential management and operational policies; I haven't demonstrated those here.”
+
+### “Who can publish or change a card?”
+
+“Whoever the Registry authorizes to write to that group. With authentication on, that's a role plus, optionally, per-group access rules. Labels and references never grant access. In this demo nothing is authenticated, so anyone on the laptop could.”
 
 ### “Can this run on Kubernetes?”
 
@@ -541,7 +559,7 @@ The second command removes this sample's ephemeral Registry data. It does not st
 
 ### “Are the integrations released?”
 
-“Yes. Both extensions and this sample ship in Quarkus LangChain4j 1.15.0, and the demo builds against that release. Registry authentication for the extensions is still in review, which is why the demo runs without it.”
+“Yes. Both extensions and this sample ship in Quarkus LangChain4j 1.15.0, and the demo builds against that release. Registry authentication for the extensions is still in review, which is why the demo runs without it. Importing tools from a running MCP server is in Apicurio Registry 3.4; the demo uses its snapshot image until then.”
 
 ### “What performance or scale have you measured?”
 
