@@ -24,12 +24,12 @@ The demonstration is deliberately small: fictional weather → summary → Frenc
 
 ## 1. Prepare before conference day
 
-Run commands from **this branch's repository root**. If your normal checkout contains other work, use the separate Paris worktree; don't overwrite that work to switch branches.
+Run commands from the **repository root**, on `main`.
 
 ### Check prerequisites
 
 ```bash
-git branch --show-current
+git log -1 --oneline
 java -version
 python3 --version
 docker info
@@ -37,10 +37,10 @@ docker compose version
 ollama list
 ```
 
-- Branch: `cloud-native-paris-2026`.
+- Note the commit you rehearse with, and present from the same one.
 - Java 17 or newer. The recorded verification used Java 25.
 - Python 3.9+, Docker Compose v2 and Git are required.
-- Run Ollama on the host. On macOS this allows native acceleration; the demo no longer starts an Ollama container.
+- Run Ollama on the host. On macOS this allows native acceleration.
 - Allow enough memory for the 7B model and four JVM processes. Close unrelated heavy workloads.
 - `jq` is useful for the optional inspection commands in this guide, but isn't required by the runner.
 
@@ -393,7 +393,7 @@ Mention once:
 ### Slide 13 — Try the workflow. Inspect the contract.
 **22:00–25:00 · Questions and buffer.**
 
-> “The example, checks and setup commands are linked here. The sample ships with Quarkus LangChain4j 1.15.0. If you want every agent registry feature, including visibility per user, ARD and the Registry MCP server, the Apicurio demo is linked too. Thank you—happy to take questions.”
+> “The example, checks and setup commands are linked here. The sample ships with Quarkus LangChain4j 1.15.0. If you want every agent registry feature, including visibility per user, ARD and the Registry MCP server, the Apicurio demo is linked too. Some of what it shows ships in Registry 3.4. Thank you—happy to take questions.”
 
 ---
 
@@ -477,7 +477,7 @@ docker compose -p langchain4j-agent-workflow \
   -f target/quarkus-langchain4j/samples/agent-registry-workflow/compose.yaml down
 ```
 
-The second command removes this sample's ephemeral Registry data. It does not stop orphaned host JVMs; inspect their process IDs before terminating them. Don't use the removed legacy `cleanup.sh` or `docker-compose.yaml` commands.
+The second command removes this sample's ephemeral Registry data. It does not stop orphaned host JVMs; inspect their process IDs before terminating them.
 
 ---
 

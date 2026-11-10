@@ -1,7 +1,7 @@
 # Connected workflow — rehearsal notes
 
 For the full speaking script, setup checklist, demo commands and Q&A, use
-[PRESENTATION_GUIDE.md](../PRESENTATION_GUIDE.md). This file is the short runbook
+[PRESENTATION_GUIDE.md](PRESENTATION_GUIDE.md). This file is the short runbook
 and verification record.
 
 ## Timing (25 minutes; add discussion for a 30-minute slot)
@@ -47,7 +47,7 @@ and verification record.
 
 ## Local verification
 
-November 2026, Java 25.0.2, Podman, host Ollama qwen2.5:7b, against the Quarkus LangChain4j
+November 2026, Java 25.0.2, Podman (as `docker`), host Ollama qwen2.5:7b, against the Quarkus LangChain4j
 1.15.0 sample (released extensions, Registry 3.3.3):
 
 - `python3 scripts/workflow.py prepare`: built in 42 s; nine sample tests passed.

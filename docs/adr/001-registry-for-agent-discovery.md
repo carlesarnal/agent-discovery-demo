@@ -10,12 +10,12 @@ AI agents need a mechanism to discover each other's capabilities at runtime. Opt
 
 1. **Hardcoded configuration** — Agent URLs and capabilities stored in config files
 2. **DNS/Service mesh** — Use existing infrastructure (Consul, Istio) for discovery
-3. **A2A well-known endpoints** — Each agent hosts `/.well-known/agent.json`
+3. **A2A well-known endpoints** — Each agent hosts `/.well-known/agent-card.json`
 4. **Registry-backed discovery** — Centralized registry storing Agent Cards
 
 ## Decision
 
-Use Apicurio Registry as the centralized store for A2A Agent Cards, prompt templates, and model schemas.
+Use Apicurio Registry as the centralized store for A2A Agent Cards, MCP tool and server definitions, prompt templates, and model schemas.
 
 ## Rationale
 
@@ -27,7 +27,8 @@ Use Apicurio Registry as the centralized store for A2A Agent Cards, prompt templ
 
 ## Consequences
 
-- Agents must register with the registry on startup
+- Agents must register with the registry on startup. In the talk demo, the A2A agents publish
+  their own Agent Cards; the MCP server is registered by the runner
 - Discovery adds a network hop (registry query) before agent-to-agent communication
 - Registry becomes a critical dependency — must be highly available in production
 - Agent Cards follow the A2A Protocol format for interoperability

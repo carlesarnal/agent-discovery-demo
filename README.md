@@ -11,7 +11,7 @@ specific to talks: slides, presenter guides, runbooks and a runner.
 | Demo | What it shows | Where |
 |---|---|---|
 | **Connected workflow** (used in the talks) | Quarkus agents publish their Agent Cards; an orchestrator discovers two A2A agents and an MCP server through the Registry and runs weather → summary → French translation; a compatibility rule rejects a breaking card change while the workflow keeps running | [Quarkus LangChain4j sample](https://github.com/quarkiverse/quarkus-langchain4j/tree/1.15.0/samples/agent-registry-workflow), run with `scripts/workflow.py` |
-| **Every agent registry feature** | Agent artifact types and references, compatibility rules, discovery (agents, MCP tools, AI Catalog, ARD), the MCP Registry API, importing tools from a running MCP server, visibility per user with Keycloak, the Registry MCP server, with a step-by-step guide and screenshots | [Apicurio Registry `examples/agent-registry`](https://github.com/Apicurio/apicurio-registry/tree/main/examples/agent-registry) |
+| **Every agent registry feature** | Agent artifact types and references, compatibility rules, discovery (agents, MCP tools, AI Catalog, ARD), the MCP Registry API, importing tools from a running MCP server, visibility per user with Keycloak, the Registry MCP server, with a step-by-step guide and screenshots. Some features ship in Registry 3.4; the demo uses snapshot images until then | [Apicurio Registry `examples/agent-registry`](https://github.com/Apicurio/apicurio-registry/tree/main/examples/agent-registry) |
 
 ## Run the connected workflow
 
