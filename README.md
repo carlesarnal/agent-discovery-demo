@@ -34,6 +34,13 @@ or Podman on macOS.
 `python3 scripts/workflow.py smoke` runs the whole flow with assertions, then stops. Ctrl+C stops
 `run`, including its temporary Registry. The sample is fetched into `target/` (ignored).
 
+### Secured mode
+
+`scripts/secured.py` runs the same workflow with authentication on every hop: Keycloak, a Registry
+and console that require login and enforce roles, and agents and an MCP server that accept only
+callers with the right role. It builds Quarkus LangChain4j changes that are still in review, so it
+runs on snapshots. See [SECURED.md](talks/cloud-native-paris-2026/SECURED.md).
+
 ## Talks
 
 | Folder | Event | Status |

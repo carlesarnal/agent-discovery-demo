@@ -1,0 +1,191 @@
+{
+  "realm": "agents",
+  "enabled": true,
+  "sslRequired": "none",
+  "accessTokenLifespan": 300,
+  "roles": {
+    "realm": [
+      {
+        "name": "sr-admin"
+      },
+      {
+        "name": "sr-developer"
+      },
+      {
+        "name": "sr-readonly"
+      },
+      {
+        "name": "a2a-caller"
+      },
+      {
+        "name": "mcp-caller"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "summarizer",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "summarizer-secret",
+      "clientAuthenticatorType": "client-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "translator",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "translator-secret",
+      "clientAuthenticatorType": "client-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "orchestrator",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "orchestrator-secret",
+      "clientAuthenticatorType": "client-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "demo-admin",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "demo-admin-secret",
+      "clientAuthenticatorType": "client-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "demo-readonly",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "demo-readonly-secret",
+      "clientAuthenticatorType": "client-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "registry-api",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "registry-api-secret",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "apicurio-console",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8888/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8888"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:8888/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-summarizer",
+      "enabled": true,
+      "serviceAccountClientId": "summarizer",
+      "realmRoles": [
+        "sr-developer"
+      ]
+    },
+    {
+      "username": "service-account-translator",
+      "enabled": true,
+      "serviceAccountClientId": "translator",
+      "realmRoles": [
+        "sr-developer"
+      ]
+    },
+    {
+      "username": "service-account-orchestrator",
+      "enabled": true,
+      "serviceAccountClientId": "orchestrator",
+      "realmRoles": [
+        "sr-readonly",
+        "a2a-caller",
+        "mcp-caller"
+      ]
+    },
+    {
+      "username": "service-account-demo-admin",
+      "enabled": true,
+      "serviceAccountClientId": "demo-admin",
+      "realmRoles": [
+        "sr-admin",
+        "mcp-caller"
+      ]
+    },
+    {
+      "username": "service-account-demo-readonly",
+      "enabled": true,
+      "serviceAccountClientId": "demo-readonly",
+      "realmRoles": [
+        "sr-readonly"
+      ]
+    },
+    {
+      "username": "alice",
+      "enabled": true,
+      "email": "alice@example.com",
+      "emailVerified": true,
+      "firstName": "Alice",
+      "lastName": "Demo",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "alice",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "sr-admin"
+      ]
+    },
+    {
+      "username": "bob",
+      "enabled": true,
+      "email": "bob@example.com",
+      "emailVerified": true,
+      "firstName": "Bob",
+      "lastName": "Demo",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "bob",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "sr-readonly"
+      ]
+    }
+  ]
+}

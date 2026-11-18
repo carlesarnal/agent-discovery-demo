@@ -48,7 +48,8 @@ and verification record.
 - An added metadata skill is not a newly implemented skill in the running translator.
 - A successful rerun after rejection proves the unchanged demo still works, not that
   Registry enforces all future deployment behavior.
-- The demo is not authenticated: no claim about securing agent or tool calls.
+- Default mode: the demo is not authenticated, so no claim about securing agent or tool calls.
+  Secured mode has its own claims and checklist: [SECURED.md](SECURED.md).
 
 ## Local verification
 
