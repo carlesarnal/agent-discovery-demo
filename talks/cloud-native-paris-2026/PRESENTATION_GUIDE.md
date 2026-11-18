@@ -8,9 +8,17 @@
 
 **Slot:** 25 minutes; exact presentation date/time and room to confirm
 
-**Deck:** `talks/cloud-native-paris-2026/presentation.html`, 13 slides, numbered 1–13
+**Deck:** `talks/cloud-native-paris-2026/presentation.html`, 13 slides, numbered 1–13; with
+`?mode=secured`, 14 slides (an extra slide 5)
 
 **Demo:** the agent registry workflow sample from the Quarkus LangChain4j 1.15.0 release
+
+**Two modes.** The **default mode** (`scripts/workflow.py`) runs the released sample, unauthenticated.
+The **secured mode** (`scripts/secured.py`) runs the same workflow with authentication on every hop,
+built from Quarkus LangChain4j changes still in review; see [SECURED.md](SECURED.md). Decide which one
+you present by 28 November; the default mode is always the fallback. This guide covers both: the
+parts marked **Secured mode** apply only to it, and in secured mode every slide after slide 4 is
+numbered one higher than the headings below.
 
 Use this as a rehearsal script, not text to memorize word for word. Aim for **22 minutes of content plus 3 minutes of questions or recovery time**.
 
@@ -84,9 +92,26 @@ The smoke test doesn't cover the tools step (slide 10). Rehearse it with `run`, 
 
 These checks validate invocation, handoffs and publication behavior. Read the generated text yourself: a passing smoke run does not prove translation accuracy or factual correctness in general.
 
+### Secured mode
+
+```bash
+python3 scripts/secured.py prepare
+python3 scripts/secured.py smoke
+```
+
+`prepare` fetches and installs the Quarkus LangChain4j branch with the authentication changes, then
+builds the 2.x sample and the 1.15.0 weather server with authentication added. `smoke` runs the
+same checks as above plus 11 security checks: calls without a token get 401, a token without the
+right role gets 403 (agents, weather server, Registry writes), Agent Cards stay public. Rehearse
+`tools` too: it also checks that the Registry refuses an anonymous import.
+
+If every call suddenly fails authentication, check the Podman VM clock: after the laptop sleeps it
+can fall behind, and tokens are then issued already expired. `smoke` and `run` check it and print
+the fix (`podman machine ssh "sudo date -u -s @$(date +%s)"`).
+
 ### Record a backup
 
-Record the dashboard briefing, the governance and tools commands, and the console views on the same sample release, Registry image and model. Save the video locally and verify playback without network access. Record actual execution; don't fabricate successful output.
+Record the dashboard briefing, the governance and tools commands, and the console views on the same sample release, Registry image and model. Record each mode you might present. Save the video locally and verify playback without network access. Record actual execution; don't fabricate successful output.
 
 The governance command makes **three complete briefings**: baseline, after rejection and after compatible publication. That means several model calls. Time it on the presentation laptop; correctness tests do not establish its stage duration.
 
@@ -105,6 +130,8 @@ Wait for:
 ```text
 Ready: http://localhost:11020/workflow/agents
 ```
+
+**Secured mode:** `python3 scripts/secured.py run` instead. It also starts Keycloak (http://localhost:8190) and waits for it.
 
 The runner starts an ephemeral Registry (a pinned snapshot image, for MCP tool import), the Registry console and a small proxy in Docker, and four local Java processes. It registers the weather tool and installs the translator's BACKWARD compatibility rule. **Leave Terminal A running.** Ctrl+C stops the demo and removes its Registry data.
 
@@ -137,6 +164,20 @@ There is no embedded terminal and no need for ttyd or Kubernetes port-forwarding
 open talks/cloud-native-paris-2026/presentation.html
 open http://localhost:11020/
 open http://localhost:8888/explore/default/translator
+```
+
+**Secured mode:** the deck needs `?mode=secured`, which `open` can't pass to a file. Open it in the
+browser directly:
+
+```bash
+open -a "Google Chrome" "file://$PWD/talks/cloud-native-paris-2026/presentation.html?mode=secured"
+```
+
+Log in to the console as **alice** (password `alice`). Keep a private window ready to log in as
+**bob** (`bob`), and a terminal with the refused call typed in:
+
+```bash
+curl -i -X POST http://localhost:11010/ -H 'Content-Type: application/json' -d '{}'
 ```
 
 The slides work from a local file and have no external font/assets dependency. If a browser restricts local-file functionality, serve this repository on loopback:
@@ -226,6 +267,25 @@ Point out:
 - The summarizer does **not** call the translator itself; the orchestrator passes the summary into a second call.
 
 **Transition:** “The interesting evidence is what crosses those handoffs.”
+
+**Secured mode transition:** “And in this version of the demo, every one of those arrows carries an identity.”
+
+### Secured mode only — Slide 5: Every call carries an identity. Every service checks it.
+**5:00–6:00 · One table, one refused call, one login. Then move on.**
+
+> “Same diagram, but now nothing is anonymous. People log in to the Registry console. Each agent publishes its card with its own credentials and a write role. The orchestrator discovers with a read-only identity. And when it calls the agents and the weather tool, it sends its own token, and each service checks the role.”
+>
+> “The Registry side of this is released. The client side, the Quarkus extensions sending credentials, is in review upstream, and this demo builds it from that branch.”
+
+Show, quickly:
+- The `curl` call without a token: **401**.
+- The console as alice (can edit), then bob in the private window (can browse, can't change anything).
+
+Say once: Agent Cards stay public, which the A2A spec allows; protecting the card fetch is a tracked follow-up.
+
+This slide costs about a minute. Take it from the briefing (slide 6 in default numbering): show the handoff fields, not whole paragraphs.
+
+**Transition:** “Every call behind the next demo carries a token. Let's follow the data.”
 
 ### Slide 5 — Follow the data. Not just the final answer.
 **5:00–6:00 · Define what success means before showing it.**
@@ -391,6 +451,7 @@ Mention once:
 - Observed metadata isn't a deployment pin or a transactional snapshot.
 - This sample doesn't implement a deprecation-routing gate.
 - It is local and unauthenticated; authorization is additional work for a shared deployment.
+  **Secured mode:** every hop is authenticated, but on loopback with demo secrets: no tenant boundaries, key rotation or production credential management.
 - A rejected card or tool checks the published contract, not deployed code: say it here, once.
 
 **Transition:** “Three things to take back.”
@@ -409,13 +470,15 @@ Mention once:
 
 > “The example, checks and setup commands are linked here. The sample ships with Quarkus LangChain4j 1.15.0. If you want every agent registry feature, including visibility per user, ARD and the Registry MCP server, the Apicurio demo is linked too. Some of what it shows ships in Registry 3.4. Thank you—happy to take questions.”
 
+**Secured mode:** replace the release sentence with “The sample ships with Quarkus LangChain4j; the authentication you saw is in review upstream, and the repository builds it from a pinned branch.”
+
 ---
 
 ## 4. Timing and fallback rules
 
 | Checkpoint | Target | If behind |
 |---|---:|---|
-| Finish architecture | 6:00 | Skip implementation class names; retain the two traffic paths |
+| Finish architecture (secured mode: identity slide) | 6:00 (7:00) | Skip implementation class names; retain the two traffic paths |
 | Finish first briefing | 11:00 | Show handoff fields, not whole paragraphs |
 | Explain rejected publication | 16:00 | Use the local backup if the live command is still waiting |
 | Finish compatible path and tools | 19:00 | Skip the console views; if `tools` is slow, narrate the expected output above |
@@ -458,6 +521,11 @@ target/quarkus-langchain4j/samples/agent-registry-workflow/target/run/
 | Governance request gets unexpected status | Inspect the script's exact error. Authentication, connectivity or syntax failures are not successful compatibility checks |
 | Slide flow does not animate | Check reduced-motion preference; press R. Static slides still carry the complete explanation |
 | Slides open on the last page | Remove the URL hash or press Home |
+| **Secured mode:** every call fails with 401 | Check the Podman VM clock (see section 1); then check Keycloak is up: `curl -fsS http://localhost:8190/realms/agents` |
+| **Secured mode:** the console doesn't show the login page | Check Keycloak on http://localhost:8190; reload the console |
+| **Secured mode:** slides show 13 slides | Open the deck with `?mode=secured` |
+
+Secured-mode logs are in `target/secured-sample/target/run/`.
 
 Readiness checks:
 
@@ -549,9 +617,13 @@ The second command removes this sample's ephemeral Registry data. It does not st
 
 “This demo is loopback-only and unauthenticated, on purpose. The Registry itself already supports authentication with OIDC, roles, and access rules per group, including which agents each user can discover. What isn't released yet is the client side: the Quarkus extensions authenticating to the Registry and to the agents they call. Those changes are in review upstream. A shared deployment also needs tenant boundaries, credential management and operational policies; I haven't demonstrated those here.”
 
+**Secured mode:** “Every hop in this demo is authenticated, and each service needs a role for the calls it receives. A shared deployment still needs tenant boundaries, credential management and operational policies; I haven't demonstrated those.”
+
 ### “Who can publish or change a card?”
 
 “Whoever the Registry authorizes to write to that group. With authentication on, that's a role plus, optionally, per-group access rules. Labels and references never grant access. In this demo nothing is authenticated, so anyone on the laptop could.”
+
+**Secured mode:** “Only identities with a write role. The agents publish with their own credentials; bob, who you saw, can read but not write.”
 
 ### “Can this run on Kubernetes?”
 
@@ -560,6 +632,8 @@ The second command removes this sample's ephemeral Registry data. It does not st
 ### “Are the integrations released?”
 
 “Yes. Both extensions and this sample ship in Quarkus LangChain4j 1.15.0, and the demo builds against that release. Registry authentication for the extensions is still in review, which is why the demo runs without it. Importing tools from a running MCP server is in Apicurio Registry 3.4; the demo uses its snapshot image until then.”
+
+**Secured mode:** “The extensions are, in Quarkus LangChain4j 1.15.0. The authentication you saw is in review upstream; the demo builds it from that branch, pinned to one commit. Importing tools is in Apicurio Registry 3.4.”
 
 ### “What performance or scale have you measured?”
 
@@ -579,5 +653,8 @@ The second command removes this sample's ephemeral Registry data. It does not st
 - [ ] Have a local recording and static screenshots ready without internet access.
 - [ ] Confirm that notes are not visible on the projected display.
 - [ ] Start questions by minute 22; finish at minute 25.
+- [ ] **Secured mode:** `secured.py smoke` passed twice in a row on the presentation laptop; go/no-go decided by 28 November.
+- [ ] **Secured mode:** deck opened with `?mode=secured`; alice logged in, bob's private window and the `curl` ready.
+- [ ] **Secured mode:** Podman VM clock matches the laptop (after any sleep).
 
 **Closing line:** “Discover the endpoints. Make the handoffs explicit. Test the contract—and verify the implementation separately.”
