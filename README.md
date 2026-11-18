@@ -26,8 +26,9 @@ python3 scripts/workflow.py governance  # in a second terminal: Agent Card compa
 python3 scripts/workflow.py tools       # in a second terminal: import tools from the running MCP server, then reject a breaking change
 ```
 
-The talk runs the sample with Apicurio Registry `latest-snapshot` (set `REGISTRY_IMAGE` to pin
-one) and the Registry console at <http://localhost:8888>. The `tools` step needs Docker Desktop
+The talk runs the sample with a pinned Apicurio Registry snapshot, the one rehearsed for the talk
+(set `REGISTRY_IMAGE` and `REGISTRY_UI_IMAGE` to use others), and the Registry console at
+<http://localhost:8888>. The `tools` step needs Docker Desktop
 or Podman on macOS.
 
 `python3 scripts/workflow.py smoke` runs the whole flow with assertions, then stops. Ctrl+C stops

@@ -106,7 +106,7 @@ Wait for:
 Ready: http://localhost:11020/workflow/agents
 ```
 
-The runner starts an ephemeral Registry (the `latest-snapshot` image, for MCP tool import), the Registry console and a small proxy in Docker, and four local Java processes. It registers the weather tool and installs the translator's BACKWARD compatibility rule. **Leave Terminal A running.** Ctrl+C stops the demo and removes its Registry data.
+The runner starts an ephemeral Registry (a pinned snapshot image, for MCP tool import), the Registry console and a small proxy in Docker, and four local Java processes. It registers the weather tool and installs the translator's BACKWARD compatibility rule. **Leave Terminal A running.** Ctrl+C stops the demo and removes its Registry data.
 
 ### Terminal B: checks and on-stage commands
 
@@ -378,7 +378,7 @@ On a second run the import line says `UNCHANGED` instead of `CREATED`; the check
 
 Then show the tool in the console: http://localhost:8888/explore/weather-tools/weather-server.getWeather
 
-If asked: importing tools is in Apicurio Registry 3.4. The demo runs the `latest-snapshot` image until it's released. The briefing still finds the weather server the way the upstream sample does, so this step is independent of it.
+If asked: importing tools is in Apicurio Registry 3.4. The demo runs a pinned snapshot image until it's released. The briefing still finds the weather server the way the upstream sample does, so this step is independent of it.
 
 ### Slide 11 — Put each guarantee in the right place.
 **19:00–20:30 · Use the table as the answer to “what does this solve?”**

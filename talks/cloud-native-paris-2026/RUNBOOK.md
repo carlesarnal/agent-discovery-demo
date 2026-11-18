@@ -26,9 +26,10 @@ and verification record.
 - Build the sample with `python3 scripts/workflow.py prepare`.
 - Run the smoke check with the intended hardware/model and inspect the outputs.
 - Start the interactive runner and open http://localhost:11020/ and http://localhost:8888/.
-- Pull the images beforehand: `quay.io/apicurio/apicurio-registry:latest-snapshot`,
-  `quay.io/apicurio/apicurio-registry-ui:latest-snapshot`, `nginx:1.27-alpine`. Pin the
-  Registry image you rehearsed with (`REGISTRY_IMAGE`) so a newer snapshot can't surprise you.
+- Pull the images beforehand: the Registry and console images pinned in `scripts/workflow.py`
+  (the `latest-snapshot` builds rehearsed on 18 November 2026) and `nginx:1.27-alpine`. To
+  rehearse a newer snapshot, set `REGISTRY_IMAGE` and `REGISTRY_UI_IMAGE`, and pin it only if the
+  whole runbook passes.
 - Open slides separately; no embedded terminal server is required.
 - Slides: arrows navigate; N toggles notes; F toggles fullscreen; R replays
   animation. Slide 4 reveals publication, discovery and invocation in sequence.
@@ -51,8 +52,10 @@ and verification record.
 
 ## Local verification
 
-November 2026, Java 25.0.2, Podman (as `docker`), host Ollama qwen2.5:7b, Quarkus LangChain4j
-1.15.0 sample (released extensions), Apicurio Registry `latest-snapshot`:
+18 November 2026, Podman (as `docker`), host Ollama, Quarkus LangChain4j 1.15.0 sample
+(released extensions), Apicurio Registry and console snapshots pinned in `scripts/workflow.py`
+(`sha256:16624cdf…` and `sha256:46f422ce…`). `governance` and `tools` passed against the running
+sample too:
 
 - `python3 scripts/workflow.py prepare`: nine sample tests passed.
 - `python3 scripts/workflow.py smoke`: both agents discovered; real A2A summary and

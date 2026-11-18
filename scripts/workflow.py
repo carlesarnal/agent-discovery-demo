@@ -3,7 +3,7 @@
 
 The sample lives upstream in quarkus-langchain4j (samples/agent-registry-workflow), pinned to a
 release tag, so it builds against released extensions. The talk runs a copy of it with its own
-Compose file: Apicurio Registry from REGISTRY_IMAGE (latest-snapshot by default, for importing
+Compose file: Apicurio Registry from REGISTRY_IMAGE (a pinned snapshot by default, for importing
 tools from a running MCP server) and the Registry web console on http://localhost:8888.
 """
 import argparse
@@ -22,8 +22,12 @@ TALK_SAMPLE = ROOT / "target" / "talk-sample"
 TAG = "1.15.0"
 REMOTE = "https://github.com/quarkiverse/quarkus-langchain4j.git"
 SAMPLE = Path("samples/agent-registry-workflow")
-REGISTRY_IMAGE = os.environ.get("REGISTRY_IMAGE", "quay.io/apicurio/apicurio-registry:latest-snapshot")
-UI_IMAGE = os.environ.get("REGISTRY_UI_IMAGE", "quay.io/apicurio/apicurio-registry-ui:latest-snapshot")
+# The latest-snapshot images rehearsed for the Paris talk on 18 November 2026. Importing tools is
+# not in a Registry release yet (3.4); set REGISTRY_IMAGE and REGISTRY_UI_IMAGE to try newer ones.
+REGISTRY_IMAGE = os.environ.get(
+    "REGISTRY_IMAGE", "quay.io/apicurio/apicurio-registry@sha256:16624cdfcf2d7182227f2bab0ce8e5647582fb30f3ecfc3f45ff16cf5b8b6243")
+UI_IMAGE = os.environ.get(
+    "REGISTRY_UI_IMAGE", "quay.io/apicurio/apicurio-registry-ui@sha256:46f422ce4342c295cdf1992df8f2bfc254360122325c1c6f37b203dbc631e050")
 REGISTRY = "http://localhost:8180/apis/registry/v3"
 # Where the Registry container reaches the weather MCP server. The server listens on the host's
 # localhost and, as it should, only accepts requests addressed to localhost. A proxy in the stack
