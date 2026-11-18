@@ -62,6 +62,9 @@ podman machine ssh "sudo date -u -s @$(date +%s)"
 
 ## Showing it
 
+- **Slides:** open `presentation.html?mode=secured`. It adds slide 5, "Every call carries an
+  identity" (after the architecture, about one minute), and switches the slide 11 and closing texts
+  and speaker notes to secured mode. Without `?mode=secured` you get the default deck.
 - In the console, log in as **alice** (password `alice`): she can edit. Log in as **bob** (`bob`)
   in a private window: he can browse, but not change anything.
 - In a terminal, show a refused call:

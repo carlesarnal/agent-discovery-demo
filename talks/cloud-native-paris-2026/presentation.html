@@ -255,6 +255,20 @@
         <aside>3–6 minutes. All invocations originate in the orchestrator; outputs are passed to the next call by application code. A2A agents use the extension's programmatic publisher. The runner explicitly registers the MCP artifact. Orange paths show publication/discovery; teal paths show direct invocation. The animation illustrates order, not measured timing or live traffic. Press R or Replay flow to repeat it.</aside>
       </section>
 
+      <section class="slide" aria-label="Identity on every hop" data-mode="secured">
+        <div class="eyebrow">02 / Identity on every hop</div>
+        <h2>Every call carries an identity.<br><span class="teal">Every service checks it.</span></h2>
+        <div class="ownership" role="table" aria-label="Who authenticates each hop">
+          <div class="ownership-row" role="row"><span class="index" role="cell">01</span><span class="what" role="cell">People → Registry console</span><span class="who" role="cell">Login · admin or read-only</span></div>
+          <div class="ownership-row" role="row"><span class="index" role="cell">02</span><span class="what" role="cell">Agents → Registry: publish cards</span><span class="who" role="cell">Own credentials · write role</span></div>
+          <div class="ownership-row" role="row"><span class="index" role="cell">03</span><span class="what" role="cell">Orchestrator → Registry: discover</span><span class="who" role="cell">Own credentials · read role</span></div>
+          <div class="ownership-row" role="row"><span class="index" role="cell">04</span><span class="what" role="cell">Orchestrator → agents (A2A), weather (MCP)</span><span class="who" role="cell">Token · a2a-caller, mcp-caller</span></div>
+        </div>
+        <p class="hint">Live: a call without a token gets 401. Bob can browse the console, not change it. Agent Cards stay public.</p>
+        <footer class="slide-footer"><span>SECURED MODE / UPSTREAM CHANGES IN REVIEW</span><span class="slide-number"></span></footer>
+        <aside>6–7 minutes. One identity provider (Keycloak) for everyone. The Registry already supports OIDC and roles in a release; the client side (the Quarkus LangChain4j extensions sending credentials to the Registry and to A2A agents) is in review upstream, and this demo builds it from a pinned branch. Show: curl -i -X POST http://localhost:11010/ -d '{}' returns 401; in the console, alice can edit, bob in a private window can only read. The Agent Card fetch is public, which the A2A spec allows; protecting it is a tracked follow-up. Then go on with the briefing: every call behind it now carries a token.</aside>
+      </section>
+
       <section class="slide" aria-label="Actual handoffs">
         <div class="eyebrow">02 / The architecture</div>
         <h2>Follow the data.<br>Not just the final answer.</h2>
@@ -351,9 +365,10 @@
           <div class="ownership-row" role="row"><span class="index" role="cell">03</span><span class="what" role="cell">Check a candidate card or tool</span><span class="who" role="cell">Registry publication rules</span></div>
           <div class="ownership-row" role="row"><span class="index" role="cell">04</span><span class="what" role="cell">Verify deployed behavior</span><span class="who" role="cell">Tests + deployment process</span></div>
         </div>
-        <p class="hint">Observed metadata is not deployment pinning. Lifecycle and authorization need their own policy.</p>
+        <p class="hint" data-mode="default">Observed metadata is not deployment pinning. Lifecycle and authorization need their own policy.</p><p class="hint" data-mode="secured">Observed metadata is not deployment pinning. Roles decide who may publish; lifecycle needs its own policy.</p>
         <footer class="slide-footer"><span>CONTRACT COMPATIBILITY ≠ RUNTIME CORRECTNESS</span><span class="slide-number">11 / 13</span></footer>
-        <aside>19–22 minutes. This is the single boundary summary. The example is loopback-only and unauthenticated, has no deprecation gate, and does not pin remote deployments. Registered metadata reads are not a transactional snapshot across services. Separate publication proof from behavioral testing.</aside>
+        <aside data-mode="default">19–22 minutes. This is the single boundary summary. The example is loopback-only and unauthenticated, has no deprecation gate, and does not pin remote deployments. Registered metadata reads are not a transactional snapshot across services. Separate publication proof from behavioral testing.</aside>
+        <aside data-mode="secured">19–22 minutes. This is the single boundary summary. Every hop is authenticated, but on loopback with demo secrets: no tenant boundaries, key rotation or production credential management. No deprecation gate, and remote deployments are not pinned. Registered metadata reads are not a transactional snapshot across services. Separate publication proof from behavioral testing.</aside>
       </section>
 
       <section class="slide" aria-label="Takeaways">
@@ -373,8 +388,8 @@
         <h2>Try the workflow.<br><span class="teal">Inspect the contract.</span></h2>
         <a class="repo" href="https://github.com/carlesarnal/agent-discovery-demo">github.com/carlesarnal/agent-discovery-demo ↗</a>
         <div class="closing-bottom"><div><p>Carles Arnal</p><p class="small" style="color:var(--muted)">Principal Software Engineer, IBM</p></div><div><a class="small" href="https://github.com/quarkiverse/quarkus-langchain4j/tree/1.15.0/samples/agent-registry-workflow">Quarkus LangChain4j sample ↗</a><p class="small" style="margin-top:12px"><a href="https://github.com/Apicurio/apicurio-registry/tree/main/examples/agent-registry">Every agent registry feature: Apicurio demo ↗</a></p></div></div>
-        <footer class="slide-footer"><span>QUARKUS LANGCHAIN4J 1.15.0 SAMPLE</span><span class="slide-number">13 / 13</span></footer>
-        <aside>22–25 minutes: questions and buffer. The sample is part of the Quarkus LangChain4j 1.15.0 release. For everything the talk skips (visibility per user, AI Catalog and ARD, the MCP server and MCP Registry API, importing tools from a running server), point to the Apicurio Registry agent registry demo.</aside>
+        <footer class="slide-footer"><span data-mode="default">QUARKUS LANGCHAIN4J 1.15.0 SAMPLE</span><span data-mode="secured">QUARKUS LANGCHAIN4J SAMPLE · AUTH IN REVIEW</span><span class="slide-number">13 / 13</span></footer>
+        <aside>22–25 minutes: questions and buffer. Default mode: the sample is part of the Quarkus LangChain4j 1.15.0 release. Secured mode: the same sample on the 2.x line, with the authentication changes in review (quarkus-langchain4j #3145, #3157) built from a pinned branch. For everything the talk skips (visibility per user, AI Catalog and ARD, the MCP server and MCP Registry API, importing tools from a running server), point to the Apicurio Registry agent registry demo.</aside>
       </section>
     </div>
   </main>
@@ -388,7 +403,14 @@
   <div class="notes-panel" id="speaker-notes" hidden><h2>Speaker notes</h2><p id="notes-content"></p></div>
 
   <script>
+    // presentation.html?mode=secured shows the secured-mode slide and texts; the default is the unauthenticated demo
+    const mode = new URLSearchParams(location.search).get('mode') === 'secured' ? 'secured' : 'default';
+    document.querySelectorAll('[data-mode]').forEach(element => { if (element.dataset.mode !== mode) element.remove(); });
     const slides = [...document.querySelectorAll('.slide')];
+    slides.forEach((slide, i) => {
+      const number = slide.querySelector('.slide-number');
+      if (number) number.textContent = `${String(i + 1).padStart(2, '0')} / ${slides.length}`;
+    });
     let current = 0;
     function fit() {
       document.documentElement.style.setProperty('--scale', Math.min(innerWidth / 1600, Math.max(1, innerHeight - 58) / 900));
