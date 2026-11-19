@@ -263,10 +263,11 @@
           <div class="ownership-row" role="row"><span class="index" role="cell">02</span><span class="what" role="cell">Agents → Registry: publish cards</span><span class="who" role="cell">Own credentials · write role</span></div>
           <div class="ownership-row" role="row"><span class="index" role="cell">03</span><span class="what" role="cell">Orchestrator → Registry: discover</span><span class="who" role="cell">Own credentials · read role</span></div>
           <div class="ownership-row" role="row"><span class="index" role="cell">04</span><span class="what" role="cell">Orchestrator → agents (A2A), weather (MCP)</span><span class="who" role="cell">Token · a2a-caller, mcp-caller</span></div>
+          <div class="ownership-row" role="row"><span class="index" role="cell">05</span><span class="what" role="cell">Orchestrator → Agent Cards</span><span class="who" role="cell">Token · a2a-caller</span></div>
         </div>
-        <p class="hint">Live: a call without a token gets 401. Bob can browse the console, not change it. Agent Cards stay public.</p>
+        <p class="hint">Live: a call without a token gets 401. Bob can browse the console, not change it. Even the Agent Cards need a token.</p>
         <footer class="slide-footer"><span>SECURED MODE / UPSTREAM CHANGES IN REVIEW</span><span class="slide-number"></span></footer>
-        <aside>6–7 minutes. One identity provider (Keycloak) for everyone. The Registry already supports OIDC and roles in a release; the client side (the Quarkus LangChain4j extensions sending credentials to the Registry and to A2A agents) is in review upstream, and this demo builds it from a pinned branch. Show: curl -i -X POST http://localhost:11010/ -d '{}' returns 401; in the console, alice can edit, bob in a private window can only read. The Agent Card fetch is public, which the A2A spec allows; protecting it is a tracked follow-up. Then go on with the briefing: every call behind it now carries a token.</aside>
+        <aside>6–7 minutes. One identity provider (Keycloak) for everyone. The Registry already supports OIDC and roles in a release; the client side (the Quarkus LangChain4j extensions sending credentials to the Registry and to A2A agents) is in review or proposed upstream, and this demo builds it from a pinned branch. Show: curl -i -X POST http://localhost:11010/ -d '{}' returns 401; in the console, alice can edit, bob in a private window can only read. The Agent Cards are protected too: the client sends its token when it fetches them (the A2A spec also allows public cards). Then go on with the briefing: every call behind it now carries a token.</aside>
       </section>
 
       <section class="slide" aria-label="Actual handoffs">

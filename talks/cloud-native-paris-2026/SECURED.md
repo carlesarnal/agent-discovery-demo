@@ -10,11 +10,10 @@ The same workflow as the default mode, with authentication on every hop. Run it 
 | Orchestrator to the Registry (discover agents and tools, read contracts) | Orchestrator's client credentials (role `sr-readonly`) |
 | Orchestrator to the agents (A2A) | Orchestrator token; the agents require role `a2a-caller` |
 | Orchestrator to the weather server (MCP) | Orchestrator token; the server requires role `mcp-caller` |
+| Orchestrator fetching the agents' Agent Cards | Orchestrator token; the cards require role `a2a-caller` too |
 | Registry importing tools from the weather server | The importer's token, sent to the MCP server only, never stored |
 
-Agent Cards and health checks stay public: the A2A spec allows public cards, and the client
-does not send credentials when it fetches a card yet
-([quarkiverse/quarkus-langchain4j#3205](https://github.com/quarkiverse/quarkus-langchain4j/issues/3205)).
+Only the health checks (`/q/*`) are public.
 
 ## What it runs on
 
@@ -24,7 +23,9 @@ Unreleased client code, on purpose:
   pinned to one commit: `main` plus
   [#3145](https://github.com/quarkiverse/quarkus-langchain4j/pull/3145) (credentials for the
   Registry) and [#3157](https://github.com/quarkiverse/quarkus-langchain4j/pull/3157)
-  (credentials for A2A agents), both in review. Built locally as `999-SNAPSHOT`, with the 2.x
+  (credentials for A2A agents), both in review, plus the change for
+  [#3205](https://github.com/quarkiverse/quarkus-langchain4j/issues/3205) (the same credentials on
+  the Agent Card request), proposed on top of #3157. Built locally as `999-SNAPSHOT`, with the 2.x
   sample (Quarkus 4).
 - **The weather server** from the 1.15.0 sample (Quarkus 3), because the MCP server extension does
   not support Quarkus 4 yet.
@@ -45,8 +46,8 @@ python3 scripts/secured.py tools       # in a second terminal
 
 `smoke` checks, on top of the default flow:
 
-- the agents refuse A2A calls without a token (401) and tokens without `a2a-caller` (403), and
-  still serve their Agent Cards;
+- the agents refuse A2A calls and Agent Card requests without a token (401) and with a token
+  without `a2a-caller` (403), and serve their cards to the orchestrator;
 - the weather server refuses MCP calls without a token (401) and tokens without `mcp-caller` (403);
 - the Registry refuses anonymous reads (401), lets a read-only identity read, and refuses its
   writes (403).
@@ -77,7 +78,8 @@ podman machine ssh "sudo date -u -s @$(date +%s)"
 ## Claims and answers that change
 
 - Say it runs on upstream changes in review, built from a pinned branch, not on a release.
-- Don't claim protected Agent Cards: they're public in this demo.
+- Agent Cards are protected here; the A2A spec also allows public ones. The client sends the same
+  credentials on the card request as on the calls.
 - Don't claim tenant boundaries, key rotation or production credential management. The secrets
   are demo values in a file.
 - **"Is this secure for multiple teams?"** "Every hop in this demo is authenticated, and each
@@ -113,11 +115,12 @@ podman machine ssh "sudo date -u -s @$(date +%s)"
 
 ## Local verification
 
-18 November 2026, Podman (as `docker`), host Ollama, `demo/paris-auth` at `72b798b`, the pinned
+19 November 2026, Podman (as `docker`), host Ollama, `demo/paris-auth` at `c169e04`, the pinned
 Registry and console snapshots:
 
 - `prepare`: the snapshot, the sample and the weather server built.
-- `smoke`: all 17 checks passed (6 for the workflow, 11 for security).
+- `smoke`: all 21 checks passed (6 for the workflow, 15 for security). With access logs on, the
+  agents' logs showed the orchestrator fetching their cards with its token (HTTP 200).
 - `run`, then `governance` and `tools` twice: all passed, including the anonymous import refusal.
 - The console redirected to the Keycloak login page for the `apicurio-console` client. Logging in
   through a browser as alice and bob is still to be checked by hand.

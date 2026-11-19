@@ -101,8 +101,8 @@ python3 scripts/secured.py smoke
 
 `prepare` fetches and installs the Quarkus LangChain4j branch with the authentication changes, then
 builds the 2.x sample and the 1.15.0 weather server with authentication added. `smoke` runs the
-same checks as above plus 11 security checks: calls without a token get 401, a token without the
-right role gets 403 (agents, weather server, Registry writes), Agent Cards stay public. Rehearse
+same checks as above plus 15 security checks: calls without a token get 401, a token without the
+right role gets 403 (agents and their Agent Cards, weather server, Registry writes). Rehearse
 `tools` too: it also checks that the Registry refuses an anonymous import.
 
 If every call suddenly fails authentication, check the Podman VM clock: after the laptop sleeps it
@@ -275,13 +275,13 @@ Point out:
 
 > “Same diagram, but now nothing is anonymous. People log in to the Registry console. Each agent publishes its card with its own credentials and a write role. The orchestrator discovers with a read-only identity. And when it calls the agents and the weather tool, it sends its own token, and each service checks the role.”
 >
-> “The Registry side of this is released. The client side, the Quarkus extensions sending credentials, is in review upstream, and this demo builds it from that branch.”
+> “The Registry side of this is released. The client side, the Quarkus extensions sending credentials, is in review or proposed upstream, and this demo builds it from a pinned branch.”
 
 Show, quickly:
 - The `curl` call without a token: **401**.
 - The console as alice (can edit), then bob in the private window (can browse, can't change anything).
 
-Say once: Agent Cards stay public, which the A2A spec allows; protecting the card fetch is a tracked follow-up.
+Say once: even the Agent Cards are protected; the client sends its token when it fetches them. (The A2A spec allows public cards too.)
 
 This slide costs about a minute. Take it from the briefing (slide 6 in default numbering): show the handoff fields, not whole paragraphs.
 

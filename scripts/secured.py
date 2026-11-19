@@ -8,10 +8,11 @@ and discover through the secured Registry, and the orchestrator sends its own to
 and to the MCP server it discovers.
 
 The client side is not released yet: this builds Quarkus LangChain4j from a branch combining
-quarkiverse/quarkus-langchain4j#3145 (Registry credentials) and #3157 (credentials for A2A
-agents), installed as 999-SNAPSHOT, and the 2.x sample (Quarkus 4) on top of it. The weather
+quarkiverse/quarkus-langchain4j#3145 (Registry credentials), #3157 (credentials for A2A agents)
+and the #3205 change on top of it (the same credentials on the Agent Card request), installed as
+999-SNAPSHOT, and the 2.x sample (Quarkus 4) on top of it. The weather
 server stays on the 1.15.0 sample (Quarkus 3): the MCP server extension does not support Quarkus 4
-yet. Agent Cards stay public (quarkiverse/quarkus-langchain4j#3205).
+yet. Agent Cards are protected like the A2A endpoints.
 
 Localhost-only demo credentials (secured/realm.json). Do not reuse them anywhere else.
 """
@@ -32,7 +33,7 @@ SECURED = ROOT / "secured"
 QL4J = ROOT / "target" / "quarkus-langchain4j-secured"
 QL4J_REMOTE = "https://github.com/carlesarnal/quarkus-langchain4j.git"
 QL4J_BRANCH = "demo/paris-auth"
-QL4J_COMMIT = "72b798b64df7a58bbd0677b3989e859a1227a7d5"
+QL4J_COMMIT = "c169e046351c88c89868bc6affc234d2f8032fa4"
 SAMPLE = ROOT / "target" / "secured-sample"
 WEATHER = ROOT / "target" / "secured-weather"
 PROJECT = "langchain4j-agent-workflow-secured"
@@ -157,8 +158,12 @@ def check_security():
                       status_of(f"http://localhost:{port}/", message))
         expect_status(f"{name} rejects a token without the a2a-caller role", 403,
                       status_of(f"http://localhost:{port}/", message, "demo-readonly"))
-        expect_status(f"{name} Agent Card stays public", 200,
+        expect_status(f"{name} rejects an Agent Card request without a token", 401,
                       status_of(f"http://localhost:{port}/.well-known/agent-card.json"))
+        expect_status(f"{name} rejects an Agent Card request without the a2a-caller role", 403,
+                      status_of(f"http://localhost:{port}/.well-known/agent-card.json", client="demo-readonly"))
+        expect_status(f"{name} serves its Agent Card to an a2a-caller", 200,
+                      status_of(f"http://localhost:{port}/.well-known/agent-card.json", client="orchestrator"))
     ping = {"jsonrpc": "2.0", "id": 1, "method": "ping"}
     expect_status("weather MCP server rejects a call without a token", 401,
                   status_of("http://localhost:11040/mcp", ping))
