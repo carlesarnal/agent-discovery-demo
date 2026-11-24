@@ -11,7 +11,7 @@
 **Deck:** `talks/cloud-native-paris-2026/presentation.html`, 13 slides, numbered 1–13; with
 `?mode=secured`, 14 slides (an extra slide 5)
 
-**Demo:** the agent registry workflow sample from the Quarkus LangChain4j 1.15.0 release
+**Demo:** the agent registry workflow sample from the Quarkus LangChain4j 1.15.1 release
 
 **Two modes.** The **default mode** (`scripts/workflow.py`) runs the released sample, unauthenticated.
 The **secured mode** (`scripts/secured.py`) runs the same workflow with authentication on every hop,
@@ -61,7 +61,7 @@ ollama pull qwen2.5:7b
 python3 scripts/workflow.py prepare
 ```
 
-`prepare` fetches the Quarkus LangChain4j `1.15.0` tag, builds the sample against the released extensions and runs its nine automated tests. The source lives under `target/`:
+`prepare` fetches the Quarkus LangChain4j `1.15.1` tag, builds the sample against the released extensions and runs its nine automated tests. The source lives under `target/`:
 
 ```text
 target/quarkus-langchain4j/samples/agent-registry-workflow/
@@ -100,7 +100,7 @@ python3 scripts/secured.py smoke
 ```
 
 `prepare` fetches and installs the Quarkus LangChain4j branch with the authentication changes, then
-builds the 2.x sample and the 1.15.0 weather server with authentication added. `smoke` runs the
+builds the 2.x sample and the 1.15.1 weather server with authentication added. `smoke` runs the
 same checks as above plus 15 security checks: calls without a token get 401, a token without the
 right role gets 403 (agents and their Agent Cards, weather server, Registry writes). Rehearse
 `tools` too: it also checks that the Registry refuses an anonymous import.
@@ -468,7 +468,7 @@ Mention once:
 ### Slide 13 — Try the workflow. Inspect the contract.
 **22:00–25:00 · Questions and buffer.**
 
-> “The example, checks and setup commands are linked here. The sample ships with Quarkus LangChain4j 1.15.0. If you want every agent registry feature, including visibility per user, ARD and the Registry MCP server, the Apicurio demo is linked too. Some of what it shows ships in Registry 3.4. Thank you—happy to take questions.”
+> “The example, checks and setup commands are linked here. The sample ships with Quarkus LangChain4j 1.15.1. If you want every agent registry feature, including visibility per user, ARD and the Registry MCP server, the Apicurio demo is linked too. Some of what it shows ships in Registry 3.4. Thank you—happy to take questions.”
 
 **Secured mode:** replace the release sentence with “The sample ships with Quarkus LangChain4j; the authentication you saw is in review upstream, and the repository builds it from a pinned branch.”
 
@@ -631,9 +631,9 @@ The second command removes this sample's ephemeral Registry data. It does not st
 
 ### “Are the integrations released?”
 
-“Yes. Both extensions and this sample ship in Quarkus LangChain4j 1.15.0, and the demo builds against that release. Registry authentication for the extensions is still in review, which is why the demo runs without it. Importing tools from a running MCP server is in Apicurio Registry 3.4; the demo uses its snapshot image until then.”
+“Yes. Both extensions and this sample ship in Quarkus LangChain4j 1.15.1, and the demo builds against that release. Registry authentication for the extensions is still in review, which is why the demo runs without it. Importing tools from a running MCP server is in Apicurio Registry 3.4; the demo uses its snapshot image until then.”
 
-**Secured mode:** “The extensions are, in Quarkus LangChain4j 1.15.0. The authentication you saw is in review upstream; the demo builds it from that branch, pinned to one commit. Importing tools is in Apicurio Registry 3.4.”
+**Secured mode:** “The extensions are, in Quarkus LangChain4j 1.15.1. The authentication you saw is in review upstream; the demo builds it from that branch, pinned to one commit. Importing tools is in Apicurio Registry 3.4.”
 
 ### “What performance or scale have you measured?”
 

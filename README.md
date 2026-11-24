@@ -10,7 +10,7 @@ specific to talks: slides, presenter guides, runbooks and a runner.
 
 | Demo | What it shows | Where |
 |---|---|---|
-| **Connected workflow** (used in the talks) | Quarkus agents publish their Agent Cards; an orchestrator discovers two A2A agents and an MCP server through the Registry and runs weather → summary → French translation; a compatibility rule rejects a breaking card change while the workflow keeps running | [Quarkus LangChain4j sample](https://github.com/quarkiverse/quarkus-langchain4j/tree/1.15.0/samples/agent-registry-workflow), run with `scripts/workflow.py` |
+| **Connected workflow** (used in the talks) | Quarkus agents publish their Agent Cards; an orchestrator discovers two A2A agents and an MCP server through the Registry and runs weather → summary → French translation; a compatibility rule rejects a breaking card change while the workflow keeps running | [Quarkus LangChain4j sample](https://github.com/quarkiverse/quarkus-langchain4j/tree/1.15.1/samples/agent-registry-workflow), run with `scripts/workflow.py` |
 | **Every agent registry feature** | Agent artifact types and references, compatibility rules, discovery (agents, MCP tools, AI Catalog, ARD), the MCP Registry API, importing tools from a running MCP server, visibility per user with Keycloak, the Registry MCP server, with a step-by-step guide and screenshots. Some features ship in Registry 3.4; the demo uses snapshot images until then | [Apicurio Registry `examples/agent-registry`](https://github.com/Apicurio/apicurio-registry/tree/main/examples/agent-registry) |
 
 ## Run the connected workflow
@@ -20,7 +20,7 @@ Requires Git, Java 17+, Docker (or Podman) with Compose v2, Python 3.9+ and
 
 ```sh
 ollama pull qwen2.5:7b
-python3 scripts/workflow.py prepare     # fetch the Quarkus LangChain4j 1.15.0 sample, build, run its tests
+python3 scripts/workflow.py prepare     # fetch the Quarkus LangChain4j 1.15.1 sample, build, run its tests
 python3 scripts/workflow.py run         # start it; open http://localhost:11020/
 python3 scripts/workflow.py governance  # in a second terminal: Agent Card compatibility checks
 python3 scripts/workflow.py tools       # in a second terminal: import tools from the running MCP server, then reject a breaking change

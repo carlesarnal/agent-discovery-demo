@@ -11,7 +11,7 @@ The client side is not released yet: this builds Quarkus LangChain4j from a bran
 quarkiverse/quarkus-langchain4j#3145 (Registry credentials), #3157 (credentials for A2A agents)
 and the #3205 change on top of it (the same credentials on the Agent Card request), installed as
 999-SNAPSHOT, and the 2.x sample (Quarkus 4) on top of it. The weather
-server stays on the 1.15.0 sample (Quarkus 3): the MCP server extension does not support Quarkus 4
+server stays on the 1.15.1 sample (Quarkus 3): the MCP server extension does not support Quarkus 4
 yet. Agent Cards are protected like the A2A endpoints.
 
 Localhost-only demo credentials (secured/realm.json). Do not reuse them anywhere else.
@@ -240,7 +240,7 @@ def build_sample():
 
 
 def build_weather():
-    """The 1.15.0 weather server (Quarkus 3) with OIDC on its MCP endpoint."""
+    """The 1.15.1 weather server (Quarkus 3) with OIDC on its MCP endpoint."""
     workflow.source()
     shutil.rmtree(WEATHER, ignore_errors=True)
     shutil.copytree(workflow.CHECKOUT / workflow.SAMPLE, WEATHER, symlinks=True)

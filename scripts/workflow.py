@@ -19,15 +19,15 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[1]
 CHECKOUT = ROOT / "target" / "quarkus-langchain4j"
 TALK_SAMPLE = ROOT / "target" / "talk-sample"
-TAG = "1.15.0"
+TAG = "1.15.1"
 REMOTE = "https://github.com/quarkiverse/quarkus-langchain4j.git"
 SAMPLE = Path("samples/agent-registry-workflow")
-# The latest-snapshot images rehearsed for the Paris talk on 18 November 2026. Importing tools is
+# The latest-snapshot images rehearsed for the Paris talk on 24 November 2026. Importing tools is
 # not in a Registry release yet (3.4); set REGISTRY_IMAGE and REGISTRY_UI_IMAGE to try newer ones.
 REGISTRY_IMAGE = os.environ.get(
-    "REGISTRY_IMAGE", "quay.io/apicurio/apicurio-registry@sha256:16624cdfcf2d7182227f2bab0ce8e5647582fb30f3ecfc3f45ff16cf5b8b6243")
+    "REGISTRY_IMAGE", "quay.io/apicurio/apicurio-registry@sha256:c1397ee691c8f8510f6afa177da237949725c3bb2ab25ee5824bdaf44b8fab93")
 UI_IMAGE = os.environ.get(
-    "REGISTRY_UI_IMAGE", "quay.io/apicurio/apicurio-registry-ui@sha256:46f422ce4342c295cdf1992df8f2bfc254360122325c1c6f37b203dbc631e050")
+    "REGISTRY_UI_IMAGE", "quay.io/apicurio/apicurio-registry-ui@sha256:7ad02c9a51f6253fd1d6257ebaa47f8a2064117b83b24bbcdfaa30ed30c861d5")
 REGISTRY = "http://localhost:8180/apis/registry/v3"
 # Where the Registry container reaches the weather MCP server. The server listens on the host's
 # localhost and, as it should, only accepts requests addressed to localhost. A proxy in the stack

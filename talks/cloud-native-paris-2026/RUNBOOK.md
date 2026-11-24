@@ -27,7 +27,7 @@ and verification record.
 - Run the smoke check with the intended hardware/model and inspect the outputs.
 - Start the interactive runner and open http://localhost:11020/ and http://localhost:8888/.
 - Pull the images beforehand: the Registry and console images pinned in `scripts/workflow.py`
-  (the `latest-snapshot` builds rehearsed on 18 November 2026) and `nginx:1.27-alpine`. To
+  (the `latest-snapshot` builds rehearsed on 24 November 2026) and `nginx:1.27-alpine`. To
   rehearse a newer snapshot, set `REGISTRY_IMAGE` and `REGISTRY_UI_IMAGE`, and pin it only if the
   whole runbook passes.
 - Open slides separately; no embedded terminal server is required.
@@ -74,3 +74,23 @@ sample too:
 Slides were checked in headless Chrome on October 23 at 1920×1080, 1280×720, 1024×768 and
 390×844 (animations, navigation, notes, print). After the November changes (slides 3, 6–11 and 13), all 13
 slides were rechecked at the same four sizes: no overflow or clipped content, no JavaScript errors.
+
+24 November 2026: Quarkus LangChain4j 1.15.1 was out (a patch release; diffing the two tags
+confirms the `a2a-apicurio-registry` and `mcp-apicurio-registry` extensions are unchanged between
+them — both already carried the input-key and republish-on-restart fixes since 1.15.0). Bumped
+`scripts/workflow.py` and `scripts/secured.py` from the `1.15.0` tag to `1.15.1` anyway, to track
+the latest release, and re-pinned the Registry/console snapshots, which was the actually necessary
+fix: the 18 November digests had been garbage collected from quay.io, as floating
+`latest-snapshot` tags are. Re-ran the full verification, Docker on macOS, host Ollama,
+against `1.15.1` (released extensions) and the new snapshot pins:
+
+- `python3 scripts/workflow.py prepare`: nine sample tests passed.
+- `python3 scripts/workflow.py smoke`: both agents discovered; real A2A summary and translation;
+  `getWeather` executed on the MCP server; connected briefing with the actual MCP output in the
+  summary input and the actual summary in the translation input; governance passed (removed skill
+  rejected, accepted registration unchanged, briefing reran; additive version accepted).
+- `run`, then `governance` and `tools` from a second terminal, each twice: all passed, same
+  results as 18 November (`tools` imported `getWeather` as `CREATED` then `UNCHANGED`, rejected
+  the breaking change with HTTP 400 and two causes, left the tool unchanged).
+- Console (http://localhost:8888) and the orchestrator (http://localhost:11020) both reachable.
+- `docker compose ... down` left no containers or orphaned host JVMs.

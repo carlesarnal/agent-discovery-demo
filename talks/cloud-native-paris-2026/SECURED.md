@@ -27,7 +27,7 @@ Unreleased client code, on purpose:
   [#3205](https://github.com/quarkiverse/quarkus-langchain4j/issues/3205) (the same credentials on
   the Agent Card request), proposed on top of #3157. Built locally as `999-SNAPSHOT`, with the 2.x
   sample (Quarkus 4).
-- **The weather server** from the 1.15.0 sample (Quarkus 3), because the MCP server extension does
+- **The weather server** from the 1.15.1 sample (Quarkus 3), because the MCP server extension does
   not support Quarkus 4 yet.
 - **Apicurio Registry and console:** the same pinned snapshots as the default mode, plus Keycloak
   26.2 on http://localhost:8190 (realm `agents`, from [`secured/realm.json`](../../secured/realm.json)).
@@ -87,7 +87,7 @@ podman machine ssh "sudo date -u -s @$(date +%s)"
   boundaries, credential management and operational policies; I haven't demonstrated those."
 - **"Who can publish or change a card?"** "Only identities with a write role: the agents publish
   with their own credentials. Here bob can read but not write."
-- **"Are the integrations released?"** "The extensions are, in Quarkus LangChain4j 1.15.0. The
+- **"Are the integrations released?"** "The extensions are, in Quarkus LangChain4j 1.15.1. The
   authentication you saw is in review upstream; the demo builds it from that branch."
 
 ## One week before (25–28 November)
