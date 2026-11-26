@@ -110,6 +110,11 @@
     .terminal-name { margin-left: 15px; }
     pre { font: 23px/1.65 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
     .terminal pre { padding: 30px; color: #d1e8da; }
+    .terminal .terminal-output { max-height: 235px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding-top: 12px; font-size: 19px; }
+    .terminal-run { margin: 0 30px 14px; }
+    .terminal-run button { font: inherit; padding: 5px 12px; cursor: pointer; }
+    .terminal-status { margin-left: 10px; font: 16px var(--mono); }
+    @media print { .terminal-run, .terminal-output { display: none; } }
     .prompt { color: var(--mint); }
     .terminal .command-link { display: block; margin: 0 30px 30px; font: 22px/1.5 var(--mono); }
     .observe-row { display: grid; grid-template-columns: 38px 1fr; gap: 16px; padding: 21px 0; border-bottom: 1px solid var(--line); }
@@ -315,10 +320,7 @@
         <div class="eyebrow">04 / Live demo <span class="pill">02 · Governance</span></div>
         <h2>Don’t just show the error.<br><span class="teal">Check what survived.</span></h2>
         <div class="live-grid">
-          <div class="terminal"><div class="terminal-bar"><i class="terminal-dot"></i><i class="terminal-dot"></i><i class="terminal-dot"></i><span class="terminal-name">second terminal · repository root</span></div><pre><span class="prompt">$</span> python3 scripts/workflow.py governance
-
-# Baseline → rejected update → rerun
-# Then: compatible addition → rerun</pre></div>
+          <div class="terminal" data-command="governance"><div class="terminal-bar"><i class="terminal-dot"></i><i class="terminal-dot"></i><i class="terminal-dot"></i><span class="terminal-name">Agent Card governance</span></div><pre><span class="prompt">$</span> python3 scripts/<span data-mode="default">workflow</span><span data-mode="secured">secured</span>.py governance</pre><div class="terminal-run" hidden><button type="button">Run governance</button><span class="terminal-status" role="status"></span></div><pre class="terminal-output" aria-label="Governance command output" tabindex="0" hidden></pre></div>
           <div class="proof-list"><div class="proof"><b>CHECK 01</b><span>Rejected version is absent.</span></div><div class="proof" style="--delay:.6s"><b>CHECK 02</b><span>Accepted content and version are unchanged.</span></div><div class="proof" style="--delay:1.2s"><b>CHECK 03</b><span>The complete briefing still runs.</span></div></div>
         </div>
         <p class="hint">Then the Registry console: <a href="http://localhost:8888/explore/default/translator" target="_blank" rel="noopener">translator versions ↗</a> — the rejected version never appears.</p>
@@ -346,10 +348,7 @@
         <div class="eyebrow">05 / Live demo <span class="pill">03 · Tools</span></div>
         <h2>Same promise.<br><span class="teal">For tools.</span></h2>
         <div class="live-grid">
-          <div class="terminal"><div class="terminal-bar"><i class="terminal-dot"></i><i class="terminal-dot"></i><i class="terminal-dot"></i><span class="terminal-name">second terminal · repository root</span></div><pre><span class="prompt">$</span> python3 scripts/workflow.py tools
-
-# Import tools from the running server
-# Then: breaking schema change → rejected</pre></div>
+          <div class="terminal" data-command="tools"><div class="terminal-bar"><i class="terminal-dot"></i><i class="terminal-dot"></i><i class="terminal-dot"></i><span class="terminal-name">MCP tool governance</span></div><pre><span class="prompt">$</span> python3 scripts/<span data-mode="default">workflow</span><span data-mode="secured">secured</span>.py tools</pre><div class="terminal-run" hidden><button type="button">Run tools</button><span class="terminal-status" role="status"></span></div><pre class="terminal-output" aria-label="Tools command output" tabindex="0" hidden></pre></div>
           <div class="proof-list"><div class="proof"><b>STEP 01</b><span>The Registry asks the weather server for its tools.</span></div><div class="proof" style="--delay:.6s"><b>STEP 02</b><span>Every caller must now send <code>units</code>: HTTP 400.</span></div><div class="proof" style="--delay:1.2s"><b>STEP 03</b><span>Importing again changes nothing.</span></div></div>
         </div>
         <p class="hint">Then the console: <a href="http://localhost:8888/explore/weather-tools/weather-server.getWeather" target="_blank" rel="noopener">the imported tool ↗</a></p>
@@ -407,6 +406,54 @@
     // presentation.html?mode=secured shows the secured-mode slide and texts; the default is the unauthenticated demo
     const mode = new URLSearchParams(location.search).get('mode') === 'secured' ? 'secured' : 'default';
     document.querySelectorAll('[data-mode]').forEach(element => { if (element.dataset.mode !== mode) element.remove(); });
+    async function enableLiveCommands() {
+      if (location.origin !== 'http://127.0.0.1:8765') return;
+      const base = `/presenter/${mode}`;
+      const panels = [...document.querySelectorAll('[data-command]')];
+      const buttons = panels.map(panel => panel.querySelector('button'));
+      try {
+        const probe = await fetch(base);
+        if (!probe.ok || (await probe.text()) !== 'ready') return;
+      } catch { return; }
+      panels.forEach((panel, index) => {
+        const status = panel.querySelector('.terminal-status');
+        const output = panel.querySelector('.terminal-output');
+        panel.querySelector('.terminal-run').hidden = false;
+        buttons[index].onclick = async () => {
+          buttons.forEach(button => button.disabled = true);
+          status.textContent = 'Running…';
+          output.textContent = '';
+          output.hidden = false;
+          try {
+            const response = await fetch(`${base}/${panel.dataset.command}`, {
+              method: 'POST', headers: {'X-Demo-Presenter': '1'},
+            });
+            if (!response.ok) throw new Error(`Runner returned HTTP ${response.status}`);
+            const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+            let pending = '', exitCode;
+            while (true) {
+              const {value, done} = await reader.read();
+              if (done) break;
+              const lines = (pending + value).split('\n');
+              pending = lines.pop();
+              for (const line of lines) {
+                const event = JSON.parse(line);
+                if ('exit' in event) exitCode = event.exit;
+                else output.append(document.createTextNode(event.output));
+              }
+              output.scrollTop = output.scrollHeight;
+            }
+            if (exitCode === undefined) throw new Error('Output ended before the command finished');
+            status.textContent = exitCode === 0 ? 'Finished · exit 0' : `Failed · exit ${exitCode}`;
+          } catch (error) {
+            status.textContent = error.message;
+          } finally {
+            buttons.forEach(button => button.disabled = false);
+          }
+        };
+      });
+    }
+    enableLiveCommands();
     const slides = [...document.querySelectorAll('.slide')];
     slides.forEach((slide, i) => {
       const number = slide.querySelector('.slide-number');
@@ -458,6 +505,7 @@
     document.getElementById('fullscreen').onclick = toggleFullscreen;
     document.addEventListener('keydown', event => {
       if (event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+      if (event.target.closest('.terminal-output') && ['ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) return;
       if (event.key === ' ' && event.target.closest('button,a')) return;
       if (['ArrowRight', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); show(current + 1); }
       if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); show(current - 1); }

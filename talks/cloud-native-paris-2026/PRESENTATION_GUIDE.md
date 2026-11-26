@@ -88,7 +88,7 @@ Expected checks:
 - The connected briefing works after rejection and after a compatible addition.
 - The runner removes its processes and Registry container/network on completion.
 
-The smoke test doesn't cover the tools step (slide 10). Rehearse it with `run`, then `governance` and `tools` from a second terminal.
+The smoke test doesn't cover the tools step (slide 10). Rehearse it with `run`, then use the live slide buttons described below (or the same commands in a second terminal).
 
 These checks validate invocation, handoffs and publication behavior. Read the generated text yourself: a passing smoke run does not prove translation accuracy or factual correctness in general.
 
@@ -135,7 +135,7 @@ Ready: http://localhost:11020/workflow/agents
 
 The runner starts an ephemeral Registry (a pinned snapshot image, for MCP tool import), the Registry console and a small proxy in Docker, and four local Java processes. It registers the weather tool and installs the translator's BACKWARD compatibility rule. **Leave Terminal A running.** Ctrl+C stops the demo and removes its Registry data.
 
-### Terminal B: checks and on-stage commands
+### Terminal B: checks and presenter server
 
 ```bash
 curl -fsS http://localhost:8180/apis/registry/v3/system/info
@@ -156,37 +156,40 @@ You should see the two roles `summarizer` and `translator`. Descriptions may var
 | Weather MCP endpoint | http://localhost:11040/mcp |
 | Host Ollama | http://localhost:11434 |
 
-There is no embedded terminal and no need for ttyd or Kubernetes port-forwarding. The tools step needs Docker Desktop or Podman on macOS: they route `host.docker.internal` to the laptop's localhost, where the weather server listens.
+The slide runner needs no ttyd or Kubernetes port-forwarding. The tools step needs Docker Desktop or Podman on macOS: they route `host.docker.internal` to the laptop's localhost, where the weather server listens.
 
-### Open the browser
+### Open the live deck
+
+In Terminal B, start the presenter server and leave it running:
 
 ```bash
-open talks/cloud-native-paris-2026/presentation.html
+python3 scripts/present.py
+```
+
+Open these in the browser:
+
+```bash
+open http://127.0.0.1:8765/
 open http://localhost:11020/
 open http://localhost:8888/explore/default/translator
 ```
 
-**Secured mode:** the deck needs `?mode=secured`, which `open` can't pass to a file. Open it in the
-browser directly:
+**Secured mode:** start the presenter with `python3 scripts/present.py --mode secured` and open
+the same URL. Match the presenter mode to the stack in Terminal A.
 
-```bash
-open -a "Google Chrome" "file://$PWD/talks/cloud-native-paris-2026/presentation.html?mode=secured"
-```
+The two live panels stream real command output. If the presenter server is unavailable, open
+`presentation.html` directly and run the printed commands in a spare terminal. For attendees,
+share the HTML file, not the localhost URL. Stop the presenter with Ctrl+C in Terminal B.
 
-Log in to the console as **alice** (password `alice`). Keep a private window ready to log in as
+**Secured mode only:** Log in to the console as **alice** (password `alice`). Keep a private window ready to log in as
 **bob** (`bob`), and a terminal with the refused call typed in:
 
 ```bash
 curl -i -X POST http://localhost:11010/ -H 'Content-Type: application/json' -d '{}'
 ```
 
-The slides work from a local file and have no external font/assets dependency. If a browser restricts local-file functionality, serve this repository on loopback:
-
-```bash
-python3 -m http.server 8082 --bind 127.0.0.1
-```
-
-Then open http://localhost:8082/talks/cloud-native-paris-2026/presentation.html. Don't serve it on a public interface.
+The standalone slides have no external fonts or assets. For the secured slides without the
+presenter server, append `?mode=secured` to the file URL in the browser.
 
 Preload three tabs/windows:
 
@@ -346,7 +349,7 @@ The slide is an abbreviated skill-ID diff. The actual card is JSON with addition
 **Transition:** “A 400 on its own wouldn't tell us enough. Let's check what survived.”
 
 ### Slide 8 — Don't just show the error. Check what survived.
-**12:00–16:00 · Run the governance command in Terminal B.**
+**12:00–16:00 · Click Run governance on the slide.** Terminal fallback:
 
 ```bash
 python3 scripts/workflow.py governance
@@ -382,7 +385,7 @@ Suggested words:
 >
 > “The same running workflow still works after that failed publication.”
 
-Keep Terminal B's output visible while it completes. The checks happen inside the script; don't manually repeat all the requests on stage.
+Keep the slide output visible while it completes. The checks happen inside the script; don't manually repeat all the requests on stage.
 
 Then switch to the console tab (http://localhost:8888/explore/default/translator):
 
@@ -410,7 +413,7 @@ If useful, run another briefing in the dashboard to show the new version—but o
 **Transition:** “That was an agent. Tools need the same promise.”
 
 ### Slide 10 — Same promise. For tools.
-**17:00–19:00 · Run the tools command in Terminal B.**
+**17:00–19:00 · Click Run tools on the slide.** Terminal fallback:
 
 ```bash
 python3 scripts/workflow.py tools
@@ -547,19 +550,16 @@ curl -fsS http://localhost:8180/apis/registry/v3/groups/default/artifacts/transl
 
 ### Cleanup and fresh rehearsal
 
-Stop Terminal A with Ctrl+C and let cleanup finish. It terminates the sample's four Java processes and removes the ephemeral Registry container/network. Host Ollama stays running. A fresh run starts new Registry state; do not assume previous publication history persists.
-
-If a crash left only the sample's Docker resources behind, **first confirm no sample JVM/runner is still running**, then:
+From the repository root, in a spare terminal, run:
 
 ```bash
-docker compose -p langchain4j-agent-workflow \
-  -f target/quarkus-langchain4j/samples/agent-registry-workflow/compose.yaml ps
-
-docker compose -p langchain4j-agent-workflow \
-  -f target/quarkus-langchain4j/samples/agent-registry-workflow/compose.yaml down
+python3 scripts/stop.py
 ```
 
-The second command removes this sample's ephemeral Registry data. It does not stop orphaned host JVMs; inspect their process IDs before terminating them.
+This stops the presenter, demo runners, and sample JVMs from this checkout, then tears down the
+default and secured Compose projects, including their temporary Registry data. Host Ollama and
+unrelated containers stay running. Use `python3 scripts/stop.py --dry-run` to preview. A fresh run
+starts with new Registry state.
 
 ---
 

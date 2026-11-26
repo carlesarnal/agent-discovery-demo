@@ -30,7 +30,11 @@ and verification record.
   (the `latest-snapshot` builds rehearsed on 24 November 2026) and `nginx:1.27-alpine`. To
   rehearse a newer snapshot, set `REGISTRY_IMAGE` and `REGISTRY_UI_IMAGE`, and pin it only if the
   whole runbook passes.
-- Open slides separately; no embedded terminal server is required.
+- Start `python3 scripts/present.py` and open http://127.0.0.1:8765/ for the live governance
+  and tools buttons. Use `--mode secured` with the secured stack. The standalone HTML and
+  printed commands are the fallback.
+- After the demo, run `python3 scripts/stop.py` from a spare terminal. This stops the presenter
+  and both demo modes without stopping host Ollama.
 - Slides: arrows navigate; N toggles notes; F toggles fullscreen; R replays
   animation. Slide 4 reveals publication, discovery and invocation in sequence.
   These are illustrative animations, not live telemetry. Keep the real dashboard

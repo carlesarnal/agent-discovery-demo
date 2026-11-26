@@ -33,6 +33,8 @@ or Podman on macOS.
 
 `python3 scripts/workflow.py smoke` runs the whole flow with assertions, then stops. Ctrl+C stops
 `run`, including its temporary Registry. The sample is fetched into `target/` (ignored).
+To stop everything in this checkout (default or secured demo, plus the presenter), run
+`python3 scripts/stop.py`. Host Ollama stays running.
 
 ### Secured mode
 

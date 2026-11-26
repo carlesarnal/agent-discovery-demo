@@ -63,7 +63,9 @@ podman machine ssh "sudo date -u -s @$(date +%s)"
 
 ## Showing it
 
-- **Slides:** open `presentation.html?mode=secured`. It adds slide 5, "Every call carries an
+- **Slides:** run `python3 scripts/present.py --mode secured` and open <http://127.0.0.1:8765/>
+  for the live governance and tools buttons. The standalone fallback is `presentation.html?mode=secured`.
+  Secured mode adds slide 5, "Every call carries an
   identity" (after the architecture, about one minute), and switches the slide 11 and closing texts
   and speaker notes to secured mode. Without `?mode=secured` you get the default deck.
 - In the console, log in as **alice** (password `alice`): she can edit. Log in as **bob** (`bob`)
@@ -111,7 +113,8 @@ podman machine ssh "sudo date -u -s @$(date +%s)"
 4. `run` in terminal A. Open http://localhost:11020/ and http://localhost:8888/ (logged in as
    alice in secured mode). Terminal B is ready for `governance` and `tools`.
 5. Larger terminal font; notifications and sleep off.
-6. Afterwards, Ctrl-C in terminal A stops everything.
+6. Afterwards, run `python3 scripts/stop.py` from a spare terminal to stop the stack and presenter.
+   Host Ollama stays running.
 
 ## Local verification
 
