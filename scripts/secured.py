@@ -210,6 +210,7 @@ def build_sample():
     """The 2.x sample with the secured overlay: OIDC on the agents, client credentials everywhere."""
     shutil.rmtree(SAMPLE, ignore_errors=True)
     shutil.copytree(QL4J / workflow.SAMPLE, SAMPLE, symlinks=True)
+    workflow.simplify_dashboard(SAMPLE)
     for module in ("text-agent", "orchestrator"):
         properties = SAMPLE / module / "src/main/resources/application.properties"
         properties.write_text(properties.read_text() + "\n" + (SECURED / f"overlay/{module}.properties").read_text())

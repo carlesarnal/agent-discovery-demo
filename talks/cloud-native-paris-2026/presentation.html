@@ -103,20 +103,48 @@
     .handoff .example strong { display: block; margin-bottom: 10px; color: var(--teal); font-size: 19px; }
 
     /* Live demo: command on one side, observation guide on the other. */
-    .live-grid { margin-top: 52px; display: grid; grid-template-columns: 1.13fr .87fr; gap: 58px; }
+    .live-grid { margin-top: 38px; display: grid; grid-template-columns: 1.13fr .87fr; gap: 58px; }
     .terminal { background: #0c1918; border: 1px solid #435752; border-radius: 10px; overflow: hidden; }
-    .terminal-bar { display: flex; align-items: center; gap: 7px; padding: 17px 22px; border-bottom: 1px solid #354944; color: #9fb3aa; font: 15px var(--mono); }
+    .terminal-bar { display: flex; align-items: center; gap: 7px; padding: 15px 22px; border-bottom: 1px solid #354944; color: #9fb3aa; font: 15px var(--mono); }
     .terminal-dot { width: 7px; height: 7px; background: #729086; border-radius: 50%; }
     .terminal-name { margin-left: 15px; }
     pre { font: 23px/1.65 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
-    .terminal pre { padding: 30px; color: #d1e8da; }
-    .terminal .terminal-output { max-height: 235px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding-top: 12px; font-size: 19px; }
-    .terminal-run { margin: 0 30px 14px; }
-    .terminal-run button { font: inherit; padding: 5px 12px; cursor: pointer; }
-    .terminal-status { margin-left: 10px; font: 16px var(--mono); }
+    .terminal pre { padding: 18px 26px; color: #d1e8da; }
+    .terminal .terminal-output { max-height: 278px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 14px 26px; border-top: 1px solid #435752; color: #f3fbf7; font: 20px/1.45 var(--mono); }
+    .terminal-output-block { display: block; }
+    .terminal-output-block + .terminal-output-block { margin-top: 1lh; }
+    .terminal-output-pass { color: #9af2be; font-weight: 700; }
+    .terminal-output-reject { color: var(--coral); font-weight: 700; }
+    .terminal-run { margin: 0 26px 14px; display: flex; align-items: center; gap: 14px; }
+    .terminal-run button { background: var(--mint); color: #0c1918; border: 1px solid var(--mint); border-radius: 5px; font: 700 18px/1.3 var(--mono); padding: 7px 14px; cursor: pointer; }
+    .terminal-run button:disabled { opacity: .6; cursor: wait; }
+    .terminal-status { font: 16px var(--mono); color: var(--muted); }
     @media print { .terminal-run, .terminal-output { display: none; } }
     .prompt { color: var(--mint); }
-    .terminal .command-link { display: block; margin: 0 30px 30px; font: 22px/1.5 var(--mono); }
+    .briefing-preview { align-self: start; padding: 32px; border: 1px solid #435752; border-radius: 10px; background: #0c1918; }
+    .briefing-preview p { margin: 18px 0 26px; font-size: 32px; line-height: 1.25; }
+    .briefing-preview a { display: inline-block; font: 22px/1.5 var(--mono); }
+    .briefing-preview button, .briefing-live button { font: 20px/1.4 var(--mono); padding: 8px 14px; cursor: pointer; }
+    .briefing-preview button { background: var(--mint); color: #0c1918; border: 1px solid var(--mint); border-radius: 5px; font-weight: 700; }
+    .briefing-live { margin-top: 20px; }
+    .briefing-live-controls { display: flex; align-items: center; gap: 20px; margin-bottom: 12px; font-size: 19px; }
+    .briefing-form { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; align-items: end; gap: 16px; }
+    .briefing-field { display: grid; gap: 8px; }
+    .briefing-field :is(select, input) { width: 100%; padding: 10px; border: 1px solid #435752; border-radius: 5px; background: #0c1918; color: #f3fbf7; font: 20px/1.35 var(--mono); color-scheme: dark; }
+    .briefing-live-controls button, .briefing-step-buttons button { border: 1px solid #729086; border-radius: 5px; background: #0c1918; color: #f3fbf7; }
+    .briefing-submit, .briefing-step-buttons button[aria-pressed="true"] { background: var(--mint); color: #0c1918; border: 1px solid var(--mint); border-radius: 5px; font-weight: 700; }
+    .briefing-live button:disabled { opacity: .6; cursor: wait; }
+    .briefing-status { min-height: 28px; margin: 10px 0; font: 17px/1.4 var(--mono); }
+    .briefing-step-buttons { display: flex; gap: 10px; }
+    .briefing-step-meta { margin: 10px 0; color: var(--mint); font: 18px/1.4 var(--mono); }
+    .briefing-io { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .briefing-io > div { min-width: 0; padding: 14px 18px; border: 1px solid #435752; border-radius: 7px; background: #0c1918; }
+    .briefing-io pre { max-height: 184px; overflow: auto; margin-top: 6px; color: #f3fbf7; font: 21px/1.45 var(--mono); }
+    .briefing-contracts { margin-top: 12px; font: 16px/1.45 var(--mono); }
+    .briefing-contracts ul { max-height: 85px; overflow: auto; margin: 4px 0 0; }
+    @media screen { .briefing-open h2 { font-size: 52px; } .briefing-open h2 br { display: none; } .live-grid[hidden] { display: none; } }
+    .briefing-preview a[hidden] { display: none; }
+    @media print { .briefing-live, .briefing-preview button { display: none; } .briefing-open .live-grid { display: grid; } }
     .observe-row { display: grid; grid-template-columns: 38px 1fr; gap: 16px; padding: 21px 0; border-bottom: 1px solid var(--line); }
     .observe-row .n { font: 22px var(--mono); color: var(--teal); padding-top: 5px; }
     .observe-row p { font-size: 26px; }
@@ -124,9 +152,12 @@
 
     /* Publication before / candidate / acceptance. */
     .diff-grid { margin-top: 44px; gap: 28px; }
-    .code-card { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .code-card { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fbfaf6; }
     .code-card .code-header { padding: 19px 25px; background: #e7eae2; border-bottom: 1px solid var(--line); font: 600 18px var(--mono); display: flex; justify-content: space-between; }
     .code-card pre { padding: 24px; background: #fbfaf6; font-size: 25px; }
+    .code-slide .code-grid { margin-top: 38px; gap: 32px; }
+    .code-slide .code-card pre { padding: 20px 22px; font-size: 16.5px; line-height: 1.55; }
+    .code-slide .code-card pre + pre { border-top: 1px solid var(--line); }
     .removed { display: block; background: #f9e0d5; color: #903419; margin: 0 -24px; padding: 0 24px; }
     .added { display: block; background: #dcebdc; color: #14583e; margin: 0 -24px; padding: 0 24px; }
     .verdict { display: flex; align-items: center; gap: 23px; margin-top: 29px; padding: 21px 26px; background: #f0dfd3; border-left: 5px solid var(--orange); }
@@ -159,9 +190,13 @@
     .takeaway-row .index { color: var(--teal); font: 36px/1.3 var(--mono); }
     .takeaway-row h3 { font-size: 35px; margin-bottom: 10px; }
     .takeaway-row p { font-size: 25px; color: var(--muted); }
-    .close h2 { font-size: 105px; letter-spacing: -4px; margin-top: 100px; }
-    .close .repo { display: block; font: 26px/1.65 var(--mono); margin-top: 36px; }
-    .close .closing-bottom { margin-top: 50px; display: flex; justify-content: space-between; align-items: end; }
+    .close-grid { margin-top: 44px; display: grid; grid-template-columns: 1fr 270px; gap: 48px; align-items: end; }
+    .close h2 { font-size: 94px; letter-spacing: -4px; margin-top: 18px; }
+    .close .repo { display: block; font: 26px/1.65 var(--mono); margin-top: 30px; }
+    .close-qr { text-align: center; }
+    .close-qr svg { display: block; width: 248px; height: 248px; margin: 0 auto 12px; border-radius: 10px; background: white; }
+    .close-qr span { font: 500 15px/1.4 var(--mono); color: var(--muted); letter-spacing: .5px; text-transform: uppercase; }
+    .close .closing-bottom { margin-top: 38px; display: flex; justify-content: space-between; align-items: end; gap: 32px; }
 
     /* Controls live outside the presentation canvas. */
     .toolbar { position: fixed; bottom: 0; left: 0; right: 0; height: 58px; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; color: #b4c3bf; background: #111a1a; }
@@ -211,8 +246,9 @@
           <div class="decision-card"><div class="label">One team · one release</div><h3>Configuration may be enough.</h3><p>The same team coordinates endpoints,<br>interfaces and callers.</p><p class="conclusion">Keep it simple.</p></div>
           <div class="decision-card focus"><div class="label">Independent publishers</div><h3>The contract needs a home.</h3><p>Callers need to find endpoints and<br>inspect changes to declared capabilities.</p><p class="conclusion">Make publication explicit.</p></div>
         </div>
-        <footer class="slide-footer"><span>AGENT SPRAWL / CARLES ARNAL</span><span class="slide-number">02 / 13</span></footer>
-        <aside>0–3 minutes. Explain this as a motivating scenario, not evidence that we operate twenty agents in production. A registry is another dependency with availability and access-control costs. For one team, static configuration may be the right choice.</aside>
+        <p class="hint">Same pattern teams used for OpenAPI, AsyncAPI, and Kafka schemas — now applied to A2A Agent Cards and MCP tools.</p>
+        <footer class="slide-footer"><span>AGENT SPRAWL / CARLES ARNAL</span><span class="slide-number">02 / 14</span></footer>
+        <aside>1:15–3:15. Explain this as a motivating scenario, not evidence that we operate twenty agents in production. A registry is another dependency with availability and access-control costs. For one team, static configuration may be the right choice.</aside>
       </section>
 
       <section class="slide" aria-label="Registry contribution">
@@ -250,14 +286,46 @@
           <g fill="#e0ebe2" stroke="#96b3a0" stroke-width="2"><rect x="1050" y="154" width="345" height="73" rx="8"/><rect x="1050" y="252" width="345" height="73" rx="8"/><rect x="1050" y="350" width="345" height="73" rx="8"/></g>
           <g fill="#202b2b" font-size="26" text-anchor="middle" font-weight="600"><text x="1222" y="199">Weather · MCP</text><text x="1222" y="297">Summarizer · A2A</text><text x="1222" y="395">Translator · A2A</text></g>
           <g fill="none" stroke="#a53d16" stroke-width="2.5" marker-end="url(#metadata-arrow)"><path class="flow-path" style="--delay:.8s" d="M166 170V58H428"/><path class="flow-path" d="M1395 288H1410V56H998"/></g>
+          <path class="flow-path" d="M1395 190H1410" fill="none" stroke="#a53d16" stroke-width="2.5"/>
           <path class="flow-path" d="M1395 386H1410V288" fill="none" stroke="#a53d16" stroke-width="2.5"/>
-          <text class="flow-label" style="--delay:.8s" x="187" y="139" fill="#a53d16" font-size="19">discover endpoints</text><text class="flow-label" x="1060" y="40" fill="#a53d16" font-size="19">publish Agent Cards</text>
+          <text class="flow-label" style="--delay:.8s" x="187" y="139" fill="#a53d16" font-size="19">discover endpoints</text><text class="flow-label" x="1014" y="40" fill="#a53d16" font-size="19">publish Agent Cards &amp; MCP tool</text>
           <g fill="none" stroke="#00675e" stroke-width="3" marker-end="url(#execution-arrow)"><path class="flow-path" style="--delay:1.7s" d="M322 205H1015V190H1050"/><path class="flow-path" style="--delay:2.7s" d="M322 288H1050"/><path class="flow-path" style="--delay:3.7s" d="M322 371H1015V386H1050"/></g>
           <g fill="#00675e" font-size="23"><text class="flow-label" style="--delay:1.7s" x="385" y="185">1. getWeather(city)</text><text class="flow-label" style="--delay:2.7s" x="385" y="268">2. summarize(weather + context)</text><text class="flow-label" style="--delay:3.7s" x="385" y="351">3. translate(actual summary)</text></g>
         </svg>
         <div class="diagram-legend"><span><i class="legend-line" style="border-color:var(--orange)"></i>Publication / discovery</span><span><i class="legend-line"></i>Invocation</span><button class="replay" type="button">Replay flow ↻</button></div>
-        <footer class="slide-footer"><span>THE REGISTRY IS NOT AN INVOCATION PROXY</span><span class="slide-number">04 / 13</span></footer>
-        <aside>3–6 minutes. All invocations originate in the orchestrator; outputs are passed to the next call by application code. A2A agents use the extension's programmatic publisher. The runner explicitly registers the MCP artifact. Orange paths show publication/discovery; teal paths show direct invocation. The animation illustrates order, not measured timing or live traffic. Press R or Replay flow to repeat it.</aside>
+        <footer class="slide-footer"><span>THE REGISTRY IS NOT AN INVOCATION PROXY</span><span class="slide-number">04 / 14</span></footer>
+        <aside>5:00–7:15. All invocations originate in the orchestrator; outputs are passed to the next call by application code. A2A agents use the extension's programmatic publisher. The runner explicitly registers the Weather MCP artifact. Orange paths show publication/discovery; teal paths show direct invocation. The animation illustrates order, not measured timing or live traffic. Press R or Replay flow to repeat it.</aside>
+      </section>
+
+      <section class="slide code-slide" aria-label="Sample integration code">
+        <div class="eyebrow">02 / The architecture</div>
+        <h2>One registry URL.<br><span class="teal">Zero hardcoded endpoints.</span></h2>
+        <div class="two-col code-grid">
+          <div class="code-card"><div class="code-header"><span>ORCHESTRATOR</span><span>WorkflowResource + DiscoveredWeather</span></div><pre>@Inject ApicurioAgentsRegistry registry;
+@Inject ApicurioRegistryMcpTools tools;
+
+// Discover A2A agents by role
+var agents = registry.allAgents();
+var summarizer = requireAgent(agents, "summarizer");
+var translator = requireAgent(agents, "translator");
+
+// Discover and call the MCP weather tool
+tools.searchMcpServers("weather");
+tools.connectMcpServer("weather", "weather-tools");
+String forecast = tools.callMcpTool(
+    "weather-tools/weather", "getWeather", args);</pre></div>
+          <div class="code-card"><div class="code-header"><span>CONFIG &amp; PUBLISHER</span><span>application.properties + TextAgent</span></div><pre># Orchestrator only knows the Registry URL
+quarkus.langchain4j.a2a.apicurio-registry.url=${REGISTRY_URL}
+quarkus.langchain4j.mcp.apicurio-registry.url=${REGISTRY_URL}</pre><pre>// Each A2A agent publishes its card on startup
+new A2AAgentCardPublisher(client, "default", name,
+    description, agentUrl, "1.0.0",
+    List.of(new SkillInfo(name, name, description)))
+    .publish();</pre></div>
+        </div>
+        <p class="hint" data-mode="default">Excerpts from the Quarkus LangChain4j 1.15.1 sample — roles stay in Java, network locations live in Apicurio Registry.</p>
+        <p class="hint" data-mode="secured">Excerpts from the sample — roles stay in Java; endpoints and OIDC credentials come from configuration and Apicurio Registry.</p>
+        <footer class="slide-footer"><span>QUARKUS LANGCHAIN4J EXTENSIONS</span><span class="slide-number">05 / 14</span></footer>
+        <aside>7:15–9:15. Walk left to right. In the orchestrator, there is not a single host or port for weather, summarizer or translator. Roles and sequence stay explicit in Java; endpoints come from Apicurio Registry through two injected beans. On the right: two lines of config for the orchestrator, and programmatic card publication in each text agent on startup.</aside>
       </section>
 
       <section class="slide" aria-label="Identity on every hop" data-mode="secured">
@@ -272,11 +340,11 @@
         </div>
         <p class="hint">Live: a call without a token gets 401. Bob can browse the console, not change it. Even the Agent Cards need a token.</p>
         <footer class="slide-footer"><span>SECURED MODE / UPSTREAM CHANGES IN REVIEW</span><span class="slide-number"></span></footer>
-        <aside>6–7 minutes. One identity provider (Keycloak) for everyone. The Registry already supports OIDC and roles in a release; the client side (the Quarkus LangChain4j extensions sending credentials to the Registry and to A2A agents) is in review or proposed upstream, and this demo builds it from a pinned branch. Show: curl -i -X POST http://localhost:11010/ -d '{}' returns 401; in the console, alice can edit, bob in a private window can only read. The Agent Cards are protected too: the client sends its token when it fetches them (the A2A spec also allows public cards). Then go on with the briefing: every call behind it now carries a token.</aside>
+        <aside>7:30–10:00. One identity provider (Keycloak) for everyone. The Registry already supports OIDC and roles in a release; the client side (the Quarkus LangChain4j extensions sending credentials to the Registry and to A2A agents) is in review or proposed upstream, and this demo builds it from a pinned branch. Show: curl -sS -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://localhost:11010/ -H 'Content-Type: application/json' -d '{}' returns 401; in the console, alice can edit, bob in a private window can only read. The Agent Cards are protected too: the client sends its token when it fetches them (the A2A spec also allows public cards). Then go on with the briefing: every call behind it now carries a token.</aside>
       </section>
 
       <section class="slide" aria-label="Actual handoffs">
-        <div class="eyebrow">02 / The architecture</div>
+        <div class="eyebrow">03 / Live demo</div>
         <h2>Follow the data.<br>Not just the final answer.</h2>
         <div class="three-col handoff-grid">
           <div class="handoff"><span class="label">01 · MCP tool</span><h3>Weather</h3><div class="example"><strong>FIXTURE OUTPUT</strong>Amsterdam: 16 C,<br>light rain.</div></div>
@@ -284,25 +352,38 @@
           <div class="handoff" style="--delay:1.4s"><span class="label">03 · A2A agent</span><h3>Translate</h3><div class="example"><strong>INPUT</strong>The actual summary,<br>passed unchanged.</div></div>
         </div>
         <p class="hint">Weather is fictional. Generated text varies. The handoffs are inspectable.</p>
-        <footer class="slide-footer"><span>ONE REQUEST / THREE REAL CALLS</span><span class="slide-number">05 / 13</span></footer>
+        <footer class="slide-footer"><span>ONE REQUEST / THREE REAL CALLS</span><span class="slide-number">06 / 14</span></footer>
         <aside>The connected briefing is a fixed application workflow, not a model planning arbitrary steps. The displayed weather is the sample fixture. Do not prescribe an exact summary or translation. Point to returned handoff inputs and outputs to demonstrate actual invocation.</aside>
       </section>
 
       <section class="slide dark" aria-label="Live briefing">
-        <div class="eyebrow">03 / Live demo <span class="pill">01 · Briefing</span></div>
-        <h2>One briefing.<br><span class="teal">Every handoff visible.</span></h2>
+        <div class="eyebrow">03 / Live demo <span class="pill">1 of 3 · Run the briefing</span></div>
+        <h2>One briefing.<br> <span class="teal">Every handoff visible.</span></h2>
         <div class="live-grid">
-          <div class="terminal"><div class="terminal-bar"><i class="terminal-dot"></i><i class="terminal-dot"></i><i class="terminal-dot"></i><span class="terminal-name">terminal · repository root</span></div><pre><span class="prompt">$</span> python3 scripts/workflow.py run
-
-# Build and warm the model beforehand.</pre><a class="command-link" href="http://localhost:11020/" target="_blank" rel="noopener">Open localhost:11020 ↗</a></div>
-          <div><div class="label">Watch for</div><div class="observe-row"><span class="n">01</span><p>Weather output in the summary input.</p></div><div class="observe-row"><span class="n">02</span><p>Summary output in the translation input.</p></div><div class="observe-row"><span class="n">03</span><p>Registered versions observed before execution.</p></div></div>
+          <div class="briefing-preview"><div class="label">Live briefing · Amsterdam</div><p>Can we trace the French briefing back to the original weather result?</p><button type="button" id="show-briefing" hidden>Show live briefing</button><a id="briefing-tab" href="http://localhost:11020/" target="_blank" rel="noopener">Open dashboard in a separate tab ↗</a></div>
+          <div><div class="label">Watch the handoffs</div><div class="observe-row"><span class="n">01</span><p>The weather result and visitor context go to the summarizer.</p></div><div class="observe-row"><span class="n">02</span><p>That exact summary goes to the translator.</p></div><div class="observe-row"><span class="n">03</span><p>The dashboard shows the registered versions the workflow observed.</p></div></div>
+        </div>
+        <div class="briefing-live" id="briefing-live" hidden>
+          <div class="briefing-live-controls"><button type="button" id="hide-briefing">Back to slide</button><a href="http://localhost:11020/" target="_blank" rel="noopener">Open dashboard in a separate tab ↗</a></div>
+          <form class="briefing-form" id="live-briefing-form">
+            <label class="briefing-field"><span class="label">City</span><select name="city"><option>Amsterdam</option><option>Paris</option><option>Madrid</option></select></label>
+            <label class="briefing-field"><span class="label">Visitor context</span><input name="context" required maxlength="8000" value="Visitors will walk through the city and meet colleagues to discuss open standards."></label>
+            <button type="submit" class="briefing-submit">Run briefing</button>
+          </form>
+          <p class="briefing-status" id="briefing-status" role="status">Fictional weather · live service calls</p>
+          <div id="briefing-results" hidden>
+            <div class="briefing-step-buttons" id="briefing-steps" role="group" aria-label="Workflow steps"></div>
+            <p class="briefing-step-meta" id="briefing-step-meta"></p>
+            <div class="briefing-io"><div><div class="label">Input</div><pre id="briefing-input" tabindex="0" aria-label="Step input"></pre></div><div><div class="label">Output</div><pre id="briefing-output" tabindex="0" aria-label="Step output"></pre></div></div>
+            <details class="briefing-contracts"><summary>Registry versions observed before the calls</summary><ul id="briefing-contract-list"></ul></details>
+          </div>
         </div>
         <footer class="slide-footer"><span>DEMO / MCP → A2A → A2A</span><span class="slide-number">06 / 13</span></footer>
-        <aside>6–11 minutes. Have the application running before the talk. Open the dashboard, choose a city and enter context. Show actual results rather than reading JSON line by line. The registered versions are observations, not pins to the running services.</aside>
+        <aside>10:45–13:30. Click Show live briefing and submit once on this slide. Trace the weather result into the summary input, then the actual summary into the translation input. After showing both handoffs, press → (or click Next in the deck toolbar). The registered versions are observations, not pins to the running services.</aside>
       </section>
 
       <section class="slide" aria-label="Breaking card change">
-        <div class="eyebrow">04 / The contract</div>
+        <div class="eyebrow">04 / Agent Card governance</div>
         <h2>A small metadata change.<br><span class="accent">A broken promise.</span></h2>
         <div class="two-col diff-grid">
           <div class="code-card"><div class="code-header"><span>ACCEPTED</span><span>Agent Card</span></div><pre>skills:
@@ -310,26 +391,26 @@
           <div class="code-card"><div class="code-header"><span>CANDIDATE</span><span>Agent Card</span></div><pre>skills:
 <span class="removed">−   id: translator</span><span class="added">+   id: unrelated-…</span></pre></div>
         </div>
-        <div class="verdict"><strong>BACKWARD → HTTP 400</strong><code>Skill 'translator' was removed</code></div>
+        <div class="verdict"><strong>Expected: HTTP 400</strong><code>Skill 'translator' was removed</code></div>
         <p class="hint">Skill-ID excerpt.</p>
-        <footer class="slide-footer"><span>A PUBLICATION CHECK</span><span class="slide-number">07 / 13</span></footer>
-        <aside>11–16 minutes. This is an abbreviated diff, not the complete JSON payload. Explain the invariant before the command: preserve the declared translator skill. Keeping another skill rules out an empty-card validity failure. The actual error contains the /skills cause. This checks the published card, not the deployed code: say it once here, the full boundary is slide 11.</aside>
+        <footer class="slide-footer"><span>A PUBLICATION CHECK</span><span class="slide-number">08 / 14</span></footer>
+        <aside>13:30–15:00. This is an abbreviated diff, not the complete JSON payload. Explain the invariant before the command: preserve the declared translator skill. Keeping another skill rules out an empty-card validity failure. The actual error contains the /skills cause. This checks the published card, not the deployed code: say it once here, the full boundary is slide 12.</aside>
       </section>
 
       <section class="slide dark" aria-label="Live governance checks">
-        <div class="eyebrow">04 / Live demo <span class="pill">02 · Governance</span></div>
+        <div class="eyebrow">04 / Live demo <span class="pill">2 of 3 · Test the Agent Card</span></div>
         <h2>Don’t just show the error.<br><span class="teal">Check what survived.</span></h2>
         <div class="live-grid">
           <div class="terminal" data-command="governance"><div class="terminal-bar"><i class="terminal-dot"></i><i class="terminal-dot"></i><i class="terminal-dot"></i><span class="terminal-name">Agent Card governance</span></div><pre><span class="prompt">$</span> python3 scripts/<span data-mode="default">workflow</span><span data-mode="secured">secured</span>.py governance</pre><div class="terminal-run" hidden><button type="button">Run governance</button><span class="terminal-status" role="status"></span></div><pre class="terminal-output" aria-label="Governance command output" tabindex="0" hidden></pre></div>
           <div class="proof-list"><div class="proof"><b>CHECK 01</b><span>Rejected version is absent.</span></div><div class="proof" style="--delay:.6s"><b>CHECK 02</b><span>Accepted content and version are unchanged.</span></div><div class="proof" style="--delay:1.2s"><b>CHECK 03</b><span>The complete briefing still runs.</span></div></div>
         </div>
         <p class="hint">Then the Registry console: <a href="http://localhost:8888/explore/default/translator" target="_blank" rel="noopener">translator versions ↗</a> — the rejected version never appears.</p>
-        <footer class="slide-footer"><span>DEMO / ASSERTIONS, NOT JUST OUTPUT</span><span class="slide-number">08 / 13</span></footer>
+        <footer class="slide-footer"><span>DEMO / ASSERTIONS, NOT JUST OUTPUT</span><span class="slide-number">09 / 14</span></footer>
         <aside>The governance script checks the specific RuleViolationException and removed-skill cause, 404 for the rejected version, and unchanged accepted content/version/globalId. The globalId identifies the stored registration, not the deployed binary. Show the PASS statements and actual rerun, then the console's version list for the translator: the accepted versions only. The running agents are not changed by any of this.</aside>
       </section>
 
       <section class="slide" aria-label="Compatible addition">
-        <div class="eyebrow">04 / The contract</div>
+        <div class="eyebrow">04 / Agent Card governance</div>
         <h2>Keep the promise.<br><span class="teal">Publish the addition.</span></h2>
         <div class="version-flow">
           <div class="version-box"><div class="label">Previous registration</div><pre>skills:
@@ -340,12 +421,12 @@
   - additional-translation-…</pre></div>
         </div>
         <div class="verdict positive"><strong>Accepted</strong><span class="small">The next briefing reports the new registered version.</span></div>
-                <footer class="slide-footer"><span>PUBLICATION AND OBSERVATION</span><span class="slide-number">09 / 13</span></footer>
-        <aside>16–17 minutes. New metadata is not a newly implemented skill; the running translator is unchanged. Explain only what is tested: an additive metadata version is persisted and observed by a subsequent successful workflow. No implementation was deployed. If inference is slow, explain the already-verified rerun instead of waiting for repeated generation.</aside>
+        <footer class="slide-footer"><span>PUBLICATION AND OBSERVATION</span><span class="slide-number">10 / 14</span></footer>
+        <aside>18:00–19:15. New metadata is not a newly implemented skill; the running translator is unchanged. Explain only what is tested: an additive metadata version is persisted and observed by a subsequent successful workflow. No implementation was deployed.</aside>
       </section>
 
       <section class="slide dark" aria-label="Live tool governance">
-        <div class="eyebrow">05 / Live demo <span class="pill">03 · Tools</span></div>
+        <div class="eyebrow">05 / Live demo <span class="pill">3 of 3 · Import and test a tool</span></div>
         <h2>Same promise.<br><span class="teal">For tools.</span></h2>
         <div class="live-grid">
           <div class="terminal" data-command="tools"><div class="terminal-bar"><i class="terminal-dot"></i><i class="terminal-dot"></i><i class="terminal-dot"></i><span class="terminal-name">MCP tool governance</span></div><pre><span class="prompt">$</span> python3 scripts/<span data-mode="default">workflow</span><span data-mode="secured">secured</span>.py tools</pre><div class="terminal-run" hidden><button type="button">Run tools</button><span class="terminal-status" role="status"></span></div><pre class="terminal-output" aria-label="Tools command output" tabindex="0" hidden></pre></div>
@@ -353,7 +434,7 @@
         </div>
         <p class="hint">Then the console: <a href="http://localhost:8888/explore/weather-tools/weather-server.getWeather" target="_blank" rel="noopener">the imported tool ↗</a></p>
         <footer class="slide-footer"><span>DEMO / MCP TOOL IMPORT · APICURIO REGISTRY 3.4</span><span class="slide-number">10 / 13</span></footer>
-        <aside>17–19 minutes. No hand-written tool definition: the Registry calls tools/list on the running weather server and stores getWeather as an MCP tool, with a server version that references it. The breaking change adds a required input, so existing callers would fail; Registry rejects it with two causes (properties narrowed, property made required). Re-import reports UNCHANGED. This uses Registry 3.4 features from the latest-snapshot image; say so if asked. The briefing still discovers the weather server the way the sample does.</aside>
+        <aside>19:15–21:30. No hand-written tool definition: the Registry calls tools/list on the running weather server and stores getWeather as an MCP tool, with a server version that references it. The breaking change adds a required input, so existing callers would fail; Registry rejects it with two causes (properties narrowed, property made required). Re-import reports UNCHANGED. This uses Registry 3.4 features from the latest-snapshot image; say so if asked. The briefing still discovers the weather server the way the sample does.</aside>
       </section>
 
       <section class="slide" aria-label="Responsibility matrix">
@@ -367,8 +448,8 @@
         </div>
         <p class="hint" data-mode="default">Observed metadata is not deployment pinning. Lifecycle and authorization need their own policy.</p><p class="hint" data-mode="secured">Observed metadata is not deployment pinning. Roles decide who may publish; lifecycle needs its own policy.</p>
         <footer class="slide-footer"><span>CONTRACT COMPATIBILITY ≠ RUNTIME CORRECTNESS</span><span class="slide-number">11 / 13</span></footer>
-        <aside data-mode="default">19–22 minutes. This is the single boundary summary. The example is loopback-only and unauthenticated, has no deprecation gate, and does not pin remote deployments. Registered metadata reads are not a transactional snapshot across services. Separate publication proof from behavioral testing.</aside>
-        <aside data-mode="secured">19–22 minutes. This is the single boundary summary. Every hop is authenticated, but on loopback with demo secrets: no tenant boundaries, key rotation or production credential management. No deprecation gate, and remote deployments are not pinned. Registered metadata reads are not a transactional snapshot across services. Separate publication proof from behavioral testing.</aside>
+        <aside data-mode="default">21:30–23:15. This is the single boundary summary. The example is loopback-only and unauthenticated, has no deprecation gate, and does not pin remote deployments. Registered metadata reads are not a transactional snapshot across services. Separate publication proof from behavioral testing.</aside>
+        <aside data-mode="secured">20:30–23:00. This is the single boundary summary. Every hop is authenticated, but on loopback with demo secrets: no tenant boundaries, key rotation or production credential management. No deprecation gate, and remote deployments are not pinned. Registered metadata reads are not a transactional snapshot across services. Separate publication proof from behavioral testing.</aside>
       </section>
 
       <section class="slide" aria-label="Takeaways">
@@ -385,11 +466,19 @@
 
       <section class="slide dark close" aria-label="Code and questions">
         <div class="eyebrow">Code / questions</div>
-        <h2>Try the workflow.<br><span class="teal">Inspect the contract.</span></h2>
-        <a class="repo" href="https://github.com/carlesarnal/agent-discovery-demo">github.com/carlesarnal/agent-discovery-demo ↗</a>
-        <div class="closing-bottom"><div><p>Carles Arnal</p><p class="small" style="color:var(--muted)">Principal Software Engineer, IBM</p></div><div><a class="small" href="https://github.com/quarkiverse/quarkus-langchain4j/tree/1.15.1/samples/agent-registry-workflow">Quarkus LangChain4j sample ↗</a><p class="small" style="margin-top:12px"><a href="https://github.com/Apicurio/apicurio-registry/tree/main/examples/agent-registry">Every agent registry feature: Apicurio demo ↗</a></p></div></div>
-        <footer class="slide-footer"><span data-mode="default">QUARKUS LANGCHAIN4J 1.15.1 SAMPLE</span><span data-mode="secured">QUARKUS LANGCHAIN4J SAMPLE · AUTH IN REVIEW</span><span class="slide-number">13 / 13</span></footer>
-        <aside>22–25 minutes: questions and buffer. Default mode: the sample is part of the Quarkus LangChain4j 1.15.1 release. Secured mode: the same sample on the 2.x line, with the authentication changes in review (quarkus-langchain4j #3145, #3157) built from a pinned branch. For everything the talk skips (visibility per user, AI Catalog and ARD, the MCP server and MCP Registry API, importing tools from a running server), point to the Apicurio Registry agent registry demo.</aside>
+        <div class="close-grid">
+          <div>
+            <h2>Try the workflow.<br><span class="teal">Inspect the contract.</span></h2>
+            <a class="repo" href="https://github.com/carlesarnal/agent-discovery-demo">github.com/carlesarnal/agent-discovery-demo ↗</a>
+          </div>
+          <div class="close-qr">
+            <svg viewBox="0 0 41 41" shape-rendering="crispEdges" role="img" aria-label="QR code to github.com/carlesarnal/agent-discovery-demo"><rect width="41" height="41" fill="#ffffff"/><path fill="#111a1a" d="M4 4h7v1h-7zM14 4h1v1h-1zM20 4h1v1h-1zM23 4h3v1h-3zM27 4h1v1h-1zM30 4h7v1h-7zM4 5h1v1h-1zM10 5h1v1h-1zM14 5h1v1h-1zM19 5h2v1h-2zM22 5h1v1h-1zM24 5h1v1h-1zM30 5h1v1h-1zM36 5h1v1h-1zM4 6h1v1h-1zM6 6h3v1h-3zM10 6h1v1h-1zM12 6h2v1h-2zM16 6h1v1h-1zM18 6h2v1h-2zM25 6h1v1h-1zM30 6h1v1h-1zM32 6h3v1h-3zM36 6h1v1h-1zM4 7h1v1h-1zM6 7h3v1h-3zM10 7h1v1h-1zM12 7h1v1h-1zM15 7h1v1h-1zM19 7h1v1h-1zM22 7h1v1h-1zM26 7h1v1h-1zM30 7h1v1h-1zM32 7h3v1h-3zM36 7h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM12 8h4v1h-4zM17 8h4v1h-4zM24 8h4v1h-4zM30 8h1v1h-1zM32 8h3v1h-3zM36 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h2v1h-2zM16 9h1v1h-1zM18 9h1v1h-1zM21 9h3v1h-3zM30 9h1v1h-1zM36 9h1v1h-1zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM30 10h7v1h-7zM12 11h2v1h-2zM15 11h2v1h-2zM20 11h1v1h-1zM22 11h4v1h-4zM4 12h1v1h-1zM6 12h5v1h-5zM13 12h1v1h-1zM17 12h1v1h-1zM21 12h1v1h-1zM23 12h1v1h-1zM30 12h5v1h-5zM4 13h1v1h-1zM13 13h1v1h-1zM15 13h1v1h-1zM17 13h1v1h-1zM20 13h5v1h-5zM27 13h1v1h-1zM30 13h2v1h-2zM33 13h2v1h-2zM36 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM10 14h1v1h-1zM12 14h3v1h-3zM16 14h4v1h-4zM21 14h1v1h-1zM24 14h2v1h-2zM28 14h1v1h-1zM30 14h1v1h-1zM32 14h1v1h-1zM34 14h2v1h-2zM5 15h1v1h-1zM7 15h2v1h-2zM11 15h3v1h-3zM15 15h1v1h-1zM17 15h1v1h-1zM20 15h4v1h-4zM25 15h2v1h-2zM28 15h2v1h-2zM32 15h5v1h-5zM5 16h1v1h-1zM7 16h1v1h-1zM10 16h1v1h-1zM12 16h5v1h-5zM18 16h1v1h-1zM20 16h1v1h-1zM27 16h3v1h-3zM31 16h3v1h-3zM35 16h1v1h-1zM7 17h1v1h-1zM9 17h1v1h-1zM13 17h1v1h-1zM17 17h1v1h-1zM19 17h1v1h-1zM21 17h2v1h-2zM27 17h1v1h-1zM29 17h2v1h-2zM33 17h4v1h-4zM10 18h1v1h-1zM14 18h3v1h-3zM18 18h3v1h-3zM24 18h1v1h-1zM26 18h1v1h-1zM28 18h4v1h-4zM33 18h3v1h-3zM6 19h3v1h-3zM13 19h3v1h-3zM18 19h2v1h-2zM22 19h4v1h-4zM27 19h1v1h-1zM29 19h2v1h-2zM33 19h2v1h-2zM4 20h1v1h-1zM6 20h1v1h-1zM9 20h3v1h-3zM13 20h5v1h-5zM19 20h1v1h-1zM21 20h1v1h-1zM23 20h1v1h-1zM26 20h1v1h-1zM28 20h2v1h-2zM31 20h2v1h-2zM36 20h1v1h-1zM5 21h2v1h-2zM8 21h2v1h-2zM11 21h1v1h-1zM14 21h1v1h-1zM16 21h1v1h-1zM18 21h1v1h-1zM20 21h1v1h-1zM22 21h3v1h-3zM27 21h1v1h-1zM30 21h2v1h-2zM33 21h2v1h-2zM36 21h1v1h-1zM4 22h1v1h-1zM7 22h2v1h-2zM10 22h2v1h-2zM14 22h1v1h-1zM16 22h2v1h-2zM19 22h1v1h-1zM22 22h1v1h-1zM24 22h3v1h-3zM28 22h1v1h-1zM31 22h2v1h-2zM34 22h2v1h-2zM5 23h1v1h-1zM7 23h2v1h-2zM12 23h2v1h-2zM15 23h1v1h-1zM23 23h4v1h-4zM29 23h7v1h-7zM6 24h3v1h-3zM10 24h2v1h-2zM13 24h1v1h-1zM15 24h1v1h-1zM17 24h1v1h-1zM19 24h1v1h-1zM22 24h2v1h-2zM26 24h1v1h-1zM29 24h1v1h-1zM31 24h3v1h-3zM4 25h1v1h-1zM9 25h1v1h-1zM11 25h1v1h-1zM13 25h3v1h-3zM17 25h1v1h-1zM19 25h2v1h-2zM23 25h3v1h-3zM27 25h1v1h-1zM30 25h1v1h-1zM33 25h1v1h-1zM36 25h1v1h-1zM4 26h1v1h-1zM8 26h3v1h-3zM13 26h3v1h-3zM17 26h2v1h-2zM24 26h1v1h-1zM29 26h1v1h-1zM35 26h1v1h-1zM4 27h1v1h-1zM6 27h1v1h-1zM8 27h2v1h-2zM12 27h2v1h-2zM16 27h1v1h-1zM18 27h1v1h-1zM20 27h1v1h-1zM24 27h4v1h-4zM29 27h2v1h-2zM32 27h5v1h-5zM4 28h1v1h-1zM7 28h2v1h-2zM10 28h2v1h-2zM13 28h4v1h-4zM20 28h2v1h-2zM23 28h1v1h-1zM26 28h8v1h-8zM12 29h1v1h-1zM14 29h1v1h-1zM17 29h1v1h-1zM20 29h2v1h-2zM23 29h1v1h-1zM25 29h1v1h-1zM27 29h2v1h-2zM32 29h1v1h-1zM34 29h1v1h-1zM36 29h1v1h-1zM4 30h7v1h-7zM16 30h1v1h-1zM19 30h3v1h-3zM24 30h5v1h-5zM30 30h1v1h-1zM32 30h1v1h-1zM34 30h2v1h-2zM4 31h1v1h-1zM10 31h1v1h-1zM12 31h1v1h-1zM17 31h1v1h-1zM19 31h1v1h-1zM21 31h2v1h-2zM24 31h2v1h-2zM27 31h2v1h-2zM32 31h5v1h-5zM4 32h1v1h-1zM6 32h3v1h-3zM10 32h1v1h-1zM12 32h1v1h-1zM14 32h1v1h-1zM16 32h1v1h-1zM18 32h3v1h-3zM23 32h1v1h-1zM26 32h1v1h-1zM28 32h6v1h-6zM35 32h2v1h-2zM4 33h1v1h-1zM6 33h3v1h-3zM10 33h1v1h-1zM12 33h6v1h-6zM19 33h1v1h-1zM22 33h3v1h-3zM27 33h3v1h-3zM32 33h5v1h-5zM4 34h1v1h-1zM6 34h3v1h-3zM10 34h1v1h-1zM12 34h1v1h-1zM19 34h4v1h-4zM24 34h1v1h-1zM26 34h1v1h-1zM30 34h2v1h-2zM34 34h1v1h-1zM4 35h1v1h-1zM10 35h1v1h-1zM19 35h1v1h-1zM24 35h3v1h-3zM32 35h1v1h-1zM34 35h1v1h-1zM4 36h7v1h-7zM12 36h1v1h-1zM14 36h1v1h-1zM19 36h1v1h-1zM21 36h1v1h-1zM26 36h6v1h-6zM35 36h1v1h-1z"/></svg>
+            <span>Scan for slides &amp; code</span>
+          </div>
+        </div>
+        <div class="closing-bottom"><div><p>Carles Arnal</p><p class="small" style="color:var(--muted)">Principal Software Engineer, IBM</p></div><div><a class="small" href="https://github.com/carlesarnal/agent-discovery-demo/tree/main/talks/cloud-native-paris-2026">Paris slides and presenter materials ↗</a><p class="small" style="margin-top:12px"><a href="https://github.com/quarkiverse/quarkus-langchain4j/tree/1.15.1/samples/agent-registry-workflow">Quarkus LangChain4j sample ↗</a></p><p class="small" style="margin-top:12px"><a href="https://github.com/Apicurio/apicurio-registry/tree/main/examples/agent-registry">Explore the Apicurio Registry demo ↗</a></p></div></div>
+        <footer class="slide-footer"><span data-mode="default">QUARKUS LANGCHAIN4J 1.15.1 SAMPLE</span><span data-mode="secured">QUARKUS LANGCHAIN4J SAMPLE · AUTH IN REVIEW</span><span class="slide-number">14 / 14</span></footer>
+        <aside>Questions and buffer. Default mode: the sample is part of the Quarkus LangChain4j 1.15.1 release. Secured mode: the same sample on the 2.x line, with the authentication changes in review (quarkus-langchain4j #3145, #3157) built from a pinned branch. For everything the talk skips (visibility per user, AI Catalog and ARD, the Registry MCP server and MCP Registry API), point to the Apicurio Registry agent registry demo.</aside>
       </section>
     </div>
   </main>
@@ -397,7 +486,7 @@
   <div class="progress" aria-hidden="true"><span id="progress"></span></div>
   <nav class="toolbar" aria-label="Slide navigation">
     <div class="toolbar-group"><button id="previous" type="button" aria-label="Previous slide">←</button><span id="count" aria-live="polite"></span><button id="next" type="button" aria-label="Next slide">→</button></div>
-    <span class="toolbar-caption">Agent sprawl / Paris 2026</span>
+    <span class="toolbar-caption"><span data-mode="default">Default demo</span><span data-mode="secured">Secured demo</span> · Paris 2026</span>
     <div class="toolbar-group"><button id="notes" type="button" aria-expanded="false" aria-controls="speaker-notes">Notes · N</button><button id="fullscreen" type="button">Fullscreen · F</button></div>
   </nav>
   <div class="notes-panel" id="speaker-notes" hidden><h2>Speaker notes</h2><p id="notes-content"></p></div>
@@ -415,13 +504,128 @@
         const probe = await fetch(base);
         if (!probe.ok || (await probe.text()) !== 'ready') return;
       } catch { return; }
+      const briefingButton = document.getElementById('show-briefing');
+      const briefingTab = document.getElementById('briefing-tab');
+      const briefingSlide = briefingButton.closest('.slide');
+      const briefingIntro = briefingButton.closest('.live-grid');
+      const briefingPane = document.getElementById('briefing-live');
+      briefingTab.hidden = true;
+      briefingButton.hidden = false;
+      briefingButton.onclick = event => {
+        if (event?.detail > 0) event.currentTarget.blur();
+        briefingIntro.hidden = true;
+        briefingPane.hidden = false;
+        briefingSlide.classList.add('briefing-open');
+        if (!event?.detail) document.getElementById('hide-briefing').focus();
+      };
+      document.getElementById('hide-briefing').onclick = event => {
+        if (event?.detail > 0) event.currentTarget.blur();
+        briefingPane.hidden = true;
+        briefingIntro.hidden = false;
+        briefingSlide.classList.remove('briefing-open');
+        if (!event?.detail) briefingButton.focus();
+      };
+      const briefingForm = document.getElementById('live-briefing-form');
+      const briefingSubmit = briefingForm.querySelector('button');
+      const briefingStatus = document.getElementById('briefing-status');
+      const briefingResults = document.getElementById('briefing-results');
+      const stepButtons = document.getElementById('briefing-steps');
+      const contracts = document.getElementById('briefing-contract-list');
+      briefingForm.onsubmit = async event => {
+        event.preventDefault();
+        if (briefingSubmit.disabled) return;
+        if (document.activeElement instanceof HTMLButtonElement) document.activeElement.blur();
+        briefingSubmit.disabled = true;
+        const startedAt = Date.now();
+        briefingStatus.textContent = 'Running weather → summary → French translation… 0s';
+        const timer = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+          briefingStatus.textContent = `Running weather → summary → French translation… ${elapsed}s`;
+        }, 1000);
+        briefingResults.hidden = true;
+        try {
+          const response = await fetch(`${base}/briefing`, {
+            method: 'POST', headers: {'Content-Type': 'application/json', 'X-Demo-Presenter': '1'},
+            body: JSON.stringify(Object.fromEntries(new FormData(briefingForm))),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(data.error || `Briefing failed (HTTP ${response.status}).`);
+          if (!data.steps?.length) throw new Error('No workflow steps were returned.');
+          stepButtons.replaceChildren();
+          data.steps.forEach((step, index) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = `${String(index + 1).padStart(2, '0')} · ${step.operation}`;
+            button.onclick = clickEvent => {
+              if (clickEvent?.detail > 0) clickEvent.currentTarget.blur();
+              for (const other of stepButtons.children) other.setAttribute('aria-pressed', String(other === button));
+              document.getElementById('briefing-step-meta').textContent = step.artifact || '';
+              for (const [field, value] of [['input', step.input], ['output', step.output]]) {
+                const panel = document.getElementById(`briefing-${field}`);
+                panel.textContent = value ?? '';
+                panel.scrollTop = 0;
+              }
+            };
+            stepButtons.append(button);
+          });
+          contracts.replaceChildren();
+          for (const contract of data.contracts || []) {
+            const item = document.createElement('li');
+            item.textContent = `${contract.groupId}/${contract.artifactId} · v${contract.version} · globalId ${contract.globalId}`;
+            contracts.append(item);
+          }
+          stepButtons.firstElementChild.click();
+          const elapsed = Math.round((Date.now() - startedAt) / 1000);
+          briefingStatus.textContent = `Briefing complete (${elapsed}s). Follow the three calls in order.`;
+          briefingResults.hidden = false;
+        } catch (error) {
+          briefingStatus.textContent = `${error.message} Check the running demo before retrying.`;
+        } finally {
+          clearInterval(timer);
+          briefingSubmit.disabled = false;
+        }
+      };
+      function formatOutputBlock(text) {
+        if (text.startsWith('Registry rejected translator update (HTTP 400): ')) {
+          try {
+            const detail = JSON.parse(text.slice(text.indexOf('{')));
+            const lines = [`REJECTED · HTTP 400 · ${detail.name || 'RuleViolationException'}`];
+            for (const cause of detail.causes || []) {
+              const ctx = cause.context ? ` (${cause.context})` : '';
+              lines.push(`• ${cause.description}${ctx}`);
+            }
+            return {text: lines.join('\n'), kind: 'reject'};
+          } catch {}
+        }
+        if (text.startsWith('Registry rejected the tool change (HTTP 400): ')) {
+          const matches = [...text.matchAll(/\(\s*(?:"([^"]+)"|'([^']+)')\s*,\s*(?:"([^"]+)"|'([^']+)')\s*\)/g)];
+          if (matches.length) {
+            const lines = ['REJECTED · HTTP 400 · Tool schema incompatible'];
+            for (const m of matches) lines.push(`• ${m[1] || m[2]} (${m[3] || m[4]})`);
+            return {text: lines.join('\n'), kind: 'reject'};
+          }
+          return {text, kind: 'reject'};
+        }
+        if (text.startsWith('PASS:')) return {text, kind: 'pass'};
+        return {text, kind: ''};
+      }
       panels.forEach((panel, index) => {
         const status = panel.querySelector('.terminal-status');
         const output = panel.querySelector('.terminal-output');
         panel.querySelector('.terminal-run').hidden = false;
-        buttons[index].onclick = async () => {
+        buttons[index].onclick = async event => {
+          if (event?.detail > 0) event.currentTarget.blur();
           buttons.forEach(button => button.disabled = true);
-          status.textContent = 'Running…';
+          const startedAt = Date.now();
+          const runningLabel = panel.dataset.command === 'governance'
+            ? 'Running baseline briefing & checks'
+            : 'Importing tools & checking schema';
+          const updateElapsed = () => {
+            const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+            status.textContent = `${runningLabel}… ${elapsed}s`;
+          };
+          updateElapsed();
+          const timer = setInterval(updateElapsed, 1000);
           output.textContent = '';
           output.hidden = false;
           try {
@@ -434,20 +638,33 @@
             while (true) {
               const {value, done} = await reader.read();
               if (done) break;
+              const follow = output.scrollHeight - output.scrollTop - output.clientHeight < 12;
               const lines = (pending + value).split('\n');
               pending = lines.pop();
               for (const line of lines) {
                 const event = JSON.parse(line);
                 if ('exit' in event) exitCode = event.exit;
-                else output.append(document.createTextNode(event.output));
+                else {
+                  const text = event.output.replace(/\r?\n$/, '');
+                  if (!text.trim()) continue;
+                  const formatted = formatOutputBlock(text);
+                  const block = document.createElement('span');
+                  block.className = 'terminal-output-block';
+                  if (formatted.kind === 'pass') block.classList.add('terminal-output-pass');
+                  if (formatted.kind === 'reject') block.classList.add('terminal-output-reject');
+                  block.textContent = formatted.text;
+                  output.append(block);
+                }
               }
-              output.scrollTop = output.scrollHeight;
+              if (follow) output.scrollTop = output.scrollHeight;
             }
             if (exitCode === undefined) throw new Error('Output ended before the command finished');
-            status.textContent = exitCode === 0 ? 'Finished · exit 0' : `Failed · exit ${exitCode}`;
+            const elapsed = Math.round((Date.now() - startedAt) / 1000);
+            status.textContent = exitCode === 0 ? `Finished · exit 0 (${elapsed}s)` : `Failed · exit ${exitCode} (${elapsed}s)`;
           } catch (error) {
             status.textContent = error.message;
           } finally {
+            clearInterval(timer);
             buttons.forEach(button => button.disabled = false);
           }
         };
@@ -469,6 +686,7 @@
         slide.classList.toggle('active', i === current);
         slide.setAttribute('aria-hidden', String(i !== current));
       });
+      if (document.activeElement?.closest('.slide:not(.active)')) document.activeElement.blur();
       document.getElementById('count').textContent = `${current + 1} / ${slides.length}`;
       document.getElementById('progress').style.width = `${(current + 1) / slides.length * 100}%`;
       document.getElementById('previous').disabled = current === 0;
@@ -505,7 +723,7 @@
     document.getElementById('fullscreen').onclick = toggleFullscreen;
     document.addEventListener('keydown', event => {
       if (event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
-      if (event.target.closest('.terminal-output') && ['ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) return;
+      if (event.target.closest('.terminal-output,.briefing-io pre') && ['ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) return;
       if (event.key === ' ' && event.target.closest('button,a')) return;
       if (['ArrowRight', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); show(current + 1); }
       if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); show(current - 1); }

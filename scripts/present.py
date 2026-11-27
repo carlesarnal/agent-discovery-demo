@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Serve the Paris deck locally with two fixed live-demo commands."""
+"""Serve the Paris deck locally with the live briefing and two fixed demo commands."""
 
 import argparse
+from http.client import HTTPConnection, HTTPException
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
@@ -54,7 +55,7 @@ class Presenter(BaseHTTPRequestHandler):
             self.send_error(403)
             return
         mode = self.server.mode
-        actions = {f"/presenter/{mode}/{action}": action for action in ("governance", "tools")}
+        actions = {f"/presenter/{mode}/{action}": action for action in ("briefing", "governance", "tools")}
         action = actions.get(self.path)
         if action is None:
             self.send_error(404)
@@ -63,9 +64,45 @@ class Presenter(BaseHTTPRequestHandler):
             self.send_error(409, "Another demo command is running")
             return
         try:
-            self.stream_command(mode, action)
+            if action == "briefing":
+                self.briefing()
+            else:
+                self.stream_command(mode, action)
         finally:
             RUN_LOCK.release()
+
+    def briefing(self):
+        # Only forward briefing input to the fixed, local workflow endpoint.
+        try:
+            size = int(self.headers.get("Content-Length", "0"))
+            if not 0 < size <= 64 * 1024:
+                raise ValueError()
+            data = json.loads(self.rfile.read(size))
+            city, context = data["city"], data["context"]
+            if (city not in ("Amsterdam", "Paris", "Madrid") or not isinstance(context, str)
+                    or not context.strip() or len(context) > 8000):
+                raise ValueError()
+        except (ValueError, KeyError, TypeError):
+            self.send_error(400, "Expected a city and briefing context")
+            return
+        connection = HTTPConnection("localhost", 11020, timeout=120)
+        try:
+            connection.request("POST", "/workflow/briefing", json.dumps({"city": city, "context": context}),
+                               {"Content-Type": "application/json"})
+            upstream = connection.getresponse()
+            status, body = upstream.status, upstream.read(1024 * 1024 + 1)
+        except (OSError, HTTPException):
+            self.send_error(502, "Briefing unavailable; check the running demo")
+            return
+        finally:
+            connection.close()
+        if len(body) > 1024 * 1024:
+            self.send_error(502, "Briefing response too large")
+            return
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(body)
 
     def stream_command(self, mode, action):
         def emit(**event):

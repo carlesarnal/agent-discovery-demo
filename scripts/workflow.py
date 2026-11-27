@@ -3,13 +3,14 @@
 
 The sample lives upstream in quarkus-langchain4j (samples/agent-registry-workflow), pinned to a
 release tag, so it builds against released extensions. The talk runs a copy of it with its own
-Compose file: Apicurio Registry from REGISTRY_IMAGE (a pinned snapshot by default, for importing
+Compose file: Apicurio Registry from REGISTRY_IMAGE (`latest-snapshot` by default, for importing
 tools from a running MCP server) and the Registry web console on http://localhost:8888.
 """
 import argparse
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -22,12 +23,14 @@ TALK_SAMPLE = ROOT / "target" / "talk-sample"
 TAG = "1.15.1"
 REMOTE = "https://github.com/quarkiverse/quarkus-langchain4j.git"
 SAMPLE = Path("samples/agent-registry-workflow")
-# The latest-snapshot images rehearsed for the Paris talk on 24 November 2026. Importing tools is
-# not in a Registry release yet (3.4); set REGISTRY_IMAGE and REGISTRY_UI_IMAGE to try newer ones.
+# Importing tools from a running MCP server ships in Apicurio Registry 3.4; until then, default to
+# latest-snapshot (quay.io garbage-collects overwritten snapshot digests after a few days, so a
+# pinned digest quickly breaks fresh clones). Pull once before presenting so Compose reuses your
+# rehearsed local image; set REGISTRY_IMAGE / REGISTRY_UI_IMAGE to pin a specific digest or release.
 REGISTRY_IMAGE = os.environ.get(
-    "REGISTRY_IMAGE", "quay.io/apicurio/apicurio-registry@sha256:c1397ee691c8f8510f6afa177da237949725c3bb2ab25ee5824bdaf44b8fab93")
+    "REGISTRY_IMAGE", "quay.io/apicurio/apicurio-registry:latest-snapshot")
 UI_IMAGE = os.environ.get(
-    "REGISTRY_UI_IMAGE", "quay.io/apicurio/apicurio-registry-ui@sha256:7ad02c9a51f6253fd1d6257ebaa47f8a2064117b83b24bbcdfaa30ed30c861d5")
+    "REGISTRY_UI_IMAGE", "quay.io/apicurio/apicurio-registry-ui:latest-snapshot")
 REGISTRY = "http://localhost:8180/apis/registry/v3"
 # Where the Registry container reaches the weather MCP server. The server listens on the host's
 # localhost and, as it should, only accepts requests addressed to localhost. A proxy in the stack
@@ -90,13 +93,32 @@ def source():
         raise RuntimeError(f"Expected a clean checkout of {TAG} in {CHECKOUT}. Delete it to fetch again.")
 
 
-def talk_sample():
-    """The built sample, with the talk's Compose file. Rebuilt from the checkout every time."""
-    shutil.rmtree(TALK_SAMPLE, ignore_errors=True)
-    shutil.copytree(CHECKOUT / SAMPLE, TALK_SAMPLE, symlinks=True)
+def simplify_dashboard(sample):
+    """Keep the upstream briefing UI; leave the governance instructions to the slides."""
+    dashboard = sample / "orchestrator/src/main/resources/META-INF/resources/index.html"
+    text = dashboard.read_text(encoding="utf-8")
+    text, count = re.subn(
+        r"<section>\s*<h2>Try the governance story</h2>.*?</section>",
+        "<small>Weather data is fictional. The workflow calls the services live. "
+        "Registry versions show what was registered, not what is deployed.</small>",
+        text, flags=re.DOTALL,
+    )
+    if count != 1:
+        raise RuntimeError(f"{dashboard}: expected one governance section; the sample changed")
+    dashboard.write_text(text, encoding="utf-8")
+
+
+def prepare_sample():
+    """Build the talk's copy without editing the upstream checkout."""
+    shutil.copytree(CHECKOUT / SAMPLE, TALK_SAMPLE, symlinks=True,
+                    ignore=shutil.ignore_patterns("target"), dirs_exist_ok=True)
+    simplify_dashboard(TALK_SAMPLE)
+    command("./mvnw", "-B", "-ntp", "-f", str(TALK_SAMPLE / "pom.xml"), "verify")
+
+
+def write_compose():
     (TALK_SAMPLE / "compose.yaml").write_text(COMPOSE)
     (TALK_SAMPLE / "weather-proxy.conf").write_text(WEATHER_PROXY)
-    return TALK_SAMPLE
 
 
 def request(path, data=None, expected=200):
@@ -173,12 +195,18 @@ def main():
         tools()
         return
     source()
-    if args.action in ("prepare", "test"):
+    if args.action == "prepare":
+        prepare_sample()
+        return
+    if args.action == "test":
         command("./mvnw", "-B", "-ntp", "-f", str(SAMPLE / "pom.xml"), "verify")
         return
-    sample = talk_sample() if args.action != "governance" else TALK_SAMPLE
+    if not (TALK_SAMPLE / "orchestrator/target/quarkus-app/quarkus-run.jar").is_file():
+        raise RuntimeError("Run: python3 scripts/workflow.py prepare")
+    if args.action != "governance":
+        write_compose()
     flags = [] if args.action == "run" else ["--" + args.action]
-    command(sys.executable, "scripts/run.py", *flags, cwd=sample)
+    command(sys.executable, "scripts/run.py", *flags, cwd=TALK_SAMPLE)
 
 
 if __name__ == "__main__":

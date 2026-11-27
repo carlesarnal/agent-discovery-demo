@@ -1,4 +1,7 @@
-# Presentation Guide — Cloud Native AI Summit Europe 2026
+# Paris presentation guide — Default mode
+
+**Use this guide for the 14-slide, unauthenticated demo.** Presenting the 15-slide Keycloak
+variant? Open the [secured presentation guide](SECURED.md) instead. Use only one guide on stage.
 
 **Talk:** Agent Sprawl Is the New Microservice Sprawl: Discovery and Governance for Multi-Agent AI
 
@@ -6,21 +9,14 @@
 
 **Event:** December 2–3, 2026, CNIT Forest, Paris
 
-**Slot:** 25 minutes; exact presentation date/time and room to confirm
+**Slot:** 25 minutes (confirm exact date, time, room, and whether Q&A is inside the 25 minutes)
 
-**Deck:** `talks/cloud-native-paris-2026/presentation.html`, 13 slides, numbered 1–13; with
-`?mode=secured`, 14 slides (an extra slide 5)
+**Deck:** [presentation.html](presentation.html), 14 slides. The live deck opens at
+<http://127.0.0.1:8765/> and its toolbar should say **Default demo**.
 
 **Demo:** the agent registry workflow sample from the Quarkus LangChain4j 1.15.1 release
 
-**Two modes.** The **default mode** (`scripts/workflow.py`) runs the released sample, unauthenticated.
-The **secured mode** (`scripts/secured.py`) runs the same workflow with authentication on every hop,
-built from Quarkus LangChain4j changes still in review; see [SECURED.md](SECURED.md). Decide which one
-you present by 28 November; the default mode is always the fallback. This guide covers both: the
-parts marked **Secured mode** apply only to it, and in secured mode every slide after slide 4 is
-numbered one higher than the headings below.
-
-Use this as a rehearsal script, not text to memorize word for word. Aim for **22 minutes of content plus 3 minutes of questions or recovery time**.
+**Pacing note:** The verbatim rehearsal script in Section 3 is sized for **~25 minutes at 130 words per minute** (~22 minutes of speech plus ~3 minutes of live demo waits, clicks, and console inspection). If you naturally speak faster on stage (~150–160 wpm), delivering this full script lands around **20–21 minutes**, leaving a clean **4–5 minutes for Q&A** inside a 25-minute slot. Treat it as a rehearsal script you can say in your own cadence, not lines to memorize robotically.
 
 ## The one sentence to remember
 
@@ -61,17 +57,17 @@ ollama pull qwen2.5:7b
 python3 scripts/workflow.py prepare
 ```
 
-`prepare` fetches the Quarkus LangChain4j `1.15.1` tag, builds the sample against the released extensions and runs its nine automated tests. The source lives under `target/`:
+`prepare` fetches the Quarkus LangChain4j `1.15.1` tag, builds the talk's copy against the released extensions and runs its nine automated tests. The talk's copy uses a shorter briefing dashboard; the upstream source stays untouched:
 
 ```text
-target/quarkus-langchain4j/samples/agent-registry-workflow/
+target/talk-sample/
 ```
 
 Do not change versions immediately before presenting.
 
 ### Run the live smoke test
 
-Stop any interactive instance of this sample first:
+Stop any running demo first (`python3 scripts/stop.py`), then run:
 
 ```bash
 python3 scripts/workflow.py smoke
@@ -88,32 +84,15 @@ Expected checks:
 - The connected briefing works after rejection and after a compatible addition.
 - The runner removes its processes and Registry container/network on completion.
 
-The smoke test doesn't cover the tools step (slide 10). Rehearse it with `run`, then use the live slide buttons described below (or the same commands in a second terminal).
+The smoke test doesn't cover the tools step (slide 11). Rehearse it with `run` and `present.py`, using all three live slide controls (slides 7, 9, and 11).
 
 These checks validate invocation, handoffs and publication behavior. Read the generated text yourself: a passing smoke run does not prove translation accuracy or factual correctness in general.
 
-### Secured mode
-
-```bash
-python3 scripts/secured.py prepare
-python3 scripts/secured.py smoke
-```
-
-`prepare` fetches and installs the Quarkus LangChain4j branch with the authentication changes, then
-builds the 2.x sample and the 1.15.1 weather server with authentication added. `smoke` runs the
-same checks as above plus 15 security checks: calls without a token get 401, a token without the
-right role gets 403 (agents and their Agent Cards, weather server, Registry writes). Rehearse
-`tools` too: it also checks that the Registry refuses an anonymous import.
-
-If every call suddenly fails authentication, check the Podman VM clock: after the laptop sleeps it
-can fall behind, and tokens are then issued already expired. `smoke` and `run` check it and print
-the fix (`podman machine ssh "sudo date -u -s @$(date +%s)"`).
-
 ### Record a backup
 
-Record the dashboard briefing, the governance and tools commands, and the console views on the same sample release, Registry image and model. Record each mode you might present. Save the video locally and verify playback without network access. Record actual execution; don't fabricate successful output.
+Record the in-slide briefing (slide 7), the governance and tools runs (slides 9 and 11), and the console views on the same sample release, Registry image and model. Save the video locally and verify playback without network access. Record actual execution; don't fabricate successful output.
 
-The governance command makes **three complete briefings**: baseline, after rejection and after compatible publication. That means several model calls. Time it on the presentation laptop; correctness tests do not establish its stage duration.
+The governance command makes **three complete briefings**: baseline, after rejection and after compatible publication. Time it on the presentation laptop; correctness tests do not establish its stage duration.
 
 ---
 
@@ -131,11 +110,9 @@ Wait for:
 Ready: http://localhost:11020/workflow/agents
 ```
 
-**Secured mode:** `python3 scripts/secured.py run` instead. It also starts Keycloak (http://localhost:8190) and waits for it.
+The runner starts an ephemeral Registry (`latest-snapshot`, for MCP tool import until 3.4 ships), the Registry console and a small proxy in Docker, and four local Java processes. It registers the weather tool and installs the translator's BACKWARD compatibility rule. **Leave Terminal A running.** Afterward, run `python3 scripts/stop.py` in a spare terminal to stop everything cleanly.
 
-The runner starts an ephemeral Registry (a pinned snapshot image, for MCP tool import), the Registry console and a small proxy in Docker, and four local Java processes. It registers the weather tool and installs the translator's BACKWARD compatibility rule. **Leave Terminal A running.** Ctrl+C stops the demo and removes its Registry data.
-
-### Terminal B: checks and presenter server
+### Terminal B: readiness checks and presenter server
 
 ```bash
 curl -fsS http://localhost:8180/apis/registry/v3/system/info
@@ -146,8 +123,8 @@ You should see the two roles `summarizer` and `translator`. Descriptions may var
 
 | Component | Address |
 |---|---|
-| Slides | Local `talks/cloud-native-paris-2026/presentation.html` file |
-| Briefing dashboard | http://localhost:11020/ |
+| Live slides | http://127.0.0.1:8765/ |
+| Briefing dashboard (fallback) | http://localhost:11020/ |
 | Orchestrator API | http://localhost:11020/workflow |
 | Registry API | http://localhost:8180/apis/registry/v3 |
 | Registry console | http://localhost:8888/ |
@@ -166,53 +143,34 @@ In Terminal B, start the presenter server and leave it running:
 python3 scripts/present.py
 ```
 
-Open these in the browser:
+Open these two tabs in the browser:
 
 ```bash
 open http://127.0.0.1:8765/
-open http://localhost:11020/
 open http://localhost:8888/explore/default/translator
 ```
 
-**Secured mode:** start the presenter with `python3 scripts/present.py --mode secured` and open
-the same URL. Match the presenter mode to the stack in Terminal A.
+All **three** live demo steps run directly inside the deck:
+- **Slide 7:** embedded briefing panel (Amsterdam and the visitor-context sentence are already pre-filled).
+- **Slide 9:** **Run governance** streams formatted output directly into the slide.
+- **Slide 11:** **Run tools** streams formatted output directly into the slide.
 
-The two live panels stream real command output. If the presenter server is unavailable, open
-`presentation.html` directly and run the printed commands in a spare terminal. For attendees,
-share the HTML file, not the localhost URL. Stop the presenter with Ctrl+C in Terminal B.
+Before the audience arrives:
+1. Confirm the toolbar says **Default demo** and the counter says **1 / 14**.
+2. Glance at slides 7, 9, and 11 to verify **Show live briefing**, **Run governance**, and **Run tools** are visible — **do not click governance or tools**.
+3. Warm up the Ollama model by running **one briefing** on slide 7 (or via `curl` in a spare terminal), then click **Back to slide** and press **Home** to return to slide 1.
+4. Keep the Registry console tab (`http://localhost:8888/explore/default/translator`) and your offline backup recording ready. Keep `http://localhost:11020/` only as a fallback link (already on slide 7).
 
-**Secured mode only:** Log in to the console as **alice** (password `alice`). Keep a private window ready to log in as
-**bob** (`bob`), and a terminal with the refused call typed in:
-
-```bash
-curl -i -X POST http://localhost:11010/ -H 'Content-Type: application/json' -d '{}'
-```
-
-The standalone slides have no external fonts or assets. For the secured slides without the
-presenter server, append `?mode=secured` to the file URL in the browser.
-
-Preload three tabs/windows:
-
-1. Presentation, slide 1.
-2. Briefing dashboard with **Amsterdam** selected.
-3. Local backup recording, paused and ready.
-
-Suggested input:
-
-```text
-Visitors will walk through the city and meet colleagues to discuss open standards.
-```
-
-Run one briefing before the audience arrives to warm the model. Do not run the governance command on that fresh instance yet if you want the simplest one-skill baseline on stage. If you do rehearse it, stop and restart Terminal A to get an empty Registry, then warm with only a briefing.
+If the presenter server is unavailable, open `presentation.html` directly and run the printed commands in a spare terminal. For attendees, share the GitHub repo (or QR code on slide 14), not the localhost URL.
 
 ### Presentation controls
 
-- **← / →**, Page Up / Page Down: navigate.
+- **← / →**, Page Up / Page Down: navigate (prefer **→** over Space after clicking live buttons).
 - **F:** fullscreen.
 - **N:** notes overlay; **Escape:** close notes.
 - **R:** replay animations; slide 4 also has a replay button.
 - **Home / End:** first/last slide.
-- `#slide-7` in the URL jumps directly to slide 7.
+- `#slide-8` in the URL jumps directly to slide 8.
 
 The notes overlay appears on the same screen as the slides. Don't open it on the projected display unless you intend the audience to see it. Keep this guide on a separate, non-mirrored display or print it.
 
@@ -220,276 +178,256 @@ Animations illustrate order, **not real traffic or elapsed time**. Reduced-motio
 
 ---
 
-## 3. Slide-by-slide delivery
+## 3. Slide-by-slide verbatim rehearsal script (130 wpm · 25 min)
 
 ### Slide 1 — Agent sprawl is the new microservice sprawl
-**0:00–0:45 · Introduce the problem, not the whole stack.**
+**0:00–1:15 · ~180 words · Introduce yourself, the thesis, and why the demo is intentionally small.**
 
-Suggested words:
-
-> “I'm Carles. I maintain Apicurio Registry and contribute to Quarkus. Today we're going to connect a tool and two agents, change one of their published contracts, and see exactly what the registry protects.”
+> Good morning everyone. I'm Carles Arnal. I'm a Principal Software Engineer at IBM, I'm one of the core maintainers of Apicurio Registry, and I contribute to Quarkus.
 >
-> “It's a small example on purpose. If we can't explain the boundaries with three services, adding twenty won't help.”
+> Today I want to talk about a problem that is starting to look very familiar to anyone who lived through the early years of microservices: agent sprawl. Teams are spinning up specialist AI agents, exposing MCP tools, wiring them together in code, and changing their capabilities independently. And very quickly, the same operational questions we solved years ago for REST APIs and event streams come right back. Where does this service live? What does it promise it can do? And what happens when someone changes that contract before every caller is ready?
+>
+> Everything I'm going to show you today is live, running locally on this laptop, and deliberately small: one MCP tool and two A2A agents. That's on purpose. If we can't be clear about the boundaries with three services, scaling it to thirty won't make the architecture clearer. Let's start with the first honest question: do we even need a registry?
 
-**Transition:** “First: do we even need a registry?”
+---
 
 ### Slide 2 — Three URLs are fine. Until ownership changes.
-**0:45–2:00 · Give the audience permission to keep simple systems simple.**
+**1:15–3:15 · ~260 words · Connect the title to OpenAPI, AsyncAPI, and Kafka Schema Registry.**
 
-> “If one team owns all three services and releases them together, putting three URLs in configuration may be perfectly reasonable.”
+> Before I sell you any new infrastructure, I want to give you permission to keep simple systems simple.
 >
-> “The problem changes when teams publish and evolve capabilities independently. Where does a caller find the endpoint? Where does it inspect the declared interface? And where can we review a change before publishing it?”
+> Look at the left side of this slide. If one team owns an orchestrator, a couple of agents, and a tool server, and releases them together in the same pipeline, putting three URLs in an `application.properties` file may be completely fine. Adding a registry adds another service to operate, monitor, and secure. If you don't have an ownership boundary yet, static configuration is often the right engineering choice.
+>
+> The inflection point is the right side of the slide, and it's the exact same inflection point we hit ten years ago with microservices and event-driven systems. Back then, three REST URLs in config were fine too—until ten different teams owned those services. We didn't solve microservice sprawl by putting more URLs in YAML. We standardized how services describe their contracts with OpenAPI, AsyncAPI, Avro, and Protobuf, and we put those contracts in a registry—a schema registry or an API registry—so producers and consumers could evolve without breaking each other on every deploy.
+>
+> Multi-agent AI is hitting that exact same moment. Now the contract isn't just a REST endpoint or a Kafka topic schema. It's an A2A Agent Card declaring an agent's skills and endpoint, or an MCP tool definition declaring a tool's name and JSON input schema. Once different teams publish those agents and tools on different schedules, callers need a shared place to find endpoints, inspect what changed between versions, and reject a breaking publication before anyone relies on it.
 
-Point to the two columns. Don't claim independent teams or a production fleet were load-tested by this sample. A registry adds a service to operate, not free reliability.
-
-**Transition:** “In this example, we give that registry three jobs.”
+---
 
 ### Slide 3 — A shared contract. Three useful jobs.
-**2:00–3:00 · Locate, review, check.**
+**3:15–5:00 · ~230 words · Separate discovery and governance from orchestration.**
 
-> “Locate: publish definitions and resolve endpoints. Review: keep versions so a changed declaration can be inspected. Check: apply a publication rule—a new card must keep the translation skill, and a new tool version must still accept the old calls.”
+> When people hear "agent registry", they sometimes picture a magical control plane that plans workflows, picks the smartest agent automatically, and proxies every prompt. I want to be very clear about what we are actually asking the registry to do here. In this design, Apicurio Registry has three concrete jobs.
 >
-> “What isn't on this list is deciding the workflow. That remains application code.”
+> Job one is **locate**: agents and tool servers publish structured definitions—Agent Cards for A2A, tool and server definitions for MCP—and callers resolve their network endpoints at runtime instead of hardcoding hosts and ports.
+>
+> Job two is **review**: every publication creates an immutable version in the registry. When a capability changes, you have an auditable history of what was declared before and what was declared after.
+>
+> Job three is **check**: the registry runs compatibility rules when a new version is submitted. For an Agent Card, a `BACKWARD` compatibility rule checks that you didn't silently drop a skill callers already depend on. For an MCP tool, the same rule engine checks the JSON Schema so you don't suddenly add a required parameter that breaks every existing caller.
+>
+> Look at the sentence at the bottom of the slide: **the application still owns the roles and the execution order**. Discovery is not orchestration. The registry tells us where contracts live and whether a proposed version is compatible. Our application code still decides which roles it needs and in what order to call them. Let's put that on a diagram.
 
-**Transition:** “Let's put those responsibilities on a diagram.”
+---
 
 ### Slide 4 — Discover through the registry. Call the services directly.
-**3:00–5:00 · Use the flow animation to explain the two paths.**
+**5:00–7:15 · ~275 words · Press R if needed to narrate the orange vs. teal paths.**
 
-Let the animation run once, or press **R** when ready to narrate it.
-
-> “The text agents publish Agent Cards through the Quarkus LangChain4j extension. The runner registers the Weather MCP service's metadata explicitly.”
+> *(Let the diagram animate once, or press **R** as you begin explaining the paths.)*
 >
-> “The orchestrator discovers the registered endpoints. Then it calls the services directly: weather, summarization, translation. Apicurio isn't proxying those requests.”
+> Here is the whole architecture running on my laptop right now, and there are two colors to pay attention to: orange and teal.
 >
-> “The sequence and role names are fixed in our application. Network locations come from the registry.”
-
-Point out:
-- Orange paths: publication and discovery requests.
-- Teal paths: direct calls from the orchestrator.
-- The summarizer does **not** call the translator itself; the orchestrator passes the summary into a second call.
-
-**Transition:** “The interesting evidence is what crosses those handoffs.”
-
-**Secured mode transition:** “And in this version of the demo, every one of those arrows carries an identity.”
-
-### Secured mode only — Slide 5: Every call carries an identity. Every service checks it.
-**5:00–6:00 · One table, one refused call, one login. Then move on.**
-
-> “Same diagram, but now nothing is anonymous. People log in to the Registry console. Each agent publishes its card with its own credentials and a write role. The orchestrator discovers with a read-only identity. And when it calls the agents and the weather tool, it sends its own token, and each service checks the role.”
+> The **orange paths** are the control plane—publication and discovery. On the right, we have three backend services: a Weather server exposing a `getWeather` tool over MCP, a Summarizer agent over A2A, and a Translator agent over A2A. Both text agents publish their Agent Cards into Apicurio Registry at startup using the Quarkus LangChain4j A2A extension. For the briefing workflow, our demo runner also registers the Weather MCP tool metadata in Apicurio Registry, and later we'll see Registry 3.4 import tools directly from the running MCP server itself.
 >
-> “The Registry side of this is released. The client side, the Quarkus extensions sending credentials, is in review or proposed upstream, and this demo builds it from a pinned branch.”
-
-Show, quickly:
-- The `curl` call without a token: **401**.
-- The console as alice (can edit), then bob in the private window (can browse, can't change anything).
-
-Say once: even the Agent Cards are protected; the client sends its token when it fetches them. (The A2A spec allows public cards too.)
-
-This slide costs about a minute. Take it from the briefing (slide 6 in default numbering): show the handoff fields, not whole paragraphs.
-
-**Transition:** “Every call behind the next demo carries a token. Let's follow the data.”
-
-### Slide 5 — Follow the data. Not just the final answer.
-**5:00–6:00 · Define what success means before showing it.**
-
-> “Weather is a fixture: fictional Amsterdam weather, 16 degrees and light rain. That output goes into the summarizer along with our context. The summary, not the original input, then goes into the translator.”
+> On the left sits the Orchestrator, a Quarkus application using the two Quarkus LangChain4j Apicurio Registry extensions—one for A2A and one for MCP. When a request comes in, the orchestrator queries the registry to resolve the current endpoints for those roles.
 >
-> “A plausible French paragraph isn't enough to prove that happened. We'll look at the intermediate values.”
-
-**Transition:** “Let's run one.”
-
-### Slide 6 — One briefing. Every handoff visible.
-**6:00–11:00 · Switch to the dashboard; don't build on stage.**
-
-Terminal A is already running. The command on the slide explains the entry point; do not launch a second instance.
-
-1. Open the dashboard at http://localhost:11020/.
-2. Choose **Amsterdam**.
-3. Paste the visitor-context sentence above.
-4. Click **Create briefing in French** once.
-5. While it runs, explain the role split; don't repeatedly click.
-
-Show, in this order:
-
-**Registered contracts observed before execution**
-> “These are the definitions we observed in Registry. The version and globalId identify the registration, not a deployed binary.”
-
-**MCP weather**
-> “This is the tool's actual fixture output. It is not a live weather forecast.”
-
-**A2A summarize**
-> “Here is that weather output inside the next request, together with our context.”
-
-**A2A translate**
-> “And this input is the summary we just received. That's the handoff we're checking.”
-
-Don't read the complete generated paragraphs aloud. Their exact wording is variable.
-
-If the dashboard fails but the backend works, use Terminal B:
-
-```bash
-curl -fsS --max-time 120 http://localhost:11020/workflow/briefing \
-  -H 'Content-Type: application/json' \
-  --data '{"city":"Amsterdam","context":"Visitors will walk through the city and meet colleagues to discuss open standards."}' \
-  | python3 -m json.tool
-```
-
-**Transition:** “Now let's change the declaration that this workflow depends on.”
-
-### Slide 7 — A small metadata change. A broken promise.
-**11:00–12:00 · Explain the candidate before running the check.**
-
-> “The accepted card advertises a translator skill. This candidate removes it and leaves an unrelated skill. The card isn't empty: we want to test compatibility, not just whether an empty card is invalid.”
+> Now look at the **teal paths**: invocation. Once the orchestrator knows the endpoints, it calls the Weather MCP server directly, takes the forecast, calls the Summarizer agent directly over A2A JSON-RPC, takes that summary, and calls the Translator agent directly over A2A JSON-RPC. Apicurio Registry is **never** in the data path and never proxies a prompt or a tool call. Just like a Kafka Schema Registry, it governs the contract metadata, while runtime traffic flows directly between services.
 >
-> “Registry has a BACKWARD compatibility rule on this artifact. We expect it to reject removal of that declared skill.”
+> Notice also that the Summarizer never calls the Translator. The orchestrator passes the actual output of step one into step two, and the output of step two into step three. Let's look at the actual Java code that wires this up.
 
-The slide is an abbreviated skill-ID diff. The actual card is JSON with additional fields; do not present the slide as a literal request payload.
+---
 
-**Transition:** “A 400 on its own wouldn't tell us enough. Let's check what survived.”
+### Slide 5 — One registry URL. Zero hardcoded endpoints.
+**7:15–9:15 · ~260 words · Walk left to right through the real 1.15.1 sample code.**
 
-### Slide 8 — Don't just show the error. Check what survived.
-**12:00–16:00 · Click Run governance on the slide.** Terminal fallback:
-
-```bash
-python3 scripts/workflow.py governance
-```
-
-This command has several phases. It does not pause between them:
-
-1. Run a baseline briefing and observe the translator registration.
-2. Submit the card with the translator skill removed.
-3. Check the exact rejection, not just any HTTP failure.
-4. Verify the rejected version is absent and accepted metadata is unchanged.
-5. Rerun the connected briefing.
-6. Publish a compatible addition and rerun again.
-
-Point to the error:
-
-```text
-HTTP 400
-RuleViolationException
-Skill 'translator' was removed
-/skills
-```
-
-Then point to:
-
-```text
-PASS: connected briefing still works with the unchanged translator registration
-```
-
-Suggested words:
-
-> “We checked the exact cause, checked that the rejected version does not exist, and checked that the accepted content and version stayed the same.”
+> I promised this isn't slideware, so here are the actual excerpts from the Quarkus LangChain4j 1.15.1 sample running behind this presentation.
 >
-> “The same running workflow still works after that failed publication.”
-
-Keep the slide output visible while it completes. The checks happen inside the script; don't manually repeat all the requests on stage.
-
-Then switch to the console tab (http://localhost:8888/explore/default/translator):
-
-> “Here's the translator's history in the Registry. The accepted version is there; the rejected one never was.”
-
-After the compatible addition (slide 9), the same page shows the new version too.
-
-**Transition:** “Now the positive path: a change that keeps the existing promise.”
-
-### Slide 9 — Keep the promise. Publish the addition.
-**16:00–17:00 · Explain the final phase of that same command.**
-
-Expected final message:
-
-```text
-PASS: Registry accepted additive translator version; connected briefing reports the new registration
-```
-
-> “The translator skill remains, and an additional skill declaration is accepted. The next briefing reports the new registered version.”
+> Start on the **left card**, inside the Orchestrator. We inject two CDI beans provided by the extensions: `ApicurioAgentsRegistry`, which implements LangChain4j's `AgentsRegistry` SPI for A2A discovery, and `ApicurioRegistryMcpTools`, which provides discovery and invocation over Streamable HTTP for MCP servers. Look at what is missing from this code: there is not a single `localhost`, port number, or agent URL anywhere in the orchestrator. To find our agents, we call `registry.allAgents()` and look up the two roles our workflow expects: `"summarizer"` and `"translator"`. For the weather tool, our typed wrapper `DiscoveredWeather` calls `searchMcpServers("weather")`, connects to the registered `weather-tools/weather` artifact, and invokes `getWeather`. Notice why we wrapped that in a typed Java method: role selection, step ordering, and JSON argument encoding stay predictable application code, while only the network location comes from the registry.
 >
-Say once, briefly: this changes metadata only; the running translator is the same.
-
-If useful, run another briefing in the dashboard to show the new version—but only if comfortably ahead of schedule. Don't launch a second governance command just to show the addition again.
-
-**Transition:** “That was an agent. Tools need the same promise.”
-
-### Slide 10 — Same promise. For tools.
-**17:00–19:00 · Click Run tools on the slide.** Terminal fallback:
-
-```bash
-python3 scripts/workflow.py tools
-```
-
-What it does, in order:
-
-1. Registers the weather server as an MCP server and asks the Registry to import its tools. The Registry calls `tools/list` on the running server.
-2. Puts a BACKWARD rule on the imported tool, then submits a version where every caller must also send `units`.
-3. Imports again from the unchanged server.
-
-Expected output:
-
-```text
-Imported from the running weather server: [('getWeather', 'weather-server.getWeather', 'CREATED')]
-PASS: tools imported from the running MCP server, no hand-written definitions
-Registry rejected the tool change (HTTP 400): [("The 'properties' constraints were narrowed ...", '/inputSchema/properties'), ("A property was made 'required'.", '/inputSchema/required/1')]
-PASS: breaking tool change rejected; the registered tool is unchanged
-PASS: importing again from the unchanged server changes nothing
-```
-
-On a second run the import line says `UNCHANGED` instead of `CREATED`; the checks are the same.
-
-> “Nobody wrote this tool definition: the Registry read it from the running server. A change that adds a required input would break every existing caller, and it's rejected, with the reason. Importing again from the same server changes nothing.”
-
-Then show the tool in the console: http://localhost:8888/explore/weather-tools/weather-server.getWeather
-
-If asked: importing tools is in Apicurio Registry 3.4. The demo runs a pinned snapshot image until it's released. The briefing still finds the weather server the way the upstream sample does, so this step is independent of it.
-
-### Slide 11 — Put each guarantee in the right place.
-**19:00–20:30 · Use the table as the answer to “what does this solve?”**
-
-> “Registry extensions locate endpoints. Application code chooses roles, order and argument encoding. Registry rules check proposed card and tool versions. Tests and deployment controls have to verify actual behavior.”
+> Now look at the **right card**. In `application.properties`, the orchestrator only needs to know one address: the Apicurio Registry URL, configured for the A2A extension and the MCP extension. Below that is `TextAgent.java`. Both the summarizer and translator are actually the same Quarkus binary started twice with different profiles. On startup, each instance uses `A2AAgentCardPublisher` from the extension to publish its own Agent Card—name, description, endpoint URL, and skill—into Apicurio Registry.
 >
-> “The failure is expecting one of these layers to guarantee all the others.”
+> That's the whole integration surface. Now let's talk about what counts as proof before we run it live.
 
-Mention once:
-- Observed metadata isn't a deployment pin or a transactional snapshot.
-- This sample doesn't implement a deprecation-routing gate.
-- It is local and unauthenticated; authorization is additional work for a shared deployment.
-  **Secured mode:** every hop is authenticated, but on loopback with demo secrets: no tenant boundaries, key rotation or production credential management.
-- A rejected card or tool checks the published contract, not deployed code: say it here, once.
+---
 
-**Transition:** “Three things to take back.”
+### Slide 6 — Follow the data. Not just the final answer.
+**9:15–10:45 · ~195 words · Define what proves the handoffs really happened.**
 
-### Slide 12 — Discover. Connect. Verify.
-**20:30–22:00 · Three takeaways, then stop adding detail.**
-
-> “First, use a registry when independent ownership makes publication and discovery worth centralizing.”
+> With LLM demos, it is dangerously easy to fool yourself—and an audience. If I send "give me a weather briefing for Amsterdam in French" and a nice French paragraph comes back on screen, did the orchestrator actually call the MCP server? Did the summarizer actually read that tool output? Did the translator translate the summarizer's output, or did one model just make up plausible French weather from its training data?
 >
-> “Second, make handoffs explicit. Check the real data passing between a tool and the agents—not just whether the final answer looks good.”
+> That's why we made two deliberate choices in this sample. First, the weather data is a deterministic fixture: for Amsterdam, the MCP tool always returns **16 degrees Celsius, light rain**, explicitly labeled as fictional sample data. That way we can tell immediately whether the real tool output made it downstream.
 >
-> “Third, test what a rejected change preserves. And test deployed behavior separately.”
+> Second, the orchestrator returns every intermediate step, not just the final string. In a second, we're going to check three specific things on screen: first, that the exact fixture weather string shows up inside the **input** to the Summarizer; second, that the exact summary returned by the Summarizer shows up verbatim inside the **input** to the Translator; and third, which registered contract versions the orchestrator observed in Apicurio Registry before making those calls. Let's run one live.
 
-### Slide 13 — Try the workflow. Inspect the contract.
-**22:00–25:00 · Questions and buffer.**
+---
 
-> “The example, checks and setup commands are linked here. The sample ships with Quarkus LangChain4j 1.15.1. If you want every agent registry feature, including visibility per user, ARD and the Registry MCP server, the Apicurio demo is linked too. Some of what it shows ships in Registry 3.4. Thank you—happy to take questions.”
+### Slide 7 — One briefing. Every handoff visible.
+**10:45–13:30 · ~295 words + ~30s live execution · Demo 1 of 3 inside the slide.**
 
-**Secured mode:** replace the release sentence with “The sample ships with Quarkus LangChain4j; the authentication you saw is in review upstream, and the repository builds it from a pinned branch.”
+*Actions:*
+1. Click **Show live briefing** (Amsterdam and the visitor-context sentence are already pre-filled).
+2. Click **Run briefing** once. *(Say the "while running" block while Ollama completes both A2A calls.)*
+3. Once complete, click **01 · MCP weather**, **02 · A2A summarize**, **03 · A2A translate**, and expand **Registry versions observed before the calls**.
+4. When done, press **→** (or click **→** in the toolbar) to move to Slide 8.
+
+*While clicking **Show live briefing** → **Run briefing** (~10–20s wait):*
+
+> Let's open the live briefing panel right here inside the deck. Amsterdam and our visitor context are already filled in: "Visitors will walk through the city and meet colleagues to discuss open standards." I'll click **Run briefing** once.
+>
+> While those calls execute locally on Ollama, remember what is happening under the hood. The orchestrator is reading the current contract metadata from Apicurio Registry, resolving the MCP weather server and connecting to it over Streamable HTTP, then invoking the Summarizer and Translator over A2A JSON-RPC using the endpoints it discovered from their Agent Cards.
+
+*Once results appear — click through steps 01, 02, 03, then expand the versions disclosure:*
+
+> Alright, it finished. Let's trace the data step by step instead of just admiring the French.
+>
+> On **step 01, MCP weather**, the input is `"Amsterdam"`, and the output from the `weather-tools/weather` server is our exact fixture string: `"Fictional sample data: Amsterdam: 16 C, light rain"`.
+>
+> Now let's click **step 02, A2A summarize**. Look at the left box—the **Input** sent to `default/summarizer`. Right there inside the prompt is that exact `"Amsterdam: 16 C, light rain"` string from the MCP server, combined with our visitor context. On the right is the concise English summary generated by the summarizer agent.
+>
+> Now click **step 03, A2A translate**. Look at the **Input** sent to `default/translator`: it matches the summarizer's output character for character, and on the right is the French translation. That proves all three hops actually executed and handed off real data.
+>
+> Finally, if I expand **Registry versions observed before the calls**, you can see all three contracts—`weather`, `summarizer`, and `translator`—each with its version and `globalId`. One important boundary to keep in mind: that version identifies the contract stored in the registry when the workflow read it, not a cryptographic pin to the running JVM binary.
+>
+> Now let's break one of those contracts and see what happens.
+
+*(Fallback if the live panel fails: click **Open dashboard in a separate tab** or run the `curl` in Section 5.)*
+
+---
+
+### Slide 8 — A small metadata change. A broken promise.
+**13:30–15:00 · ~195 words · Explain the invariant before clicking Run governance.**
+
+> Suppose the team that owns the Translator agent prepares a new release and tries to publish an updated Agent Card.
+>
+> On the left is the accepted card currently in Apicurio Registry: it declares the skill `id: translator`. On the right is the candidate card they submit. Notice two things about this abbreviated skill-ID diff. First, it removes `id: translator`. Second, it adds a different skill, `id: unrelated-...`. We keep a skill in the array on purpose: we don't want the registry to reject the card simply because the skills list is empty or the JSON is malformed. We want a true **semantic compatibility check**.
+>
+> Because we attached a `BACKWARD` compatibility rule to the `translator` artifact in Apicurio Registry, the registry understands the `AGENT_CARD` artifact type natively. It doesn't just check JSON syntax—it compares the proposed skills list against the accepted version. Removing an existing skill breaks callers that rely on it, so we expect Apicurio Registry to reject this publication with HTTP **400** and tell us specifically: `Skill 'translator' was removed`.
+>
+> Now, in a real system, seeing an HTTP 400 error on its own isn't enough proof. What if the registry partially wrote the version, or corrupted the latest pointer? Let's test both the rejection and what survived.
+
+---
+
+### Slide 9 — Don't just show the error. Check what survived.
+**15:00–18:00 · ~280 words + ~45s live execution & console view · Demo 2 of 3 inside the slide.**
+
+*Actions:*
+1. Click **Run governance** once. *(Do NOT press Space; use **→** when moving on.)*
+2. Immediately deliver the **"While it runs"** block — this covers the ~15–20 seconds while the baseline briefing runs before the first output line streams in.
+3. Point to the coral `REJECTED` block and the two green `PASS:` lines as they appear.
+4. Click `translator versions ↗` (or switch to the preloaded Registry console tab at `http://localhost:8888/explore/default/translator`) to show the version history visually.
+
+*Click **Run governance**, then say right away while the timer ticks:*
+
+> I'll click **Run governance** right here on the slide. You'll see the timer ticking because this script isn't just firing a single `curl`—it runs a full end-to-end verification sequence without pausing between phases.
+>
+> First, it runs a baseline briefing and records the exact accepted translator version and `globalId`. Second, it submits that breaking Agent Card with the `translator` skill removed and asserts that Apicurio returns HTTP 400 with `RuleViolationException` and the exact `/skills` cause. Third, it checks the three things listed on the right of this slide: it queries the rejected version ID directly to confirm a **404**—it was never stored; it reads the latest version to verify that the accepted content, version, and `globalId` are untouched; and it reruns the entire live briefing end to end to prove the workflow keeps working. Finally, it also submits a compatible additive version and reruns the briefing one more time.
+
+*As the formatted output streams in — point to the coral block, then the green PASS lines:*
+
+> Look at the output. In orange: **REJECTED · HTTP 400 · RuleViolationException — Skill 'translator' was removed (`/skills`)**. That's a semantic diff straight from Apicurio Registry's `AGENT_CARD` compatibility engine, not a generic JSON schema failure.
+>
+> Right below it in green: **PASS: connected briefing still works with the unchanged translator registration**. And right below that, the final phase just finished too: **PASS: Registry accepted additive translator version; connected briefing reports the new registration**.
+
+*Switch briefly to the Registry console tab (`http://localhost:8888/explore/default/translator`), then return to the deck:*
+
+> Let's glance at the Apicurio Registry console for `translator`. Look at the version history: you see the initial `1.0.0` version, and the compatible additive version that was just accepted. The `breaking-demo` version that was rejected never appears in history at all. That's what a clean publication boundary looks like. Let's look closer at that second, compatible change.
+
+---
+
+### Slide 10 — Keep the promise. Publish the addition.
+**18:00–19:15 · ~160 words · Clarify metadata acceptance vs. runtime implementation.**
+
+> That last `PASS` line we just saw tested the positive path, because a governance rule that rejects everything is useless—teams still need to ship new capabilities safely.
+>
+> Here, the candidate Agent Card kept `id: translator` intact and added a second declared skill alongside it. Under `BACKWARD` compatibility, adding a capability while keeping existing ones is safe for current callers, so Apicurio Registry accepted it, created a new version, and the next briefing automatically observed the new registered version.
+>
+> Now, I want to be completely transparent about what that step proves and what it does **not** prove. Adding a skill entry to an Agent Card updates the **published contract metadata**. It does not deploy new code into the running translator JVM, and it does not mean the agent suddenly implements that new skill. That's still the job of your application tests and deployment pipeline. The registry guarantees the contract evolution rule; your delivery process has to tie contract publication to deployed behavior.
+>
+> So far we've governed an A2A Agent Card. What about MCP tools?
+
+---
+
+### Slide 11 — Same promise. For tools.
+**19:15–21:30 · ~240 words + ~15s live execution & console view · Demo 3 of 3 inside the slide.**
+
+*Actions:*
+1. Click **Run tools** once. *(Finishes in ~1–2 seconds — no LLM calls!)*
+2. Walk through the output lines: import (`CREATED`), `PASS`, coral `REJECTED` with two causes, `PASS`, `PASS`.
+3. Click `the imported tool ↗` (`http://localhost:8888/explore/weather-tools/weather-server.getWeather`) if on schedule, then return to the deck.
+
+*Before and right as you click **Run tools**:*
+
+> Agents aren't the only things sprawling—MCP servers and tools are multiplying even faster. And maintaining hand-written copies of every MCP tool's JSON Schema in a registry quickly drifts out of sync with reality.
+>
+> So in Apicurio Registry 3.4—which we're running here from a snapshot image—we added live MCP tool import. Let's click **Run tools** and watch how fast this runs, since there are no LLM calls here.
+
+*Point to the streamed blocks:*
+
+> Done in about a second. Look at the three steps that just ran.
+>
+> First: **Imported from the running weather server: `getWeather` — `CREATED`**. Nobody hand-wrote that tool definition. Apicurio Registry called `tools/list` directly on our running Weather MCP server, extracted `getWeather` and its JSON input schema, stored it as an `MCP_TOOL` artifact, and linked it from an `MCP_SERVER` artifact.
+>
+> Second, the script put a `BACKWARD` compatibility rule on that imported tool and submitted a breaking change: making a new `units` field required. Look at the coral block: **REJECTED · HTTP 400** with **two** exact JSON Schema causes—properties were narrowed to accept fewer objects, and a property was made required—and the registered tool stayed untouched.
+>
+> Third, we imported from the unchanged weather server a second time, and Apicurio reported **UNCHANGED**—idempotent, no noisy duplicate versions.
+>
+> *(Optional, if on schedule: click `the imported tool ↗` in the console.)* If we open that imported tool in the Registry console, there is the real `getWeather` JSON Schema and its compatibility rule, right beside our A2A Agent Cards in the same registry.
+
+---
+
+### Slide 12 — Put each guarantee in the right place.
+**21:30–23:15 · ~225 words · The single honest architectural boundary summary.**
+
+> If you take one architectural diagram or table back from this talk, make it this one. Most disappointment with registries—whether API registries, schema registries, or agent registries—comes from expecting one layer to guarantee things that actually belong to another layer.
+>
+> Let's read the four rows straight across.
+>
+> Row one: **Locate registered endpoints**. That belongs to the registry and its client extensions—here, Quarkus LangChain4j's Apicurio extensions for A2A and MCP.
+>
+> Row two: **Choose roles, order, and argument encoding**. That belongs to application code. Even when endpoints are dynamic, making the workflow structure explicit in code keeps your system debuggable and predictable.
+>
+> Row three: **Check a candidate card or tool**. That belongs to registry publication rules—catching breaking skill removals or incompatible JSON Schema changes before they ever become the latest contract.
+>
+> Row four, highlighted in orange: **Verify deployed behavior**. That belongs to your automated tests and deployment process.
+>
+> Let me state the remaining boundaries clearly once. In this default demo, everything runs on loopback without authentication; in a shared deployment, you add OIDC authentication and per-group access rules—which Apicurio Registry already supports, and we have client-side authentication PRs in review in Quarkus LangChain4j. There is no automatic deprecation-routing gate here, and reading registered metadata is an observation, not a deployment pin or a transactional fleet snapshot. Knowing where the registry stops is what lets you design the rest cleanly.
+
+---
+
+### Slide 13 — Discover. Connect. Verify.
+**23:15–24:15 · ~130 words · Three crisp takeaways, then stop adding detail.**
+
+> To wrap up, three practical habits you can bring back to your team.
+>
+> **First: use a registry when ownership warrants it.** If one team deploys everything together, static config is fine. Once multiple teams publish agents and MCP tools independently, move those contracts into a shared registry so endpoints and capability versions have an explicit home.
+>
+> **Second: make every handoff explicit.** Don't judge a multi-agent workflow only by whether the final paragraph sounds fluent. Inspect the actual inputs and outputs crossing each tool and agent boundary.
+>
+> **Third: test what a rejected change preserves, and verify running implementations separately.** Don't just assert an HTTP 400—verify that the accepted contract stayed intact and callers kept working, and keep behavioral testing in your delivery pipeline.
+
+---
+
+### Slide 14 — Try the workflow. Inspect the contract.
+**24:15–25:00 · ~95 words · Share QR code + links and open for Q&A.**
+
+> Everything you saw today is open source and runnable locally. You can scan the QR code on the right or visit `github.com/carlesarnal/agent-discovery-demo` to get these exact slides, the presenter guides, and the runner scripts.
+>
+> The connected workflow sample itself ships upstream in **Quarkus LangChain4j 1.15.1**. And if you want to explore every agent registry feature we didn't have time for today—including per-user visibility with Keycloak, the AI Catalog, ARD, the MCP Registry API, and the Registry's own MCP server—check out the Apicurio Registry demo linked at the bottom right.
+>
+> Thank you very much. I'm happy to take your questions.
 
 ---
 
 ## 4. Timing and fallback rules
 
-| Checkpoint | Target | If behind |
-|---|---:|---|
-| Finish architecture (secured mode: identity slide) | 6:00 (7:00) | Skip implementation class names; retain the two traffic paths |
-| Finish first briefing | 11:00 | Show handoff fields, not whole paragraphs |
-| Explain rejected publication | 16:00 | Use the local backup if the live command is still waiting |
-| Finish compatible path and tools | 19:00 | Skip the console views; if `tools` is slow, narrate the expected output above |
-| Start questions | 22:00 | Keep the ownership table and three takeaways; omit optional code inspection |
+| Checkpoint | Target (130 wpm) | Faster pace (~155 wpm) | If behind |
+|---|---:|---:|---|
+| Finish architecture & code (slides 1–5) | 9:15 | ~7:45 | Summarize slide 5 in 30s; keep the two traffic paths on slide 4 |
+| Finish first briefing (slides 6–7) | 13:30 | ~11:30 | Show handoff fields, not whole paragraphs |
+| Finish governance & compatible path (slides 8–10) | 19:15 | ~16:15 | Skip the console tab on slide 9; narrate slide 10 in 20s |
+| Finish tool governance (slide 11) | 21:30 | ~18:00 | Skip the console tab on slide 11 |
+| Finish takeaways & open Q&A (slides 12–14) | 25:00 | ~21:00 | Never cut slide 12 (ownership table) or slide 13 (takeaways) |
 
-The governance runner executes all phases together. “Skip the last rerun” means **stop waiting on stage and continue explaining**, not that the current command has an interactive skip feature.
-
-If nothing useful has appeared after about 20–30 seconds, continue narrating the expected sequence once. If the delay persists, switch to the recording and say:
+If a live briefing or governance run shows no progress after about 30 seconds, narrate what it is testing once. If the delay persists, switch to your local backup recording and say:
 
 > “The live model call is taking too long, so I'll use a recording of this same revision. The important part is the boundary we're testing.”
 
@@ -502,7 +440,7 @@ Avoid live debugging beyond one quick check. Do not claim the backup is live or 
 Logs live under:
 
 ```text
-target/quarkus-langchain4j/samples/agent-registry-workflow/target/run/
+target/talk-sample/target/run/
   summarizer.log
   translator.log
   weather.log
@@ -511,24 +449,20 @@ target/quarkus-langchain4j/samples/agent-registry-workflow/target/run/
 
 | Symptom | Check / response |
 |---|---|
-| Model not installed / Ollama connection refused | Start host Ollama; run `ollama list`; install the configured model before the session |
+| Model not installed / Ollama connection refused | Start host Ollama; run `ollama list`; install `qwen2.5:7b` before the session |
 | Missing application JAR | Run `python3 scripts/workflow.py prepare` before the talk |
 | Wrapper rejects a dirty or different checkout | Inspect `git -C target/quarkus-langchain4j status --short`; preserve changes, or delete the directory to fetch the tag again |
 | Port already in use | Identify its owner with `lsof -nP -iTCP:11020 -sTCP:LISTEN` (replace port as needed); don't kill unrelated processes |
-| “Sample containers already exist” | Find the existing runner and stop it normally; the new run refuses to reuse its data |
+| “Sample containers already exist” | Run `python3 scripts/stop.py`; the new run refuses to reuse old Registry data |
 | Application exits during startup | Read the corresponding log; wait for all four readiness checks before presenting |
-| Dashboard reports registry-read failure / HTTP 503 | Check Registry health and required artifact metadata; don't mistake absence of metadata for agent-code failure |
+| Briefing reports registry-read failure / HTTP 503 | Check Registry health and required artifact metadata; don't mistake absence of metadata for agent-code failure |
 | Missing required agent / HTTP 503 | Inspect `/workflow/agents` and publication logs in summarizer/translator logs |
 | Slow or failed inference | Check host Ollama and agent logs; switch to the recording instead of rebuilding on stage |
-| Weather answer looks plausible but tool execution is uncertain | Inspect weather-server logs for the actual invocation; plausibility alone isn't proof |
-| Governance request gets unexpected status | Inspect the script's exact error. Authentication, connectivity or syntax failures are not successful compatibility checks |
-| Slide flow does not animate | Check reduced-motion preference; press R. Static slides still carry the complete explanation |
-| Slides open on the last page | Remove the URL hash or press Home |
-| **Secured mode:** every call fails with 401 | Check the Podman VM clock (see section 1); then check Keycloak is up: `curl -fsS http://localhost:8190/realms/agents` |
-| **Secured mode:** the console doesn't show the login page | Check Keycloak on http://localhost:8190; reload the console |
-| **Secured mode:** slides show 13 slides | Open the deck with `?mode=secured` |
-
-Secured-mode logs are in `target/secured-sample/target/run/`.
+| Weather answer looks plausible but tool execution is uncertain | Inspect `weather.log` for the actual invocation; plausibility alone isn't proof |
+| Governance request gets unexpected status | Inspect the exact error. Authentication, connectivity or syntax failures are not successful compatibility checks |
+| Slide flow does not animate | Check reduced-motion preference; press **R**. Static slides still carry the complete explanation |
+| Slides open on the last page | Remove the URL hash or press **Home** |
+| No live buttons on slides 7, 9, or 11 | Open `http://127.0.0.1:8765/` with `scripts/present.py` running; check the toolbar says **Default demo**. Fallback: separate dashboard tab + printed commands in a spare terminal |
 
 Readiness checks:
 
@@ -537,6 +471,15 @@ curl -fsS http://localhost:8180/apis/registry/v3/system/info
 for port in 11010 11020 11030 11040; do
   curl -fsS "http://localhost:$port/q/health/ready"
 done
+```
+
+Briefing CLI fallback (if the browser UI fails while the backend is healthy):
+
+```bash
+curl -fsS --max-time 120 http://localhost:11020/workflow/briefing \
+  -H 'Content-Type: application/json' \
+  --data '{"city":"Amsterdam","context":"Visitors will walk through the city and meet colleagues to discuss open standards."}' \
+  | python3 -m json.tool
 ```
 
 Optional registration/rule inspection (no writes):
@@ -617,13 +560,9 @@ starts with new Registry state.
 
 “This demo is loopback-only and unauthenticated, on purpose. The Registry itself already supports authentication with OIDC, roles, and access rules per group, including which agents each user can discover. What isn't released yet is the client side: the Quarkus extensions authenticating to the Registry and to the agents they call. Those changes are in review upstream. A shared deployment also needs tenant boundaries, credential management and operational policies; I haven't demonstrated those here.”
 
-**Secured mode:** “Every hop in this demo is authenticated, and each service needs a role for the calls it receives. A shared deployment still needs tenant boundaries, credential management and operational policies; I haven't demonstrated those.”
-
 ### “Who can publish or change a card?”
 
 “Whoever the Registry authorizes to write to that group. With authentication on, that's a role plus, optionally, per-group access rules. Labels and references never grant access. In this demo nothing is authenticated, so anyone on the laptop could.”
-
-**Secured mode:** “Only identities with a write role. The agents publish with their own credentials; bob, who you saw, can read but not write.”
 
 ### “Can this run on Kubernetes?”
 
@@ -633,8 +572,6 @@ starts with new Registry state.
 
 “Yes. Both extensions and this sample ship in Quarkus LangChain4j 1.15.1, and the demo builds against that release. Registry authentication for the extensions is still in review, which is why the demo runs without it. Importing tools from a running MCP server is in Apicurio Registry 3.4; the demo uses its snapshot image until then.”
 
-**Secured mode:** “The extensions are, in Quarkus LangChain4j 1.15.1. The authentication you saw is in review upstream; the demo builds it from that branch, pinned to one commit. Importing tools is in Apicurio Registry 3.4.”
-
 ### “What performance or scale have you measured?”
 
 “This is a functional integration demonstration, not a fleet-scale or latency benchmark. We verified the handoffs and compatibility outcomes. Model response times on my laptop aren't a production capacity claim.”
@@ -643,18 +580,14 @@ starts with new Registry state.
 
 ## 7. Final rehearsal checklist
 
-- [ ] Recheck event slot, room and whether questions are included in the 25 minutes.
+- [ ] Confirm exact event date/time, room, and whether Q&A is inside the 25 minutes.
 - [ ] Record the exact repository commit and sample release used for rehearsal.
-- [ ] Complete `prepare` and one live smoke run on the presentation laptop.
-- [ ] Time the entire talk, including browser/terminal switching and model calls.
-- [ ] Run from a fresh Registry and warm the model before the main rehearsal.
-- [ ] Practice explaining the architecture in under two minutes.
-- [ ] Practice the “rejected metadata is not blocked deployment” answer in one sentence.
-- [ ] Have a local recording and static screenshots ready without internet access.
-- [ ] Confirm that notes are not visible on the projected display.
-- [ ] Start questions by minute 22; finish at minute 25.
-- [ ] **Secured mode:** `secured.py smoke` passed twice in a row on the presentation laptop; go/no-go decided by 28 November.
-- [ ] **Secured mode:** deck opened with `?mode=secured`; alice logged in, bob's private window and the `curl` ready.
-- [ ] **Secured mode:** Podman VM clock matches the laptop (after any sleep).
+- [ ] Complete `prepare` and one live `smoke` run on the presentation laptop.
+- [ ] Rehearse the full verbatim script out loud with a stopwatch, including all three in-slide demos and console views.
+- [ ] Run from a fresh Registry (`scripts/stop.py`, then `workflow.py run`) and warm Ollama with one briefing before the session.
+- [ ] Confirm toolbar says **Default demo**, counter says **1 / 14**, and slides 7, 9, and 11 show live buttons.
+- [ ] Confirm speaker notes are closed on the projected display and the QR code on slide 14 scans cleanly with a phone.
+- [ ] Have a local backup recording ready without network access.
+- [ ] Use **→** (not Space) to advance slides after interacting with live demo buttons.
 
 **Closing line:** “Discover the endpoints. Make the handoffs explicit. Test the contract—and verify the implementation separately.”
